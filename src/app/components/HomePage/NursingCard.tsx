@@ -14,23 +14,22 @@ const NursingCard = ({ nurse }: { nurse: any }) => {
   } = nurse;
 
   return (
-    <div className="p-3 lg:p-5">
+    <div
+      data-aos="fade-left"
+      data-aos-duration="1200"
+      data-aos-easing="ease-in-out-back"
+      className="p-3 lg:p-5"
+    >
       <div>
         <img src={photo} className="w-full" alt="" />
       </div>
 
-      <h2
-        className="text-[18px] leading-[30px] lg:text-[26px] 
-    lg:leading-9 text-headingColor font-[700] mt-3"
-      >
+      <h2 className="text-[18px] leading-[30px] lg:text-[26px]  lg:leading-9 text-headingColor font-[700] mt-3">
         {name}
       </h2>
 
       <div className="mt-2 lg:mt-4 flex items-center justify-between">
-        <span
-          className="bg-[#CCF0F3] text-irisBlueColor py-1 px-2 lg:py-2
-        lg:px-6 leading-4 lg:text-[16px] lg:leading-7 font-semibol rounded"
-        >
+        <span className="bg-[#CCF0F3] text-irisBlueColor py-1 px-2 lg:py-2lg:px-6 leading-4 lg:text-[16px] lg:leading-7 font-semibol rounded">
           {specialization}
         </span>
 

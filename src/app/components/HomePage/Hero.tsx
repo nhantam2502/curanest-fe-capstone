@@ -18,6 +18,9 @@ const Hero = () => {
             <div className="relative h-64 overflow-hidden rounded-lg sm:h-80 lg:order-last lg:h-full">
               <img
                 src="./slider-img.jpg"
+                data-aos="fade-left"
+                data-aos-duration="1000"
+                data-aos-easing="ease-in-out"
                 className="absolute inset-0 h-full w-full object-cover rounded-3xl"
                 width={800}
                 height={800}
@@ -26,20 +29,31 @@ const Hero = () => {
             </div>
 
             <div className="lg:py-24">
-              <h2 className="text-3xl font-bold sm:text-4xl text-headingColor">
+              <h2
+                data-aos="fade-right"
+                className="text-3xl font-bold sm:text-4xl text-headingColor"
+              >
                 Find & Book
                 <span className="text-[#71DDD7]"> Appointment </span>
                 with your Favorite
                 <span className="text-[#71DDD7]"> Nursing</span>
               </h2>
 
-              <p className="mt-4 text-textColor">
+              <p data-aos="fade-right" className="mt-4 text-textColor">
                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur
                 doloremque saepe architecto maiores repudiandae amet perferendis
                 repellendus, reprehenderit voluptas sequi.
               </p>
 
-              <button className="btn mt-10">Explore now</button>
+              <button
+                data-aos="fade-right"
+                data-aos-delay="50"
+                data-aos-duration="1200"
+                data-aos-easing="ease-in-out"
+                className="btn mt-10"
+              >
+                Explore now
+              </button>
             </div>
           </div>
         </div>
@@ -64,7 +78,12 @@ const Hero = () => {
             gap-5 lg:gap-[30px] lg:mt-[55px]"
           >
             {/* icon 1 */}
-            <div className="py-[30px] px-5">
+            <div
+              className="py-[30px] px-5"
+              data-aos="fade-left"
+              data-aos-duration="1200"
+              data-aos-easing="ease-in-out-back"
+            >
               <div className="flex items-center justify-center">
                 <img src="./icon01.png" alt="icon1" />
               </div>
@@ -92,7 +111,12 @@ const Hero = () => {
             </div>
 
             {/* icon 2 */}
-            <div className="py-[30px] px-5">
+            <div
+              className="py-[30px] px-5"
+              data-aos="fade-left"
+              data-aos-duration="1400"
+              data-aos-easing="ease-in-out-back"
+            >
               <div className="flex items-center justify-center">
                 <img src="./icon02.png" alt="icon2" />
               </div>
@@ -120,7 +144,12 @@ const Hero = () => {
             </div>
 
             {/* icon 3 */}
-            <div className="py-[30px] px-5">
+            <div
+              className="py-[30px] px-5"
+              data-aos="fade-left"
+              data-aos-duration="1600"
+              data-aos-easing="ease-in-out-back"
+            >
               <div className="flex items-center justify-center">
                 <img src="./icon03.png" alt="icon3" />
               </div>
@@ -173,7 +202,12 @@ const Hero = () => {
         <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
           <div className="flex items-center justify-between flex-col lg:flex-row">
             {/* Feature Content */}
-            <div className="xl:w-[670px]">
+            <div
+              data-aos="fade-top"
+              data-aos-duration="1600"
+              data-aos-easing="ease-in-out-back"
+              className="xl:w-[670px]"
+            >
               <h2 className="heading">
                 Get virtual treatment <br /> anytime
               </h2>
@@ -194,18 +228,28 @@ const Hero = () => {
               </ul>
 
               <Link href="">
-                <button className="btn mt-[38px]">Learn more</button>
+                <button
+                  data-aos="fade-right"
+                  data-aos-delay="50"
+                  data-aos-duration="1200"
+                  data-aos-easing="ease-in-out"
+                  className="btn mt-[38px]"
+                >
+                  Learn more
+                </button>
               </Link>
             </div>
 
             {/* Feature Image */}
-            <div className="relative z-10 xl:w-[770px] flex justify-end mt-[50px] lg:mt-0">
+            <div
+              data-aos="fade-down"
+              data-aos-duration="1600"
+              data-aos-easing="ease-in-out-back"
+              className="relative z-10 xl:w-[770px] flex justify-end mt-[50px] lg:mt-0"
+            >
               <img className="w-3/4" src="./feature-img.png" />
 
-              <div
-                className="w-[150px] lg:w-[200px] rounded-[10px] bg-white absolute bottom-[50px] left-0 
-      md:bottom-[100px] md:left-5 z-20 p-2 pb-2 lg:pt-2 lg:px-3"
-              >
+              <div className="w-[150px] lg:w-[200px] rounded-[10px] bg-white absolute bottom-[50px] left-0 md:bottom-[100px] md:left-5 z-20 p-2 pb-2 lg:pt-2 lg:px-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-[6px] lg:gap-3">
                     <p className="text-[10px] leading-[10px] lg:text-[14px] lg:leading-5 text-headingColor font-[600]">

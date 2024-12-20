@@ -2,14 +2,19 @@
 import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
 
-const FaqItem = ({ item }: { item: any }) => {
+const FaqItem = ({ item, index }: { item: any, index: number }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleAccordion = () => {
     setIsOpen(!isOpen);
   };
   return (
-    <div className="p-3 lg:p-5 rounded-[12px] border border-solid border-[#D9DCE2] mb-5 cursor-pointer">
+    <div 
+    data-aos="fade-left"
+      data-aos-duration="1200"
+      data-aos-easing="ease-in-out-back"
+      data-aos-delay={index * 100} // Tăng thời gian delay dựa trên index
+    className="p-3 lg:p-5 rounded-[12px] border border-solid border-[#D9DCE2] mb-5 cursor-pointer">
       <div
         className="flex items-center justify-between gap-5"
         onClick={toggleAccordion}

@@ -1,38 +1,38 @@
+// middleware.ts
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    const token = req.nextauth?.token;
+    const token = req.nextauth.token;
+    const path = req.nextUrl.pathname;
 
-    if (
-      req.nextUrl.pathname.startsWith("/AdminPage") &&
-      (!token || token.role !== "admin")
-    ) {
-      return NextResponse.rewrite(new URL("/Denied", req.url));
+    // Protect admin routes
+    if (path.startsWith("/admin") && token?.role !== "admin") {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
-    if (
-      req.nextUrl.pathname.startsWith("/Nurse") &&
-      (!token || token.role !== "nurse")
-    ) {
-      return NextResponse.rewrite(new URL("/Denied", req.url));
+    // Protect nurse routes
+    if (path.startsWith("/nurse") && token?.role !== "nurse") {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
-    if (
-      req.nextUrl.pathname.startsWith("/User") &&
-      (!token || token.role !== "user")
-    ) {
-      return NextResponse.rewrite(new URL("/Denied", req.url));
+    // Protect staff routes
+    if (path.startsWith("/staff") && token?.role !== "staff") {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
+    }
+
+    if (path.startsWith("/user") && token?.role !== "user") {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
   },
   {
     callbacks: {
-      authorized: ({ token }) => token?.role === "admin",
+      authorized: ({ token }) => !!token,
     },
   }
 );
 
 export const config = {
-  matcher: ["/admin/:path*", "/Nurse/:path*", "/User/:path*"],
+  matcher: ["/admin/:path*", "/nurse/:path*", "/staff/:path*", "/user/:path*"],
 };
