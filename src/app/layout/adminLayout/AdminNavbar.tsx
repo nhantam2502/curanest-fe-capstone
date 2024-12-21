@@ -9,6 +9,7 @@ import {
   MenuIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { signOut } from "next-auth/react";
 
 const AdminNavbar = () => {
   const pathname = usePathname();
@@ -85,12 +86,12 @@ const AdminNavbar = () => {
                 {item.title}
               </Link>
             ))}
-            <Link
-              href="/login"
+            <Button
+              onClick={() => signOut({ callbackUrl: "/" })}
               className="block w-full bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 text-center rounded"
             >
-              Log out
-            </Link>
+              Đăng xuất
+            </Button>
           </nav>
         </div>
       )}

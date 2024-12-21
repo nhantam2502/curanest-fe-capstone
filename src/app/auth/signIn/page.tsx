@@ -1,84 +1,42 @@
-'use client'
-import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import React, { useRef, useState } from "react";
+"use client";
+import { LoginForm } from "@/components/login-form";
+import React from "react";
 
 const LoginPage = () => {
-  const router = useRouter();
-  const email = useRef("");
-  const password = useRef("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const onSubmit = async () => {
-    try {
-      setLoading(true);
-      setError("");
-
-      const result = await signIn("credentials", {
-        email: email.current,
-        password: password.current,
-        redirect: false, // Để tự xử lý điều hướng
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password");
-        return;
-      }
-
-      // Lấy session để kiểm tra role
-      const session = await getSession();
-      const role = session?.user?.role;
-
-      switch (role) {
-        case "admin":
-          router.push("/admin");
-          break;
-        case "nurse":
-          router.push("/nurse");
-          break;
-        case "staff":
-          router.push("/staff");
-          break;
-        default:
-          router.push("/");
-      }
-    } catch (error) {
-      setError("An error occurred during login");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-gradient-to-br gap-1 from-cyan-300 to-sky-600">
-      <div className="px-7 py-4 shadow bg-white rounded-md flex flex-col gap-2">
-        {error && (
-          <div className="text-red-500 text-sm text-center">{error}</div>
-        )}
-        <input
-          className="border p-2 rounded-md"
-          placeholder="Email"
-          type="email"
-          onChange={(e) => (email.current = e.target.value)}
-          disabled={loading}
+    <div className="w-full h-screen flex flex-col lg:flex-row items-center justify-center">
+      <div className="relative w-full lg:w-1/2 h-1/3 lg:h-full flex flex-col">
+        <div className="absolute top-[20%] left-[10%] flex flex-col">
+          <h1 className="text-4xl text-white font-bold my-4">
+            Turn your ideas into reality
+          </h1>
+          <p className="text_para">
+            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eligendi
+            nam dolorum aliquam, quibusdam aperiam voluptatum.
+          </p>
+        </div>
+        <img
+          src="https://images.unsplash.com/photo-1617195737496-bc30194e3a19?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
+          className="w-full h-full object-cover"
         />
-        <input
-          className="border p-2 rounded-md"
-          placeholder="Password"
-          type="password"
-          onChange={(e) => (password.current = e.target.value)}
-          disabled={loading}
-        />
-        <button
-          className={`bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          onClick={onSubmit}
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
+      </div>
+
+      <div className="w-full lg:w-1/2 h-full bg-white flex flex-col p-6 sm:p-12 lg:p-20 justify-center items-center">
+        {/* <h1 className="text-xl text-[#060606] font-semibold mr-auto">
+          CURANEST
+        </h1> */}
+
+        <div className="w-full flex flex-col max-w-md">
+          <div className="w-full flex flex-col mb-4">
+            <h3 className="text-2xl sm:text-3xl font-semibold mb-2">
+              Đăng nhập
+            </h3>
+            <p className="text-sm sm:text-base mb-4">
+              Chào mừng bạn quay trở lại
+            </p>
+          </div>
+          <LoginForm />
+        </div>
       </div>
     </div>
   );

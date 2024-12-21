@@ -5,5 +5,4 @@ const colors = {
   softYellow: "#FEF0D7",
   white: "#FEFEFE",
 };
-
 export default colors;

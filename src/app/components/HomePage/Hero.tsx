@@ -33,27 +33,33 @@ const Hero = () => {
                 data-aos="fade-right"
                 className="text-3xl font-bold sm:text-4xl text-headingColor"
               >
-                Find & Book
-                <span className="text-[#71DDD7]"> Appointment </span>
-                with your Favorite
-                <span className="text-[#71DDD7]"> Nursing</span>
+                Tìm và Đặt
+                <span className="text-[#71DDD7]"> Lịch hẹn </span>
+                với
+                <span className="text-[#71DDD7]"> Điều dưỡng </span>
+                bạn tin tưởng
               </h2>
 
-              <p data-aos="fade-right" className="mt-4 text-textColor">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur
-                doloremque saepe architecto maiores repudiandae amet perferendis
-                repellendus, reprehenderit voluptas sequi.
+              <p
+                data-aos="fade-right"
+                className="mt-4 text-textColor text_para"
+              >
+                Curanest là nền tảng đặt lịch điều dưỡng tại nhà, kết nối gia
+                đình có người già hoặc người bệnh với dịch vụ chăm sóc chuyên
+                nghiệp, tiện lợi và đáng tin cậy.
               </p>
 
-              <button
-                data-aos="fade-right"
-                data-aos-delay="50"
-                data-aos-duration="1200"
-                data-aos-easing="ease-in-out"
-                className="btn mt-10"
-              >
-                Explore now
-              </button>
+              <Link href="">
+                <button
+                  data-aos="fade-right"
+                  data-aos-delay="50"
+                  data-aos-duration="1200"
+                  data-aos-easing="ease-in-out"
+                  className="btn mt-10"
+                >
+                  Trải nghiệm ngay
+                </button>
+              </Link>
             </div>
           </div>
         </div>

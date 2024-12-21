@@ -67,34 +67,6 @@ body {
   section {
     @apply py-[35px];
   }
-
-  /* .navigation {
-    width: 100px;
-    height: 100px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 100;
-    background: #00000084;
-    display: none;
-  }
-
-  .menu {
-    width: 15rem;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: #fff;
-    z-index: 200;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    line-height: 30px;
-  }
-  .show_menu {
-    display: block;
-  } */
 }
 
 @media only screen and (max-width: 768px) {
