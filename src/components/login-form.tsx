@@ -30,10 +30,15 @@ export function LoginForm({
   const [error, setError] = useState("");
 
   const {
+    register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const onSubmit = async (data: any) => {
@@ -89,6 +94,8 @@ export function LoginForm({
                   placeholder="Email"
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                   disabled={loading}
+                  {...register("email")}
+
                 />
                 {errors.email && (
                   <div className="text-red-500 text-sm">
@@ -105,7 +112,10 @@ export function LoginForm({
                   placeholder="Mật khẩu"
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                   disabled={loading}
+                  {...register("password")}
+
                 />
+                
                 {errors.password && (
                   <div className="text-red-500 text-sm">
                     {errors.password.message as string}
