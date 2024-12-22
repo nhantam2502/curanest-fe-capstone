@@ -5,8 +5,8 @@ import { redirect } from 'next/navigation';
 import React from 'react'
 import { options } from '../api/auth/[...nextauth]/options';
 
-const NursePage = async () => {
-  const session = await getServerSession(options);
+const NursePage =  () => {
+  const { data: session, status } = useSession();
     
     if (!session) {
       redirect("/api/auth/signin?callbackUrl=/nurse");
