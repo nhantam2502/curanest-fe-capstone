@@ -41,7 +41,7 @@ const NursingList = () => {
     gap-5 lg:gap-[30px] mt-[30px] lg:mt-[55px]"
     >
       {nursing.map((nurse, index) => (
-        <NursingCard key={nurse.id} nurse={nurse}/>
+        <NursingCard key={nurse.id} nurse={nurse} />
       ))}
     </div>
   );

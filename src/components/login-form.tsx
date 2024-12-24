@@ -70,6 +70,9 @@ export function LoginForm({
         case "staff":
           router.push("/staff");
           break;
+        case "relatives":
+          router.push("/relatives");
+          break;
         default:
           router.push("/");
       }
@@ -95,7 +98,6 @@ export function LoginForm({
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                   disabled={loading}
                   {...register("email")}
-
                 />
                 {errors.email && (
                   <div className="text-red-500 text-sm">
@@ -105,7 +107,7 @@ export function LoginForm({
               </div>
 
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">Mật khẩu</Label>
                 <Input
                   id="password"
                   type="password"
@@ -113,9 +115,8 @@ export function LoginForm({
                   className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
                   disabled={loading}
                   {...register("password")}
-
                 />
-                
+
                 {errors.password && (
                   <div className="text-red-500 text-sm">
                     {errors.password.message as string}

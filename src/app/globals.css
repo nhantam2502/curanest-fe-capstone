@@ -28,6 +28,13 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+ .gradient-text {
+    @apply text-4xl font-bold;
+    background: linear-gradient(90deg, #A8E0E9, #64D1CB, #FEF0D7, #FEFEFE);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 }
 
 @layer base {
@@ -54,8 +61,8 @@ body {
     @apply bg-[url('/mask.png')] bg-no-repeat bg-center bg-cover w-full h-[100px] leading-[100px];
   }
 
-  .hero_section{
-    @apply bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover ;
+  .hero_section {
+    @apply bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover;
   }
 }
 

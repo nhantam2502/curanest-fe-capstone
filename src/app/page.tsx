@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { useEffect } from "react";
 import CategorySearch from "./components/HomePage/CategorySearch";
 import Footer from "./components/HomePage/Footer";
@@ -7,6 +7,7 @@ import Hero from "./components/HomePage/Hero";
 import "./globals.css";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import GuestPage from "./guest/page";
 
 export default function Home() {
   useEffect(() => {
@@ -20,11 +21,7 @@ export default function Home() {
 
   return (
     <div>
-      <Header />
-      {/* Hero section */}
-      <Hero />
-      {/* Footer */}
-      <Footer />
+      <GuestPage />
     </div>
   );
 }

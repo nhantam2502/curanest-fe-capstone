@@ -1,37 +1,37 @@
-import { Button } from "@/components/ui/button";
 import { ArrowRight, Video } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import About from "./About";
-import ServiceList from "./ServiceList";
-import NursingList from "./NursingList";
-import FaqList from "./FaqList";
+import ServiceList from "../Service/ServiceList";
+import NursingList from "../Nursing/NursingList";
+import FaqList from "../FAQ/FaqList";
 import Feedbacks from "./Feedbacks";
-
+import BlogSection from "../News/NewsSection";
+import News from "@/app/guest/news/page";
 const Hero = () => {
   return (
     <>
       {/* Section 1 */}
       <section className="hero_section">
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16">
-            <div className="relative h-64 overflow-hidden rounded-lg sm:h-80 lg:order-last lg:h-full">
+        <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
+          <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-20">
+            <div className="relative h-80 overflow-hidden rounded-lg sm:h-96 lg:order-last lg:h-full">
               <img
                 src="./slider-img.jpg"
                 data-aos="fade-left"
                 data-aos-duration="1000"
                 data-aos-easing="ease-in-out"
                 className="absolute inset-0 h-full w-full object-cover rounded-3xl"
-                width={800}
-                height={800}
+                width={1200}
+                height={1200}
                 alt=""
               />
             </div>
 
-            <div className="lg:py-24">
+            <div className="lg:py-32">
               <h2
                 data-aos="fade-right"
-                className="text-3xl font-bold sm:text-4xl text-headingColor"
+                className="text-4xl font-bold sm:text-5xl text-headingColor"
               >
                 Tìm và Đặt
                 <span className="text-[#71DDD7]"> Lịch hẹn </span>
@@ -40,10 +40,7 @@ const Hero = () => {
                 bạn tin tưởng
               </h2>
 
-              <p
-                data-aos="fade-right"
-                className="mt-4 text-textColor text_para"
-              >
+              <p data-aos="fade-right" className="mt-6 text-xl text-textColor">
                 Curanest là nền tảng đặt lịch điều dưỡng tại nhà, kết nối gia
                 đình có người già hoặc người bệnh với dịch vụ chăm sóc chuyên
                 nghiệp, tiện lợi và đáng tin cậy.
@@ -55,7 +52,7 @@ const Hero = () => {
                   data-aos-delay="50"
                   data-aos-duration="1200"
                   data-aos-easing="ease-in-out"
-                  className="btn mt-10"
+                  className="btn mt-12"
                 >
                   Trải nghiệm ngay
                 </button>
@@ -67,8 +64,8 @@ const Hero = () => {
 
       {/* Section 2 */}
       <section id="about">
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
-          <div className="lg:w-[470px] mx-auto">
+        <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
+          <div className="lg:w-[600px] mx-auto">
             <h2 className="heading text-center">
               Providing the best medical services
             </h2>
@@ -79,10 +76,7 @@ const Hero = () => {
             </p>
           </div>
 
-          <div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 
-            gap-5 lg:gap-[30px] lg:mt-[55px]"
-          >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 mt-16">
             {/* icon 1 */}
             <div
               className="py-[30px] px-5"
@@ -190,7 +184,7 @@ const Hero = () => {
 
       {/* Services Section*/}
       <section id="services">
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
+        <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
           <div className="xl:w-[470px] mx-auto">
             <h2 className="heading text-center">Our medical services</h2>
             <p className="text_para text-center">
@@ -205,14 +199,13 @@ const Hero = () => {
 
       {/* Feature Section*/}
       <section>
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
-          <div className="flex items-center justify-between flex-col lg:flex-row">
+        <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
+          <div className="flex items-center justify-between flex-col lg:flex-row gap-16">
             {/* Feature Content */}
             <div
               data-aos="fade-top"
               data-aos-duration="1600"
-              data-aos-easing="ease-in-out-back"
-              className="xl:w-[670px]"
+              className="xl:w-[800px]"
             >
               <h2 className="heading">
                 Get virtual treatment <br /> anytime
@@ -251,11 +244,11 @@ const Hero = () => {
               data-aos="fade-down"
               data-aos-duration="1600"
               data-aos-easing="ease-in-out-back"
-              className="relative z-10 xl:w-[770px] flex justify-end mt-[50px] lg:mt-0"
+              className="relative z-10 xl:w-[900px] flex justify-end mt-5 lg:mt-0"
             >
-              <img className="w-3/4" src="./feature-img.png" />
+              <img className="w-4/5" src="./feature-img.png" alt="" />
 
-              <div className="w-[150px] lg:w-[200px] rounded-[10px] bg-white absolute bottom-[50px] left-0 md:bottom-[100px] md:left-5 z-20 p-2 pb-2 lg:pt-2 lg:px-3">
+              <div className="w-[250px] rounded-xl bg-white absolute bottom-16 left-8 z-20 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-[6px] lg:gap-3">
                     <p className="text-[10px] leading-[10px] lg:text-[14px] lg:leading-5 text-headingColor font-[600]">
@@ -296,7 +289,7 @@ const Hero = () => {
 
       {/* Our great nursing Section*/}
       <section>
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
+        <div className="mx-auto max-w-[1700px] px-6 sm:px-6 lg:px-10">
           <div className="xl:w-[470px] mx-auto">
             <h2 className="heading text-center">Our great nursing</h2>
             <p className="text_para text-center">
@@ -328,19 +321,19 @@ const Hero = () => {
       </section>
 
       {/* Feedbacks Section*/}
-      <section>
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
-          <div className="xl:w-[470px] mx-auto">
-            <h2 className="heading text-center">What our patients say</h2>
-            <p className="text_para text-center">
-              World-class care for everyone. Our health System offers unmatched,
-              expert health care
-            </p>
-          </div>
-
-          <Feedbacks />
+      <section className="py-16">
+        <div className="xl:w-[470px] mx-auto mb-8">
+          <h2 className="heading text-center">What our patients say</h2>
+          <p className="text_para text-center">
+            World-class care for everyone. Our health System offers unmatched,
+            expert health care
+          </p>
         </div>
+        <Feedbacks />
       </section>
+
+      {/* News Section*/}
+      <News/>
     </>
   );
 };

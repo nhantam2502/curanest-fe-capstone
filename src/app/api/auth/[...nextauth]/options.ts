@@ -7,7 +7,7 @@ const users: User[] = [
   { id: "1", email: "nurse@gmail.com", password: "123", role: "nurse" },
   { id: "2", email: "staff@gmail.com", password: "123", role: "staff" },
   { id: "3", email: "admin@gmail.com", password: "123", role: "admin" },
-  { id: "4", email: "user@gmail.com", password: "123", role: "user" },
+  { id: "4", email: "user@gmail.com", password: "123", role: "relatives" },
 ];
 
 export const options: NextAuthOptions = {
