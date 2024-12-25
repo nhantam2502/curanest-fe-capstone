@@ -21,23 +21,25 @@ const NewsCard = ({ post }: { post: any }) => {
             alt={post.title}
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
           />
-          <Badge className="absolute top-4 left-4 bg-[#71DDD7] text-white hover:bg-[#5cc8c2] text-base px-4 py-1">
-            {post.category}
+          <Badge className="absolute top-4 left-4  text-white bg-[#e5ab47] hover:bg-[#e5ab47] text-base px-4 py-1">
+            {post.topic}
           </Badge>
         </div>
       </CardHeader>
+
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-4">
           <Clock className="w-5 h-5 text-gray-500" />
-          <span className="text-base text-gray-500">{post.date}</span>
+          <span className="text-base text-gray-500">{post.created_at}</span>
         </div>
         <CardTitle className="text-xl mb-4 line-clamp-2 hover:text-[#71DDD7] cursor-pointer transition-colors">
           {post.title}
         </CardTitle>
         <CardDescription className="line-clamp-2 text-base">
-          {post.excerpt}
+          {post.content}
         </CardDescription>
       </CardContent>
+      
       <CardFooter className="p-6 pt-0 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10">

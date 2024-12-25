@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, StarIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
@@ -38,7 +38,8 @@ const NursingCard = ({ nurse }: { nurse: any }) => {
             className="flex items-center gap-[6px] text-[14px] 
             leading-6 lg:text-[16px] leading-7 font-semibold text-headingColor"
           >
-            <img src="./Star.png" alt="" /> {avgRating}
+            <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />{" "}
+            {avgRating}
           </span>
 
           <span

@@ -6,11 +6,12 @@ import ServiceList from "../Service/ServiceList";
 import NursingList from "../Nursing/NursingList";
 import FaqList from "../FAQ/FaqList";
 import Feedbacks from "./Feedbacks";
-import BlogSection from "../News/NewsSection";
 import News from "@/app/guest/news/page";
+import NewsSection from "../News/NewsSection";
+
 const Hero = () => {
   return (
-    <>
+    <div className="overflow-x-hidden">
       {/* Section 1 */}
       <section className="hero_section">
         <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
@@ -333,8 +334,8 @@ const Hero = () => {
       </section>
 
       {/* News Section*/}
-      <News/>
-    </>
+      <NewsSection />
+    </div>
   );
 };
 

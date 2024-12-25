@@ -6,47 +6,45 @@ const NewsSection = () => {
   const blogPosts = [
     {
       id: 1,
-      title: "10 Tips for Maintaining Heart Health in Your Daily Routine",
-      excerpt:
-        "Discover simple yet effective ways to keep your heart healthy through diet, exercise, and lifestyle changes that you can easily incorporate into your daily life.",
+      title: "10 Mẹo Duy Trì Sức Khỏe Tim Mạch Trong Thói Quen Hằng Ngày",
+      content:
+        "Khám phá những cách đơn giản nhưng hiệu quả để giữ cho trái tim của bạn khỏe mạnh thông qua chế độ ăn uống, tập thể dục và thay đổi lối sống mà bạn có thể dễ dàng áp dụng vào cuộc sống hàng ngày.",
       imageUrl: "/loginLeft.jpg",
-      category: "Heart Health",
-      date: "Mar 15, 2024",
+      topic: "Sức Khỏe Tim Mạch",
+      created_at: "Ngày 15 tháng 3, 2024",
       author: {
-        name: "Dr. Sarah Johnson",
+        name: "Bác sĩ Sarah Johnson",
         avatar: "/avatar-sarah.jpg",
       },
-      likes: 245,
     },
     {
       id: 2,
-      title: "Understanding Mental Health: Breaking the Stigma",
-      excerpt:
-        "Mental health is just as important as physical health. Learn about common mental health issues, their signs, and how to seek help when needed.",
+      title: "Tìm Hiểu Sức Khỏe Tâm Thần: Phá Vỡ Định Kiến",
+      content:
+        "Sức khỏe tâm thần quan trọng không kém gì sức khỏe thể chất. Tìm hiểu về các vấn đề sức khỏe tâm thần phổ biến, dấu hiệu của chúng và cách tìm kiếm sự giúp đỡ khi cần.",
       imageUrl: "/loginLeft.jpg",
-      category: "Mental Health",
-      date: "Mar 12, 2024",
+      topic: "Sức Khỏe Tâm Thần",
+      created_at: "Ngày 15 tháng 3, 2024",
       author: {
-        name: "Dr. Michael Chen",
+        name: "Bác sĩ Michael Chen",
         avatar: "/avatar-michael.jpg",
       },
-      likes: 189,
     },
     {
       id: 3,
-      title: "The Science of Sleep: Why Quality Rest Matters",
-      excerpt:
-        "Explore the latest research on sleep science and learn practical tips for improving your sleep quality to boost overall health and well-being.",
+      title: "Khoa Học Về Giấc Ngủ: Tại Sao Giấc Ngủ Chất Lượng Quan Trọng",
+      content:
+        "Khám phá những nghiên cứu mới nhất về khoa học giấc ngủ và tìm hiểu các mẹo thực tế để cải thiện chất lượng giấc ngủ, nâng cao sức khỏe và hạnh phúc tổng thể.",
       imageUrl: "/loginLeft.jpg",
-      category: "Wellness",
-      date: "Mar 10, 2024",
+      topic: "Sức Khỏe Toàn Diện",
+      created_at: "Ngày 15 tháng 3, 2024",
       author: {
-        name: "Dr. Emma Wilson",
+        name: "Bác sĩ Emma Wilson",
         avatar: "/avatar-emma.jpg",
       },
-      likes: 312,
     },
   ];
+  
 
   return (
     <section id="news" className="mb-20">

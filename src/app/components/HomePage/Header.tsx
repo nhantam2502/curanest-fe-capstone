@@ -38,18 +38,13 @@ const Header = () => {
     { id: 1, name: "Trang chủ", path: "/" },
     { id: 2, name: "Giới thiệu", path: "#about" },
     { id: 3, name: "Dịch vụ", path: "#services" },
-    { id: 4, name: "Tin tức", path: "#news" },
+    { id: 4, name: "Tin tức", path: "/guest/news" },
   ];
 
   // Thêm "Đặt lịch" nếu role là relatives
   if (status === "authenticated" && session?.user?.role === "relatives") {
     Menu.push({ id: 5, name: "Đặt lịch", path: "/booking" });
   }
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/" });
-    setIsMenuOpen(false);
-  };
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
@@ -69,8 +64,8 @@ const Header = () => {
                     href={link.path}
                     className={`${
                       pathname === link.path
-                        ? "text-[18px] leading-7 font-[700]"
-                        : "text-textColor text-[18px] leading-7 font-[500] hover:text-[#71DDD7]"
+                        ? "text-lg leading-7 font-[700]"
+                        : "text-textColor text-lg leading-7 font-[500]"
                     }`}
                   >
                     {link.name}
