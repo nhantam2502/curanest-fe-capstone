@@ -54,11 +54,11 @@ const NursingCard = ({ nurse }: { nurse: any }) => {
       <div className="mt-[18px] lg:mt-5 flex items-center justify-between">
         <div>
           <h3 className="text-[16px] leading-7 lg:text-[18px] lg:leading-[30px] font-semibold text-headingColor">
-            + {totalPatients} patients
+            + {totalPatients} bệnh nhân
           </h3>
 
           <p className="text-[14px] leading-6 font-[400] text-textColor">
-            At {hospital}
+            Làm việc tại {hospital}
           </p>
         </div>
 

@@ -1,19 +1,20 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
-import { MenuIcon, X } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { MenuIcon, X } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
 
-const Header = () => {
+const RelativesNavbar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const { data: session, status } = useSession();
   const headerRef = useRef<HTMLElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,26 +36,38 @@ const Header = () => {
   }, []);
 
   const Menu = [
-    { id: 1, name: "Trang chủ", path: "/" },
-    { id: 2, name: "Giới thiệu", path: "#about" },
-    { id: 3, name: "Dịch vụ", path: "#services" },
-    { id: 4, name: "Đội ngũ điều dưỡng", path: "/guest/nurseList" },
-
-    { id: 5, name: "Tin tức", path: "/guest/news" },
+    { id: 1, name: "Hồ sơ bệnh nhân", path: "/relatives/booking" },
+    {
+      id: 2,
+      name: "Tìm kiếm điều dưỡng",
+      path: "/relatives/booking/bookingNurse",
+    },
+    { id: 3, name: "Lịch hẹn sắp tới", path: "" },
+    { id: 4, name: "Lịch sử giao dịch", path: "" },
+    { id: 4, name: "Ví tiền", path: "" },
   ];
 
-  // Thêm "Đặt lịch" nếu role là relatives
-  if (status === "authenticated" && session?.user?.role === "relatives") {
-    Menu.push({ id: 5, name: "Đặt lịch", path: "/relatives/booking" });
-  }
+  const handleClick = () => {
+    router.push("/");
+  };
 
   return (
-    <header className="header flex items-center relative" ref={headerRef}>
-      <div className="container">
+    <header
+      className="w-full h-[100px] leading-[100px] flex items-center relative"
+      ref={headerRef}
+    >
+      <div className=" max-w-full w-[1140px] mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>
-            <img src="/logo.svg" alt="logo" width={200} height={90} />
+            <img
+              className="cursor-pointer"
+              onClick={handleClick}
+              src="/logo.svg"
+              alt="logo"
+              width={200}
+              height={90}
+            />
           </div>
 
           {/* Desktop Menu */}
@@ -92,7 +105,6 @@ const Header = () => {
                 <PopoverContent className="w-50 mt-3">
                   <div className="flex flex-col">
                     <Button variant="ghost">Thông tin người dùng</Button>
-                    <Button variant="ghost">Ví tiền</Button>
                     <Button variant="ghost">Thay đổi mật khẩu</Button>
                     <Button
                       onClick={() => signOut({ callbackUrl: "/" })}
@@ -185,15 +197,7 @@ const Header = () => {
                                 Thông tin người dùng
                               </Link>
                             </li>
-                            <li>
-                              <Link
-                                href="#"
-                                className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                Ví tiền
-                              </Link>
-                            </li>
+
                             <li>
                               <button
                                 onClick={() => signOut({ callbackUrl: "/" })}
@@ -254,4 +258,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default RelativesNavbar;

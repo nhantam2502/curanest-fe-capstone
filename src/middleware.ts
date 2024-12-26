@@ -21,6 +21,11 @@ export default withAuth(
     if (path.startsWith("/staff") && token?.role !== "staff") {
       return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
+
+     // Protect staff routes
+     if (path.startsWith("/relatives") && token?.role !== "relatives") {
+      return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
+    }
   },
   {
     callbacks: {
@@ -30,5 +35,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/admin/:path*", "/nurse/:path*", "/staff/:path*"],
+  matcher: ["/admin/:path*", "/nurse/:path*", "/staff/:path*", "/relatives/:path*"],
 };

@@ -47,7 +47,7 @@ const Hero = () => {
                 nghiệp, tiện lợi và đáng tin cậy.
               </p>
 
-              <Link href="">
+              <Link href="/auth/signIn">
                 <button
                   data-aos="fade-right"
                   data-aos-delay="50"

@@ -1,0 +1,52 @@
+[
+    {
+      "id": 1,
+      "name": "Nguyễn Thị Ánh",
+      "specialization": "Chăm sóc bệnh nhân nội khoa",
+      "avgRating": 4.6,
+      "totalRating": 180,
+      "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
+      "totalPatients": 600,
+      "hospital": "Bệnh viện Bạch Mai"
+    },
+    {
+      "id": 2,
+      "name": "Trần Văn Bình",
+      "specialization": "Chăm sóc bệnh nhân ngoại khoa",
+      "avgRating": 4.7,
+      "totalRating": 220,
+      "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
+      "totalPatients": 750,
+      "hospital": "Bệnh viện Chợ Rẫy"
+    },
+    {
+      "id": 3,
+      "name": "Lê Thị Cúc",
+      "specialization": "Chăm sóc bệnh nhân nhi",
+      "avgRating": 4.9,
+      "totalRating": 280,
+      "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
+      "totalPatients": 900,
+      "hospital": "Bệnh viện Nhi Trung ương"
+    },
+      {
+      "id": 4,
+      "name": "Phạm Văn Dũng",
+      "specialization": "Chăm sóc bệnh nhân cấp cứu",
+      "avgRating": 4.5,
+      "totalRating": 150,
+      "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
+      "totalPatients": 500,
+      "hospital": "Bệnh viện 108"
+    },
+    {
+      "id": 5,
+      "name": "Hoàng Thị Thu",
+      "specialization": "Chăm sóc sức khỏe cộng đồng",
+      "avgRating": 4.8,
+      "totalRating": 250,
+      "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
+      "totalPatients": 800,
+      "hospital": "Trung tâm Y tế Dự phòng Hà Nội"
+    }
+  ]

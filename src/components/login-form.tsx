@@ -74,7 +74,7 @@ export function LoginForm({
           router.push("/relatives");
           break;
         default:
-          router.push("/");
+          router.push("/guest");
       }
     } catch (error) {
       setError("An error occurred during login");
