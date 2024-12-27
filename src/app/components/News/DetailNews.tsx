@@ -8,14 +8,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -25,17 +17,16 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import blogPosts from "@/dummy_data/dummy_news.json";
-import { Clock } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DetailNewsProps } from "@/types/news";
 import NewsCard from "./NewsCard ";
 
 const DetailNews = ({ post }: DetailNewsProps) => {
+  const [isMobile, setIsMobile] = useState(false);
+
   const relatedPosts = blogPosts
     .filter((p) => p.topic === post.topic && p.id !== post.id)
     .slice(0, 3);
 
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {

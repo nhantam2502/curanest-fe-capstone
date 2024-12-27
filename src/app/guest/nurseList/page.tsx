@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, StarIcon } from "lucide-react";
@@ -19,25 +19,39 @@ const NurseList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialization, setSelectedSpecialization] = useState("");
   const [minRating, setMinRating] = useState(0);
+  const [address, setAddress] = useState("");
+  const [district, setDistrict] = useState("");
+  const [ward, setWard] = useState("");
 
   const specializations = Array.from(
     new Set(nursing.map((nurse) => nurse.specialization))
   );
 
-  const filteredNurses = nursing.filter((nurse) => {
-    const matchesSearch =
-      nurse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      nurse.hospital.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialization =
-      !selectedSpecialization ||
-      nurse.specialization === selectedSpecialization;
-    const matchesRating = nurse.avgRating >= minRating;
-
-    return matchesSearch && matchesSpecialization && matchesRating;
-  });
+  const filteredNurses = useMemo(() => {
+    return nursing.filter((nurse) => {
+      const matchesSearch =
+        nurse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        nurse.hospital.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSpecialization =
+        !selectedSpecialization || nurse.specialization === selectedSpecialization;
+      const matchesRating = nurse.avgRating >= minRating;
+  
+      return matchesSearch && matchesSpecialization && matchesRating;
+    });
+  }, [searchTerm, selectedSpecialization, minRating, nursing]);
+  
 
   return (
     <section className="hero_section">
+
+      <div className="xl:w-[470px] mx-auto">
+        <h2 className="heading text-center">Đội ngũ điều dưỡng</h2>
+        <p className="text_para text-center">
+          World-class care for everyone. Our health System offers unmatched,
+          expert health care
+        </p>
+      </div>
+      
       <div className="mx-auto max-w-[1900px] px-8 lg:px-12 py-10">
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filter Sidebar */}
@@ -130,8 +144,77 @@ const NurseList = () => {
                     </div>
                   </AccordionContent>
                 </AccordionItem>
+
+                <AccordionItem value="nearby" className="border-b-2">
+                  <AccordionTrigger className="text-xl py-4">
+                    Xung quanh bạn
+                  </AccordionTrigger>
+
+                  <AccordionContent className="pt-4 pb-6">
+                    <div className="space-y-4">
+                      {/* Địa chỉ */}
+                      <div>
+                        <label className="block text-lg font-medium mb-2">
+                          Địa chỉ
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Nhập địa chỉ..."
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="py-4 text-lg"
+                        />
+                      </div>
+
+                      {/* Quận/Huyện */}
+                      <div>
+                        <label className="block text-lg font-medium mb-2">
+                          Quận/Huyện
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Nhập quận/huyện..."
+                          value={district}
+                          onChange={(e) => setDistrict(e.target.value)}
+                          className="py-4 text-lg"
+                        />
+                      </div>
+
+                      {/* Phường */}
+                      <div>
+                        <label className="block text-lg font-medium mb-2">
+                          Phường
+                        </label>
+                        <Input
+                          type="text"
+                          placeholder="Nhập phường..."
+                          value={ward}
+                          onChange={(e) => setWard(e.target.value)}
+                          className="py-4 text-lg"
+                        />
+                      </div>
+
+                      {/* Thành phố */}
+                      <div>
+                        <label className="block text-lg font-medium mb-2">
+                          Thành phố
+                        </label>
+                        <Input value={"Hồ Chí Minh"} className="py-4 text-lg" />
+                      </div>
+
+                      {/* Nút Lọc */}
+                      <Button
+                        variant="outline"
+                        className="w-full mt-4 text-lg"
+                        disabled={!address || !district || !ward}
+                      >
+                        Lọc xung quanh
+                      </Button>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               </Accordion>
-                      
+
               {/* Reset Button */}
               <Button
                 variant="outline"
@@ -140,6 +223,9 @@ const NurseList = () => {
                   setSearchTerm("");
                   setSelectedSpecialization("");
                   setMinRating(0);
+                  setAddress("");
+                  setDistrict("");
+                  setWard("");
                 }}
               >
                 Đặt lại bộ lọc

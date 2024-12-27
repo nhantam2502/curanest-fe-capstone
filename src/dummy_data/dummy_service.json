@@ -1,0 +1,32 @@
+{
+  "Chăm sóc bệnh nhân nội khoa": [
+    "Theo dõi và chăm sóc người bệnh",
+    "Dùng thuốc theo y lệnh",
+    "Theo dõi diễn biến bệnh",
+    "Chăm sóc dinh dưỡng"
+  ],
+  "Chăm sóc bệnh nhân ngoại khoa": [
+    "Chăm sóc vết thương",
+    "Hỗ trợ phẫu thuật",
+    "Thay băng vô trùng",
+    "Theo dõi sau phẫu thuật"
+  ],
+  "Chăm sóc bệnh nhân nhi": [
+    "Chăm sóc trẻ sơ sinh",
+    "Theo dõi phát triển",
+    "Tiêm chủng định kỳ",
+    "Tư vấn dinh dưỡng trẻ em"
+  ],
+  "Chăm sóc bệnh nhân cấp cứu": [
+    "Sơ cứu khẩn cấp",
+    "Theo dõi sinh hiệu",
+    "Hỗ trợ cấp cứu",
+    "Vận chuyển bệnh nhân"
+  ],
+  "Chăm sóc sức khỏe cộng đồng": [
+    "Tư vấn sức khỏe",
+    "Giáo dục sức khỏe",
+    "Tiêm chủng cộng đồng",
+    "Khám sức khỏe định kỳ"
+  ]
+}
