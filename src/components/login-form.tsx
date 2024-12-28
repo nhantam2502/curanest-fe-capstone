@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Link from "next/link";
 
 const LoginSchema = z.object({
   email: z
@@ -84,71 +85,81 @@ export function LoginForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
+    <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex flex-col gap-6">
-          <div className="w-full flex flex-col gap-6">
-            <div className="w-full flex flex-col">
-              <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Email"
-                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                  disabled={loading}
-                  {...register("email")}
-                />
-                {errors.email && (
-                  <div className="text-red-500 text-sm">
-                    {errors.email.message as string}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="password">Mật khẩu</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Mật khẩu"
-                  className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
-                  disabled={loading}
-                  {...register("password")}
-                />
-
-                {errors.password && (
-                  <div className="text-red-500 text-sm">
-                    {errors.password.message as string}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="w-full flex items-center justify-between">
-              <div className="w-full flex items-center">
-                <input type="checkbox" className="w-4 h-4 mr-2" />
-                <p className="text-sm">Remember me</p>
-              </div>
-
-              <p className="text-sm font-medium whitespace-nowrap cursor-pointer underline underline-offset-2">
-                Quên mật khẩu ?
-              </p>
-            </div>
-
-            {error && <div className="text-red-500 text-sm">{error}</div>}
-
-            <Button type="submit" disabled={loading}>
-              {loading ? (
-                <Button disabled>
-                  <Loader2 className="animate-spin" />
-                  Vui lòng chờ
-                </Button>
-              ) : (
-                "Login"
+        <div className="flex flex-col gap-10">
+          <div className="w-full flex flex-col gap-7">
+            <div>
+              <Label htmlFor="email" className="text-2xl font-medium">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Email"
+                className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none"
+                disabled={loading}
+                {...register("email")}
+              />
+              {errors.email && (
+                <div className="text-red-500 text-lg">
+                  {errors.email.message as string}
+                </div>
               )}
-            </Button>
+            </div>
+
+            <div>
+              <Label htmlFor="password" className="text-2xl font-medium">
+                Mật khẩu
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Mật khẩu"
+                className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none"
+                disabled={loading}
+                {...register("password")}
+              />
+              {errors.password && (
+                <div className="text-red-500 text-lg">
+                  {errors.password.message as string}
+                </div>
+              )}
+            </div>
           </div>
+
+          <div className="w-full flex items-center justify-between">
+            {/* <div className="w-full flex items-center">
+          <input type="checkbox" className="w-6 h-6 mr-4" />
+          <p className="text-lg">Remember me</p>
+        </div> */}
+
+            <div className="w-full flex items-center" />
+
+            <Link
+              href=""
+              className="text-lg font-medium whitespace-nowrap cursor-pointer"
+            >
+              Quên mật khẩu ?
+            </Link>
+          </div>
+
+          {error && <div className="text-red-500 text-base">{error}</div>}
+
+          <Button
+            type="submit"
+            className="w-full py-7 text-xl font-semibold bg-black text-white rounded-lg hover:bg-gray-800 transition-all duration-200"
+            disabled={loading}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="animate-spin mr-3" />
+                Vui lòng chờ
+              </div>
+            ) : (
+              "Login"
+            )}
+          </Button>
         </div>
       </form>
     </div>

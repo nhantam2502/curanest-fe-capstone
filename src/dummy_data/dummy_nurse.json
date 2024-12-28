@@ -103,5 +103,26 @@
         "Khám sức khỏe định kỳ"
       ]
     }
+  },
+  {
+    "id": 6,
+    "name": "Nguyễn Xuân Mai",
+    "specialization": "Chăm sóc bệnh nhân nội khoa",
+    "avgRating": 4.6,
+    "totalRating": 180,
+    "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
+    "totalPatients": 600,
+    "hospital": "Bệnh viện Bạch Mai",
+    "certificate": ["Chứng chỉ Điều dưỡng nội khoa", "Chứng chỉ Cấp cứu cơ bản"],
+    "experience": "10 năm kinh nghiệm chăm sóc bệnh nhân nội khoa",
+    "education_level": "Cử nhân Điều dưỡng",
+    "services": {
+      "Chăm sóc bệnh nhân nội khoa": [
+        "Theo dõi và chăm sóc người bệnh",
+        "Dùng thuốc theo y lệnh",
+        "Theo dõi diễn biến bệnh",
+        "Chăm sóc dinh dưỡng"
+      ]
+    }
   }
 ]

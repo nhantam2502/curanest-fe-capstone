@@ -8,40 +8,40 @@ const Feedbacks = () => {
   const testimonials = [
     {
       id: 1,
-      name: "John Smith",
-      role: "Patient",
+      name: "Nguyễn Văn An",
+      role: "Bệnh nhân",
       avatar: "/patient-avatar.jpg",
       rating: 5,
-      date: "March 15, 2024",
+      date: "15 tháng 3, 2024",
       comment:
-        "The care I received was exceptional. The nursing staff was professional, caring, and attentive to all my needs. I couldn't have asked for better service.",
-      service: "Home Care",
+        "Dịch vụ chăm sóc tôi nhận được rất tuyệt vời. Đội ngũ điều dưỡng chuyên nghiệp, chu đáo và luôn quan tâm đến mọi nhu cầu của tôi. Tôi không thể đòi hỏi dịch vụ nào tốt hơn.",
+      service: "Chăm sóc tại nhà",
     },
     {
       id: 2,
-      name: "Sarah Johnson",
-      role: "Family Member",
+      name: "Trần Thị Bình",
+      role: "Người nhà",
       avatar: "/family-avatar.jpg",
       rating: 5,
-      date: "March 10, 2024",
+      date: "10 tháng 3, 2024",
       comment:
-        "Having a nurse come to our home to care for my elderly mother has been a blessing. The level of expertise and compassion shown was remarkable.",
-      service: "Elder Care",
+        "Việc có điều dưỡng đến nhà chăm sóc mẹ già của tôi thực sự là một điều tuyệt vời. Trình độ chuyên môn và sự tận tâm thể hiện rất đáng khâm phục.",
+      service: "Chăm sóc người già",
     },
     {
       id: 3,
-      name: "Michael Chen",
-      role: "Patient",
+      name: "Lê Minh Tuấn",
+      role: "Bệnh nhân",
       avatar: "/patient-avatar-2.jpg",
       rating: 5,
-      date: "March 5, 2024",
+      date: "5 tháng 3, 2024",
       comment:
-        "The post-surgery care I received was outstanding. The nurse was knowledgeable and made sure I understood my recovery process completely.",
-      service: "Post-Surgery Care",
+        "Dịch vụ chăm sóc hậu phẫu mà tôi nhận được rất xuất sắc. Điều dưỡng có kiến thức chuyên môn cao và đảm bảo tôi hiểu rõ hoàn toàn về quá trình phục hồi của mình.",
+      service: "Chăm sóc hậu phẫu",
     },
   ];
 
-  const renderStars = (rating: any) => {
+  const renderStars = (rating: number) => {
     return [...Array(rating)].map((_, index) => (
       <StarIcon key={index} className="w-5 h-5 fill-yellow-400 text-yellow-200" />
     ));

@@ -35,7 +35,7 @@ const NewsCard = ({ post }: { post: any }) => {
         <CardTitle className="text-xl mb-4 line-clamp-2 hover:text-[#71DDD7] cursor-pointer transition-colors">
           {post.title}
         </CardTitle>
-        <CardDescription className="line-clamp-2 text-base">
+        <CardDescription className="line-clamp-2 text-lg">
           {post.content}
         </CardDescription>
       </CardContent>
@@ -46,7 +46,7 @@ const NewsCard = ({ post }: { post: any }) => {
             <AvatarImage src={post.author.avatar} />
             <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <span className="text-base font-medium">{post.author.name}</span>
+          <span className="text-lg font-medium">{post.author.name}</span>
         </div>
         {/* <div className="flex items-center gap-2">
           <Heart className="w-5 h-5 text-gray-500" />

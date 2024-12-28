@@ -1,7 +1,7 @@
 "use client";
 import { LoginForm } from "@/components/login-form";
 import React from "react";
-import LeftImage from "../../../../public/hero-bg.png";
+import RightImage from "../../../../public/hero-bg.png";
 import Image from "next/image";
 
 const LoginPage = () => {
@@ -23,19 +23,12 @@ const LoginPage = () => {
       </div>
 
       {/* Phần bên phải */}
-      <div className="relative w-full lg:w-1/2 h-full flex flex-col p-6 sm:p-12 lg:p-20 justify-center items-center">
+      <div className="relative w-full lg:w-2/4 h-full flex flex-col p-16 sm:p-20 lg:p-32 justify-center items-center">
         {/* Hình ảnh nền */}
-        <Image
-          src={LeftImage}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover -z-10"
-        />
-        <div className="w-full flex flex-col max-w-md  p-6 rounded-md">
-          <div className="w-full flex flex-col mb-4">
-            <h3 className="text-2xl sm:text-3xl font-semibold mb-2">
-              Đăng nhập
-            </h3>
-            <p className="text-sm sm:text-base mb-4">
+        <div className="w-full flex flex-col max-w-2xl p-10">
+          <div className="w-full flex flex-col mb-6">
+            <h1 className="text-6xl sm:text-5xl font-bold mb-4">Đăng nhập</h1>
+            <p className="text-lg sm:text-xl mb-6">
               Chào mừng bạn quay trở lại
             </p>
           </div>
