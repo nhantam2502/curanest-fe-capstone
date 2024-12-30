@@ -65,6 +65,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
     .slice(0, 3);
 
   const handleBookingClick = () => {
+    
     if (status === "unauthenticated") {
       router.push("/api/auth/signin?callbackUrl=/relatives/booking");
     } else if (session?.user?.role !== "relatives") {

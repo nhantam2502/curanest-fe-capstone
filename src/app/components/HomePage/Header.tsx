@@ -1,16 +1,27 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { MenuIcon, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Key,
+  LogOut,
+  MenuIcon,
+  User,
+  Wallet,
+  X,
+} from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const pathname = usePathname();
@@ -33,6 +44,18 @@ const Header = () => {
     window.addEventListener("scroll", handleStickyHeader);
     return () => window.removeEventListener("scroll", handleStickyHeader);
   }, []);
+
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isMenuOpen]);
 
   const Menu = [
     { id: 1, name: "Trang chủ", path: "/" },
@@ -66,8 +89,8 @@ const Header = () => {
                     href={link.path}
                     className={`${
                       pathname === link.path
-                        ? "text-lg leading-7 font-[700]"
-                        : "text-textColor text-lg leading-7 font-[500]"
+                        ? "text-xl leading-7 font-[700]"
+                        : "text-textColor text-xl leading-7 font-[500]"
                     }`}
                   >
                     {link.name}
@@ -81,28 +104,34 @@ const Header = () => {
           <div className="flex items-center gap-4">
             {/* Desktop Auth */}
             {status === "authenticated" && session ? (
-              <Popover>
-                <PopoverTrigger>
-                  <Avatar className="w-[60px] h-[60px]">
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Avatar className="w-[70px] h-[70px]">
                     <AvatarImage src="https://github.com/shadcn.png" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
-                </PopoverTrigger>
+                </DropdownMenuTrigger>
 
-                <PopoverContent className="w-50 mt-3">
-                  <div className="flex flex-col">
-                    <Button variant="ghost">Thông tin người dùng</Button>
-                    <Button variant="ghost">Ví tiền</Button>
-                    <Button variant="ghost">Thay đổi mật khẩu</Button>
-                    <Button
-                      onClick={() => signOut({ callbackUrl: "/" })}
-                      variant="destructive"
-                    >
-                      Đăng xuất
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                <DropdownMenuContent className="w-full p-4">
+                  <DropdownMenuItem className="text-xl">
+                    <User className="mr-4 h-7 w-7" /> Thông tin người dùng
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-xl">
+                    <Wallet className="mr-4 h-7 w-7" /> Ví tiền
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-xl">
+                    <Key className="mr-4 h-7 w-7" /> Thay đổi mật khẩu
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="my-2" />
+                  <DropdownMenuItem
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="text-xl text-red-600 hover:bg-red-100"
+                  >
+                    <LogOut className="mr-4 h-7 w-7" /> Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link href="/auth/signIn" className="hidden md:block">
                 <button className="bg-[#71DDD7] py-2 px-6 text-white font-[600] h-[44px] flex items-center justify-center rounded-[50px]">
@@ -125,109 +154,107 @@ const Header = () => {
 
             {/* Mobile Menu */}
             <div
-              className={`fixed top-0 right-0 z-40 h-screen w-72 bg-white shadow-lg transition-transform duration-300 ease-in-out transform ${
+              className={`fixed inset-0 z-40 bg-white transition-transform duration-300 ease-in-out transform ${
                 isMenuOpen ? "translate-x-0" : "translate-x-full"
               } md:hidden`}
             >
-              <div className="flex h-full flex-col justify-between border-e bg-white">
-                <div className="px-4 py-6">
-                  <span className="grid h-10 w-32 place-content-center rounded-lg bg-gray-100 text-xs text-gray-600">
-                    Logo
-                  </span>
+              <div className="flex h-full flex-col bg-white">
+                <div className="relative p-4 border-b bg-white">
+                  <button
+                    onClick={() => setIsMenuOpen(false)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2"
+                  >
+                    <ArrowLeft className="h-6 w-6" />
+                  </button>
+                  <h2 className="text-center text-lg font-semibold">Menu</h2>
+                </div>
 
-                  <ul className="mt-6 space-y-1">
+                {/* Balance Card */}
+                {status === "authenticated" && (
+                  <div className="m-4 bg-white">
+                    <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-6 text-white">
+                      <p className="text-2xl">Số dư ví</p>
+                      
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold">0</span>
+                        <span className="text-2xl">VND</span>
+                      </div>
+                      <button className="px-6 py-2 bg-white/20 rounded-full text-lg font-semibold backdrop-blur-sm">
+                        Xem ví
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Menu Items */}
+                <div className="flex-1 bg-white p-4">
+                  <ul className="space-y-1">
                     {Menu.map((link) => (
                       <li key={link.id}>
                         <Link
                           href={link.path}
                           onClick={() => setIsMenuOpen(false)}
-                          className={`block rounded-lg px-4 py-2 text-sm font-medium ${
+                          className={`block rounded-lg px-4 py-3 text-xl font-medium ${
                             pathname === link.path
-                              ? "bg-gray-100 text-gray-700"
-                              : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                              ? "bg-gray-100 text-gray-900"
+                              : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                           }`}
                         >
                           {link.name}
                         </Link>
                       </li>
                     ))}
-
-                    {status === "authenticated" ? (
-                      <li>
-                        <details className="group [&_summary::-webkit-details-marker]:hidden">
-                          <summary className="flex cursor-pointer items-center justify-between rounded-lg px-4 py-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700">
-                            <span className="text-sm font-medium">
-                              Tài khoản
-                            </span>
-                            <span className="shrink-0 transition duration-300 group-open:-rotate-180">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                            </span>
-                          </summary>
-
-                          <ul className="mt-2 space-y-1 px-4">
-                            <li>
-                              <Link
-                                href="#"
-                                className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                Thông tin người dùng
-                              </Link>
-                            </li>
-                            <li>
-                              <Link
-                                href="#"
-                                className="block rounded-lg px-4 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                Ví tiền
-                              </Link>
-                            </li>
-                            <li>
-                              <button
-                                onClick={() => signOut({ callbackUrl: "/" })}
-                                className="w-full block rounded-lg px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50 hover:text-red-700 text-left"
-                              >
-                                Đăng xuất
-                              </button>
-                            </li>
-                          </ul>
-                        </details>
-                      </li>
-                    ) : (
-                      <li>
-                        <Link
-                          href="/auth/signIn"
-                          onClick={() => setIsMenuOpen(false)}
-                          className="block rounded-lg px-4 py-2 text-sm font-medium bg-[#71DDD7] text-white hover:bg-[#5fc4c0]"
-                        >
-                          Đăng nhập
-                        </Link>
-                      </li>
-                    )}
                   </ul>
+
+                  {status === "authenticated" ? (
+                    <div className="mt-4 pt-4 border-t">
+                      <div className="space-y-1">
+                        <Link
+                          href="/profile"
+                          className="flex items-center gap-3 px-4 py-3 text-xl text-gray-700 hover:bg-gray-50 rounded-lg"
+                        >
+                          <User size={25} />
+                          <span>Thông tin người dùng</span>
+                        </Link>
+                        <Link
+                          href="/wallet"
+                          className="flex items-center gap-3 px-4 py-3 text-xl text-gray-700 hover:bg-gray-50 rounded-lg"
+                        >
+                          <Wallet size={25} />
+                          <span>Ví tiền</span>
+                        </Link>
+                        <button
+                          onClick={() => signOut({ callbackUrl: "/" })}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-xl text-red-600 hover:bg-red-50 rounded-lg"
+                        >
+                          <LogOut size={25} />
+                          <span>Đăng xuất</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 pt-4 border-t">
+                      <Link
+                        href="/auth/signIn"
+                        onClick={() => setIsMenuOpen(false)}
+                        className="flex w-full items-center justify-center rounded-lg bg-[#71DDD7] px-4 py-3 text-xl font-medium text-white hover:bg-[#5fc4c0]"
+                      >
+                        Đăng nhập
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
+                {/* Avatar */}
                 {status === "authenticated" && session ? (
                   <div className="sticky inset-x-0 bottom-0 border-t border-gray-100">
                     <div className="flex items-center gap-2 bg-white p-4 hover:bg-gray-50">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-14 w-14">
                         <AvatarImage src="https://github.com/shadcn.png" />
                         <AvatarFallback>CN</AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-xs">
+                        <p className="ml-2 text-xl">
                           <strong className="block font-medium">
                             {session.user?.name}
                           </strong>
@@ -240,13 +267,7 @@ const Header = () => {
               </div>
             </div>
 
-            {/* Overlay */}
-            {isMenuOpen && (
-              <div
-                className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
-                onClick={() => setIsMenuOpen(false)}
-              />
-            )}
+          
           </div>
         </div>
       </div>

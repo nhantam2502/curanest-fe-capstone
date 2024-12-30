@@ -72,7 +72,7 @@ export function LoginForm({
           router.push("/staff");
           break;
         case "relatives":
-          router.push("/relatives");
+          router.push("/relatives/booking");
           break;
         default:
           router.push("/guest");

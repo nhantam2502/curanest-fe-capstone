@@ -8,6 +8,7 @@ import FaqList from "../FAQ/FaqList";
 import Feedbacks from "./Feedbacks";
 import News from "@/app/guest/news/page";
 import NewsSection from "../News/NewsSection";
+import DownloadAppSection from "./DowloadSection";
 
 const Hero = () => {
   return (
@@ -320,6 +321,8 @@ const Hero = () => {
           </div>
         </div>
       </section>
+
+      <DownloadAppSection/>
 
       {/* Feedbacks Section*/}
       <section className="py-16">
