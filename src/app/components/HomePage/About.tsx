@@ -4,7 +4,6 @@ import React from "react";
 
 const About = () => {
   return (
-    <section >
       <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
         <div className="flex justify-between gap-[50px] lg:gap-[130px] xl:gap-0 flex-col lg:flex-row">
           {/* about image */}
@@ -49,7 +48,6 @@ const About = () => {
           </div>
         </div>
       </div>
-    </section>
   );
 };
 

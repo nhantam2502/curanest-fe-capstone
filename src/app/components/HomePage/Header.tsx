@@ -71,9 +71,10 @@ const Header = () => {
     Menu.push({ id: 5, name: "Đặt lịch", path: "/relatives/booking" });
   }
 
+
   return (
     <header className="header flex items-center relative" ref={headerRef}>
-      <div className="container">
+      <div className="max-w-full w-[1140px] px-5 mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>
@@ -81,17 +82,17 @@ const Header = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:block">
-            <ul className="menu flex items-center gap-[2.7rem]">
+          <div className="hidden md:block flex-1 px-8">
+            <ul className="menu flex items-center justify-between">
               {Menu.map((link) => (
                 <li key={link.id}>
                   <Link
                     href={link.path}
                     className={`${
                       pathname === link.path
-                        ? "text-xl leading-7 font-[700]"
-                        : "text-textColor text-xl leading-7 font-[500]"
-                    }`}
+                        ? "text-xl font-[700]"
+                        : "text-textColor text-xl font-[500]"
+                    } whitespace-nowrap`}
                   >
                     {link.name}
                   </Link>
@@ -106,7 +107,7 @@ const Header = () => {
             {status === "authenticated" && session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <Avatar className="w-[70px] h-[70px]">
+                  <Avatar className="w-[70px] h-[70px] hidden md:block">
                     <AvatarImage src="https://github.com/shadcn.png" />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
@@ -174,7 +175,7 @@ const Header = () => {
                   <div className="m-4 bg-white">
                     <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-6 text-white">
                       <p className="text-2xl">Số dư ví</p>
-                      
+
                       <div className="flex items-baseline gap-1">
                         <span className="text-3xl font-bold">0</span>
                         <span className="text-2xl">VND</span>
@@ -266,8 +267,6 @@ const Header = () => {
                 ) : null}
               </div>
             </div>
-
-          
           </div>
         </div>
       </div>

@@ -201,7 +201,7 @@ const Hero = () => {
 
       {/* Feature Section*/}
       <section>
-        <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
+        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
           <div className="flex items-center justify-between flex-col lg:flex-row gap-16">
             {/* Feature Content */}
             <div
@@ -322,7 +322,7 @@ const Hero = () => {
         </div>
       </section>
 
-      <DownloadAppSection/>
+      <DownloadAppSection />
 
       {/* Feedbacks Section*/}
       <section className="py-16">

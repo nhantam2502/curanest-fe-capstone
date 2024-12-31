@@ -3,24 +3,29 @@ import { LoginForm } from "@/components/login-form";
 import React from "react";
 import RightImage from "../../../../public/hero-bg.png";
 import Image from "next/image";
+import { QrCode } from "lucide-react";
 
 const LoginPage = () => {
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row items-center justify-center">
       {/* Phần bên trái */}
       <div className="relative w-full lg:w-1/2 h-1/3 lg:h-full flex flex-col">
-        <div className="absolute top-[20%] left-[10%] flex flex-col">
-          <p className="text_para">
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eligendi
-            nam dolorum aliquam, quibusdam aperiam voluptatum.
-          </p>
+      <div className="absolute top-[20%] left-[10%] flex flex-col">
+        <p className="text_para">
+          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eligendi
+          nam dolorum aliquam, quibusdam aperiam voluptatum.
+        </p>
+        {/* Mã QR */}
+        <div className="mt-4">
+          <QrCode  size={128} />
         </div>
-        <img
-          src="https://images.unsplash.com/photo-1617195737496-bc30194e3a19?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
-          alt=""
-          className="w-full h-full object-cover"
-        />
       </div>
+      <img
+        src="https://png.pngtree.com/thumb_back/fw800/background/20230117/pngtree-nurturing-asian-nurse-providing-care-for-patients-and-elderly-adults-in-home-settingsemphasizing-the-concept-of-athome-nursing-photo-image_49286924.jpg"
+        alt=""
+        className="w-full h-full object-cover"
+      />
+    </div>
 
       {/* Phần bên phải */}
       <div className="relative w-full lg:w-2/4 h-full flex flex-col p-16 sm:p-20 lg:p-32 justify-center items-center">
