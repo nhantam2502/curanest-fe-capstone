@@ -9,63 +9,15 @@ import {
   IdCard,
   Stethoscope,
   AlertCircle,
-  LucideIcon,
   Building2,
   Home,
   MapPinned,
 } from "lucide-react";
+import { InfoItemProps, Profile } from "@/types/profile";
+import dummy_profile from "@/dummy_data/dummy_profile.json";
+import { useRouter } from "next/navigation";
 
-interface Profile {
-  id: number;
-  avatar: string;
-  full_name: string;
-  dob: string;
-  citizen_id: string;
-  phone_number: string;
-  address: string;
-  ward: string;
-  district: string;
-  city: string;
-  medical_description: string;
-  note_for_nurses: string;
-}
-
-interface InfoItemProps {
-  icon: LucideIcon;
-  label: string;
-  value: string;
-}
-
-const dummyProfiles: Profile[] = [
-  {
-    id: 1,
-    avatar: "https://github.com/shadcn.png",
-    full_name: "Nguyễn Văn A",
-    dob: "1990-01-01",
-    citizen_id: "079202000001",
-    phone_number: "0923456789",
-    address: "123 Đường Nguyễn Văn Linh",
-    ward: "Phường 12",
-    district: "Quận Bình Thạnh",
-    city: "TP. Hồ Chí Minh",
-    medical_description: "Bệnh nhân cao huyết áp, tiểu đường type 2",
-    note_for_nurses: "Cần theo dõi đường huyết mỗi ngày, hạn chế ăn mặn",
-  },
-  {
-    id: 2,
-    avatar: "https://github.com/shadcn.png",
-    full_name: "Trần Thị B",
-    dob: "1985-05-15",
-    citizen_id: "079202000002",
-    phone_number: "0934567890",
-    address: "456 Đường Lê Văn Việt",
-    ward: "Phường 15",
-    district: "Quận 9",
-    city: "TP. Hồ Chí Minh",
-    medical_description: "Hậu phẫu gãy xương đùi, cần vật lý trị liệu",
-    note_for_nurses: "Tập vận động nhẹ nhàng, theo dõi vết thương",
-  },
-];
+const profiles: Profile[] = dummy_profile;
 
 const formatDateVN = (dateString: string): string => {
   const date = new Date(dateString);
@@ -95,6 +47,11 @@ const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value }) => (
 );
 
 const PatientProfiles: React.FC = () => {
+  const router = useRouter();
+
+  const handleBookNurse = (id: number) => {
+    router.push(`/relatives/booking/${id}`);
+  };
   return (
     <div className="w-full ">
       <div className="flex justify-between items-center mb-8">
@@ -102,7 +59,7 @@ const PatientProfiles: React.FC = () => {
       </div>
 
       <div className="grid gap-8">
-        {dummyProfiles.map((profile) => (
+        {profiles.map((profile) => (
           <Card key={profile.id} className="overflow-hidden">
             <CardContent className="p-8">
               <div className="flex gap-8">
@@ -205,10 +162,16 @@ const PatientProfiles: React.FC = () => {
 
                   {/* Actions */}
                   <div className="flex justify-end space-x-4 pt-4 border-t">
-                    <Button variant="secondary" className="text-lg px-6 py-5">
+                    <Button
+                      variant="secondary"
+                      className="bg-[#FFD700] text-white hover:bg-[#FFC300] font-[600] h-[44px] text-lg px-6 py-5 rounded-[50px]"
+                    >
                       Chỉnh sửa
                     </Button>
-                    <Button className="bg-[#FFD700] text-white hover:bg-[#FFC300] text-lg px-6 py-5">
+                    <Button 
+                    className="bg-[#71DDD7] hover:bg-[#5fc4c0] text-lg font-[600] h-[44px] px-6 py-5 rounded-[50px]"
+                    onClick={() => handleBookNurse(profile.id)}
+                    >
                       Đặt điều dưỡng
                     </Button>
                   </div>

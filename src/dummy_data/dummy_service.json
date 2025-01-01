@@ -1,32 +1,117 @@
 {
   "Chăm sóc bệnh nhân nội khoa": [
-    "Theo dõi và chăm sóc người bệnh",
-    "Dùng thuốc theo y lệnh",
-    "Theo dõi diễn biến bệnh",
-    "Chăm sóc dinh dưỡng"
+    {
+      "name": "Theo dõi và chăm sóc người bệnh",
+      "time": 120,
+      "price": 200000
+    },
+    {
+      "name": "Dùng thuốc theo y lệnh",
+      "time": 60,
+      "price": 100000
+    },
+    {
+      "name": "Theo dõi diễn biến bệnh",
+      "time": 90,
+      "price": 150000
+    },
+    {
+      "name": "Chăm sóc dinh dưỡng",
+      "time": 120,
+      "price": 200000
+    },
+    {
+      "name": "Chăm sóc vết thương",
+      "time": 90,
+      "price": 150000
+    }
   ],
   "Chăm sóc bệnh nhân ngoại khoa": [
-    "Chăm sóc vết thương",
-    "Hỗ trợ phẫu thuật",
-    "Thay băng vô trùng",
-    "Theo dõi sau phẫu thuật"
+    {
+      "name": "Chăm sóc vết thương",
+      "time": 90,
+      "price": 150000
+    },
+    {
+      "name": "Hỗ trợ phẫu thuật",
+      "time": 180,
+      "price": 300000
+    },
+    {
+      "name": "Thay băng vô trùng",
+      "time": 60,
+      "price": 120000
+    },
+    {
+      "name": "Theo dõi sau phẫu thuật",
+      "time": 120,
+      "price": 200000
+    }
   ],
   "Chăm sóc bệnh nhân nhi": [
-    "Chăm sóc trẻ sơ sinh",
-    "Theo dõi phát triển",
-    "Tiêm chủng định kỳ",
-    "Tư vấn dinh dưỡng trẻ em"
+    {
+      "name": "Chăm sóc trẻ sơ sinh",
+      "time": 180,
+      "price": 250000
+    },
+    {
+      "name": "Theo dõi phát triển",
+      "time": 120,
+      "price": 200
+    },
+    {
+      "name": "Tiêm chủng định kỳ",
+      "time": 60,
+      "price": 100
+    },
+    {
+      "name": "Tư vấn dinh dưỡng trẻ em",
+      "time": 90,
+      "price": 150
+    }
   ],
   "Chăm sóc bệnh nhân cấp cứu": [
-    "Sơ cứu khẩn cấp",
-    "Theo dõi sinh hiệu",
-    "Hỗ trợ cấp cứu",
-    "Vận chuyển bệnh nhân"
+    {
+      "name": "Sơ cứu khẩn cấp",
+      "time": 60,
+      "price": 250
+    },
+    {
+      "name": "Theo dõi sinh hiệu",
+      "time": 90,
+      "price": 180
+    },
+    {
+      "name": "Hỗ trợ cấp cứu",
+      "time": 60,
+      "price": 300
+    },
+    {
+      "name": "Vận chuyển bệnh nhân",
+      "time": 180,
+      "price": 400
+    }
   ],
   "Chăm sóc sức khỏe cộng đồng": [
-    "Tư vấn sức khỏe",
-    "Giáo dục sức khỏe",
-    "Tiêm chủng cộng đồng",
-    "Khám sức khỏe định kỳ"
+    {
+      "name": "Tư vấn sức khỏe",
+      "time": 60,
+      "price": 100
+    },
+    {
+      "name": "Giáo dục sức khỏe",
+      "time": 120,
+      "price": 150
+    },
+    {
+      "name": "Tiêm chủng cộng đồng",
+      "time": 90,
+      "price": 120
+    },
+    {
+      "name": "Khám sức khỏe định kỳ",
+      "time": 120,
+      "price": 200
+    }
   ]
 }

@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "avatar": "https://github.com/shadcn.png",
+    "full_name": "Nguyễn Văn A",
+    "dob": "1990-01-01",
+    "citizen_id": "079202000001",
+    "phone_number": "0923456789",
+    "address": "123 Đường Nguyễn Văn Linh",
+    "ward": "Phường 12",
+    "district": "Quận Bình Thạnh",
+    "city": "TP. Hồ Chí Minh",
+    "medical_description": "Bệnh nhân cao huyết áp, tiểu đường type 2",
+    "note_for_nurses": "Cần theo dõi đường huyết mỗi ngày, hạn chế ăn mặn"
+  },
+  {
+    "id": 2,
+    "avatar": "https://github.com/shadcn.png",
+    "full_name": "Trần Thị B",
+    "dob": "1985-05-15",
+    "citizen_id": "079202000002",
+    "phone_number": "0934567890",
+    "address": "456 Đường Lê Văn Việt",
+    "ward": "Phường 15",
+    "district": "Quận 9",
+    "city": "TP. Hồ Chí Minh",
+    "medical_description": "Hậu phẫu gãy xương đùi, cần vật lý trị liệu",
+    "note_for_nurses": "Tập vận động nhẹ nhàng, theo dõi vết thương"
+  }
+]
