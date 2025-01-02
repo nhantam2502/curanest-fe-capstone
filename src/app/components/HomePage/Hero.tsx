@@ -33,7 +33,7 @@ const Hero = () => {
             <div className="lg:py-32">
               <h2
                 data-aos="fade-right"
-                className="text-4xl font-bold sm:text-5xl text-headingColor"
+                className="text-4xl font-be-vietnam-pro font-bold sm:text-5xl text-headingColor"
               >
                 Tìm và Đặt
                 <span className="text-[#71DDD7]"> Lịch hẹn </span>

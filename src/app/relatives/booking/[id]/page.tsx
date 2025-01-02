@@ -2,10 +2,24 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Calendar, Check, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import dummy_services from "@/dummy_data/dummy_service.json";
+import dummy_services from "@/dummy_data/dummy_service_booking.json";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import TimeSelection, {
+  TimeSlot,
+} from "@/app/components/Relatives/TimeSelection";
+import { Service } from "@/types/service";
+import { Separator } from "@/components/ui/separator";
+
+type DummyServices = Record<string, Service[]>;
+
+const services: DummyServices = dummy_services;
+
+type SelectedTime = {
+  timeSlot: TimeSlot;
+  date: string;
+};
 
 const DetailBooking = ({ params }: { params: { id: string } }) => {
   const { id } = params;
@@ -24,6 +38,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const [nurseSelectionMethod, setNurseSelectionMethod] = useState<
     "manual" | "auto"
   >("manual");
+
+  const [selectedTime, setSelectedTime] = useState<SelectedTime | null>(null);
 
   const steps = [
     { id: 1, title: "Chọn dịch vụ" },
@@ -66,26 +82,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     );
   };
 
-  const getAvailableTimeSlots = (totalTime: number) => {
-    const availableSlots = [];
-    const startTime = 8 * 60; 
-    const endTime = 18 * 60;
-
-    for (let i = startTime; i <= endTime - totalTime; i += 30) {
-      const startHour = Math.floor(i / 60);
-      const startMinute = i % 60;
-      const endHour = Math.floor((i + totalTime) / 60);
-      const endMinute = (i + totalTime) % 60;
-      availableSlots.push(
-        `${startHour}:${startMinute === 0 ? "00" : startMinute} - ${endHour}:${
-          endMinute === 0 ? "00" : endMinute
-        }`
-      );
-    }
-
-    return availableSlots;
-  };
-
   const handleMajorChange = (newMajor: string) => {
     if (selectedMajor !== newMajor) {
       setSelectedMajor(newMajor);
@@ -122,10 +118,10 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
               <div
                 className={cn(
                   "space-y-6 mr-4",
-                  dummy_services[selectedMajor].length > 4 && "max-h-96"
+                  services[selectedMajor].length > 6 && "max-h-96"
                 )}
               >
-                {dummy_services[selectedMajor].map((service) => (
+                {services[selectedMajor].map((service) => (
                   <div
                     key={service.name}
                     className={cn(
@@ -186,7 +182,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                 onClick={() => setNurseSelectionMethod("manual")}
               >
                 <div>
-                  <h3 className="text-xl font-medium">Tự chọn điều dưỡng</h3>
+                  <h3 className="text-xl">Tự chọn điều dưỡng</h3>
                   <p className="text-lg text-gray-500">
                     Bạn có thể tự chọn điều dưỡng phù hợp.
                   </p>
@@ -206,7 +202,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                 onClick={() => setNurseSelectionMethod("auto")}
               >
                 <div>
-                  <h3 className="text-xl font-medium">Hệ thống tự chọn</h3>
+                  <h3 className="text-xl">Hệ thống tự chọn</h3>
                   <p className="text-lg text-gray-500">
                     Hệ thống sẽ tự động chọn điều dưỡng phù hợp cho bạn.
                   </p>
@@ -222,41 +218,137 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         );
 
       case 3:
-        const totalTime = calculateTotalTime();
-        const availableTimeSlots = getAvailableTimeSlots(totalTime);
-
         return (
-          <div className="space-y-6 text-lg">
-            <h2 className="text-4xl font-bold">Chọn thời gian</h2>
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold">Khung giờ có sẵn:</h3>
-              <div className="flex flex-wrap gap-4">
-                {availableTimeSlots.map((slot, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="rounded-full text-lg py-3 px-6"
-                  >
-                    {slot}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <TimeSelection
+            totalTime={calculateTotalTime()}
+            onTimeSelect={({ date, timeSlot }) => {
+              const formattedDate =
+                date instanceof Date
+                  ? date.toLocaleDateString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                    })
+                  : date;
+
+              setSelectedTime({ timeSlot, date: formattedDate });
+            }}
+          />
         );
 
       case 4:
         return (
           <div className="space-y-6 text-lg">
-            <h2 className="text-4xl font-bold">Xác nhận & thanh toán</h2>
-            {/* Add your confirmation and payment UI here */}
+            <div className="bg-white shadow-lg rounded-lg p-8 max-w-5xl mx-auto">
+              <h3 className="text-3xl font-semibold mb-4">Dịch vụ đã chọn</h3>
+
+              {/* Hiển thị dịch vụ đã chọn */}
+              <div className="space-y-2">
+                {selectedServices.length > 0 ? (
+                  selectedServices.map((service, index) => (
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-2"
+                    >
+                      <span className="font-semibold text-xl">
+                        {service.name}
+                      </span>
+                      <span className="font-semibold text-xl text-red-600">
+                        {formatCurrency(service.price)}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center text-lg">
+                    Chưa có dịch vụ nào được chọn.
+                  </p>
+                )}
+              </div>
+
+              <Separator className="my-3" />
+
+              {/* Hiển thị thời gian đã chọn */}
+              {selectedTime && (
+                <div className="mt-4">
+                  <h3 className="text-3xl font-semibold mb-4">
+                    Thời gian đã chọn
+                  </h3>
+                  <div className="text-lg text-gray-600 space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="text-primary" />
+                      <span className="text-xl">{selectedTime.date}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Clock className="text-primary" />
+                      <span className="text-xl">
+                        {selectedTime.timeSlot.display}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Separator className="my-3" />
+
+              {/* Hiển thị hình thức đặt */}
+              <div className="mt-4">
+                <h3 className="text-3xl font-semibold">Hình thức đặt</h3>
+                <div className="text-lg text-gray-600">
+                  <span className="font-semibold text-xl">
+                    {nurseSelectionMethod === "manual"
+                      ? "Tự chọn điều dưỡng"
+                      : "Hệ thống tự chọn"}
+                  </span>
+                </div>
+              </div>
+
+              <Separator className="my-3" />
+
+              {/* Hiển thị tổng tiền */}
+              <div className="mt-6">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-2xl">Tổng tiền</span>
+                  <span className="font-bold text-2xl text-red-600">
+                    {formatCurrency(calculateTotal())}
+                  </span>
+                </div>
+              </div>
+
+              {/* Nút hoàn tất đặt lịch và quay lại */}
+              <div className="flex justify-end gap-6 mt-8">
+                {/* Căn chỉnh nút về bên phải */}
+                <Button
+                  className="text-lg bg-gray-200 hover:bg-gray-300 transition duration-200 rounded-lg shadow-md"
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setCurrentStep(currentStep - 1)}
+                >
+                  <span className="font-semibold">Quay lại</span>
+                </Button>
+                <Button
+                  className="text-lg bg-primary text-white hover:bg-primary-dark transition duration-200 rounded-lg shadow-md"
+                  size="lg"
+                  onClick={() => {
+                    console.log("Thông tin đặt lịch:", {
+                      selectedServices,
+                      selectedTime,
+                      total: calculateTotal(),
+                      nurseSelectionMethod,
+                    });
+                    alert("Đặt lịch thành công!");
+                  }}
+                >
+                  <span className="font-semibold">Hoàn tất đặt lịch</span>
+                </Button>
+              </div>
+            </div>
           </div>
         );
     }
   };
 
   return (
-    <section className="hero_section h-[930px]">
+    <section className="hero_section h-full">
       <div className=" max-w-full w-[1500px] px-5 mx-auto flex flex-col gap-12">
         <div className="flex justify-between items-center w-full px-6">
           {steps.map((step, index) => (
@@ -298,72 +390,98 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         </div>
 
         <div className="flex gap-12">
-          {/* Left Side */}
-          <div className="w-2/3">{renderStepContent(currentStep)}</div>
-
+          <div
+            className={`w-full ${currentStep === 4 ? "md:w-full" : "md:w-2/3"}`}
+          >
+            {renderStepContent(currentStep)}
+          </div>
           {/* Right Side */}
-          <div className="w-1/3">
-            <Card className="sticky top-12">
-              <CardContent className="pt-8">
-                <div className="space-y-8">
-                  <div className="space-y-4">
-                    <h2 className="text-2xl font-bold mb-6">Dịch vụ đã chọn</h2>
-                  </div>
+          {currentStep !== 4 && (
+            <div className="w-1/3">
+              <Card>
+                <CardContent className="pt-8">
+                  <div className="space-y-8">
+                    <h2 className="text-2xl font-be-vietnam-pro font-bold mb-6">
+                      Dịch vụ đã chọn
+                    </h2>
 
-                  <div className="space-y-6">
-                    {selectedServices.map((service, index) => (
-                      <div key={index} className="flex flex-col gap-2">
-                        <div className="flex justify-between">
-                          <span className="font-semibold text-lg">{service.name}</span>
-                          <span className="font-semibold text-lg">
-                            {formatCurrency(service.price)}
+                    <div className="space-y-3">
+                      {selectedServices.map((service, index) => (
+                        <div key={index} className="flex flex-col gap-1">
+                          <div className="flex justify-between text-xl">
+                            <span className="font-semibold ">
+                              {service.name}
+                            </span>
+                            <span className="font-semibold">
+                              {formatCurrency(service.price)}
+                            </span>
+                          </div>
+                          <span className="text-lg text-gray-500">
+                            {service.time} phút
                           </span>
                         </div>
-                        <span className="text-lg text-gray-500">
-                          {service.time} phút
+                      ))}
+                    </div>
+
+                    {/* Hiển thị thời gian đã chọn */}
+                    {selectedTime && (
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-be-vietnam-pro font-semibold">
+                          Thời gian đã chọn
+                        </h3>
+
+                        <div className="text-xl text-gray-600 space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Calendar />
+                            <span>{selectedTime.date}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Clock />
+                            <span>{selectedTime.timeSlot.display}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="pt-6 border-t">
+                      <div className="flex justify-between items-center mb-8">
+                        <span className="font-bold text-2xl">Tổng tiền</span>
+                        <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                          {formatCurrency(calculateTotal())}
                         </span>
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="pt-6 border-t">
-                    <div className="flex justify-between items-center mb-8">
-                      <span className="font-bold text-2xl">Tổng tiền</span>
-                      <span className="font-bold text-2xl">
-                        {formatCurrency(calculateTotal())}
-                      </span>
-                    </div>
-                    <div className="flex gap-6">
-                      {currentStep > 1 && (
+                      <div className="flex gap-6">
+                        {currentStep > 1 && (
+                          <Button
+                            className="w-1/2 text-lg"
+                            size="lg"
+                            variant="outline"
+                            onClick={() => setCurrentStep(currentStep - 1)}
+                          >
+                            Quay lại
+                          </Button>
+                        )}
                         <Button
                           className="w-1/2 text-lg"
                           size="lg"
-                          variant="outline"
-                          onClick={() => setCurrentStep(currentStep - 1)}
+                          disabled={
+                            (currentStep === 1 &&
+                              selectedServices.length === 0) ||
+                            (currentStep === 2 && !nurseSelectionMethod)
+                          }
+                          onClick={() => setCurrentStep(currentStep + 1)}
                         >
-                          Quay lại
+                          {currentStep === steps.length
+                            ? "Hoàn tất đặt lịch"
+                            : "Tiếp tục"}
                         </Button>
-                      )}
-                      <Button
-                        className="w-1/2 text-lg"
-                        size="lg"
-                        disabled={
-                          (currentStep === 1 &&
-                            selectedServices.length === 0) ||
-                          (currentStep === 2 && !nurseSelectionMethod)
-                        }
-                        onClick={() => setCurrentStep(currentStep + 1)}
-                      >
-                        {currentStep === steps.length
-                          ? "Hoàn tất đặt lịch"
-                          : "Tiếp tục"}
-                      </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </section>

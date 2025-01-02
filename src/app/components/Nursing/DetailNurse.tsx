@@ -65,7 +65,6 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
     .slice(0, 3);
 
   const handleBookingClick = () => {
-    
     if (status === "unauthenticated") {
       router.push("/api/auth/signin?callbackUrl=/relatives/booking");
     } else if (session?.user?.role !== "relatives") {
@@ -74,6 +73,9 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
       router.push("/relatives/booking");
     }
   };
+
+  // Get the services for the nurse's specialization
+  const nurseServices = services[nurse.specialization as keyof typeof services] || [];
 
   return (
     <div className="hero_section">
@@ -222,14 +224,12 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {services[nurse.specialization as keyof typeof services]?.map(
-                    (service, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#e5ab47]" />
-                        <span className="text-xl">{service}</span>
-                      </div>
-                    )
-                  )}
+                  {nurseServices.map((service, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-[#e5ab47]" />
+                      <span className="text-xl">{service}</span>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -258,4 +258,5 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
     </div>
   );
 };
+
 export default DetailNurse;
