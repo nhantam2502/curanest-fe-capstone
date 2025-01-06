@@ -21,9 +21,6 @@ const NursingCard: React.FC<NursingCardProps> = ({
 }) => {
   return (
     <Card
-      data-aos="fade-left"
-      data-aos-duration="1200"
-      data-aos-easing="ease-in-out-back"
       className={`cursor-pointer transition-all duration-300 hover:shadow-xl
       ${isSelected ? "border-2 border-blue-500" : "border border-gray-200"}
     `}
