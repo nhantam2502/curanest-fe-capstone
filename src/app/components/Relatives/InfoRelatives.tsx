@@ -8,7 +8,6 @@ const dummyProfile = {
   user_name: "nguyenvana",
   avatar: "https://github.com/shadcn.png",
   user_id: "USER001",
-  citizen_id: "079202000001",
   full_name: "Nguyễn Văn A",
   phone_number: "0923456789",
   dob: "01/01/1990",
@@ -39,7 +38,6 @@ const InfoRelatives = () => {
               <InfoField label="Email" value={dummyProfile.email} />
               <InfoField label="Số điện thoại" value={dummyProfile.phone_number} />
               <InfoField label="Ngày sinh" value={dummyProfile.dob} />
-              <InfoField label="CCCD" value={dummyProfile.citizen_id} />
             </div>
 
             <Separator className="my-8" />

@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
+import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
+import nurseData from "@/dummy_data/dummy_nurse.json";
 const dummyData = [
   {
     id: 1,
@@ -62,6 +63,9 @@ const Appointment = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
   const [filteredAppointments, setFilteredAppointments] = useState(dummyData);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
+  const [selectedNurse, setSelectedNurse] = useState<any>(null);
 
   const getWeekRange = (date: Date) => {
     const start = new Date(date);
@@ -108,10 +112,12 @@ const Appointment = () => {
     prevWeek.setDate(currentWeekStart.getDate() - 7);
     setCurrentWeekStart(prevWeek);
   };
-
-  const handleViewDetail = (id: number) => {
-    console.log("View detail of appointment", id);
-  };
+  const handleViewDetail = (appointment: any) => {
+    const nurse = nurseData.find((n) => n.id === appointment.id);
+    setSelectedAppointment(appointment);
+    setSelectedNurse(nurse);
+    setIsDialogOpen(true);
+  }
 
   const hasAppointmentOnDate = (date: string) => {
     return dummyData.some(
@@ -190,6 +196,7 @@ const Appointment = () => {
           <Info className="mr-2" />
           Những ngày nào có lịch hẹn sẽ được tô vàng lên
         </p>
+
         {/* Calendar className="bg-white rounded-lg p-6 shadow-md*/}
         <div>
           <div className="flex items-center justify-between">
@@ -245,7 +252,7 @@ const Appointment = () => {
         </div>
 
         {/* Appointments List */}
-        <div className="">
+        <div>
           {selectedDate ? (
             filteredAppointments.length > 0 ? (
               filteredAppointments.map((appointment) => (
@@ -330,8 +337,8 @@ const Appointment = () => {
                       <div className="flex items-center justify-center md:justify-end">
                         <Button
                           variant="outline"
-                          className="text-lg px-6 py-5" // Tăng font và padding
-                          onClick={() => handleViewDetail(appointment.id)}
+                          className="text-lg px-6 py-5"
+                          onClick={() => handleViewDetail(appointment)}
                         >
                           Xem chi tiết <Eye className="ml-2 w-5 h-5" />{" "}
                         </Button>
@@ -356,6 +363,16 @@ const Appointment = () => {
           )}
         </div>
       </div>
+
+      {/* Patient Detail Dialog */}
+      {selectedAppointment && (
+        <DetailAppointment
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        appointment={selectedAppointment}
+        nurse={selectedNurse}
+        />
+      )}
     </section>
   );
 };

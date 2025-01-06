@@ -134,7 +134,7 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link href="/auth/signIn" className="hidden md:block">
+              <Link href="/auth/selectRole" className="hidden md:block">
                 <button className="bg-[#71DDD7] py-2 px-6 text-white font-[600] h-[44px] flex items-center justify-center rounded-[50px]">
                   Đăng nhập
                 </button>

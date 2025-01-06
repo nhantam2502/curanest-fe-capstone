@@ -157,7 +157,7 @@ export function LoginForm({
                 Vui lòng chờ
               </div>
             ) : (
-              "Login"
+              "Đăng nhập"
             )}
           </Button>
         </div>

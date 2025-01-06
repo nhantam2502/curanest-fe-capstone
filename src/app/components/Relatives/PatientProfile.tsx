@@ -96,11 +96,7 @@ const PatientProfiles: React.FC = () => {
                         profile.dob
                       )} tuổi)`}
                     />
-                    <InfoItem
-                      icon={IdCard}
-                      label="CCCD"
-                      value={profile.citizen_id}
-                    />
+
                     <InfoItem
                       icon={Phone}
                       label="Số điện thoại"
@@ -168,9 +164,9 @@ const PatientProfiles: React.FC = () => {
                     >
                       Chỉnh sửa
                     </Button>
-                    <Button 
-                    className="bg-[#71DDD7] hover:bg-[#5fc4c0] text-lg font-[600] h-[44px] px-6 py-5 rounded-[50px]"
-                    onClick={() => handleBookNurse(profile.id)}
+                    <Button
+                      className="bg-[#71DDD7] hover:bg-[#5fc4c0] text-lg font-[600] h-[44px] px-6 py-5 rounded-[50px]"
+                      onClick={() => handleBookNurse(profile.id)}
                     >
                       Đặt điều dưỡng
                     </Button>
