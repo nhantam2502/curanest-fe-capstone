@@ -58,7 +58,7 @@ const SelectRolePage = () => {
           >
             <div className="flex flex-col items-center text-center">
               <h2 className="text-2xl font-semibold mb-6">
-                Curanest dành cho chuyên gia
+                Curanest dành cho ban quản lý
               </h2>
               <p className="text-gray-600 text-lg">
                 Quản lý và phát triển doanh nghiệp của bạn

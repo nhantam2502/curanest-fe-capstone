@@ -12,16 +12,16 @@ import { z } from "zod";
 import Link from "next/link";
 
 const LoginSchema = z.object({
-  phone: z
+  email: z
     .string()
-    .regex(/^[0-9]{10}$/, { message: "Please enter a valid phone number (10 digits)." })
-    .min(1, { message: "Phone number is required." }),
+    .email({ message: "Please enter a valid email address." })
+    .min(1, { message: "Email is required." }),
   password: z
     .string()
     .min(1, { message: "Password is required." }),
 });
 
-export function LoginForm({
+export function AdminLoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
@@ -36,7 +36,7 @@ export function LoginForm({
   } = useForm({
     resolver: zodResolver(LoginSchema),
     defaultValues: {
-      phone: "",
+      email: "",
       password: "",
     },
   });
@@ -47,31 +47,22 @@ export function LoginForm({
       setError("");
 
       const result = await signIn("credentials", {
-        identifier: data.phone, 
+        identifier: data.email,
         password: data.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError("Invalid phone number or password");
+        setError("Invalid email or password");
         return;
       }
 
       const session = await getSession();
-      const role = session?.user?.role;
-
-      switch (role) {
-        case "nurse":
-          router.push("/nurse");
-          break;
-        case "staff":
-          router.push("/staff");
-          break;
-        case "relatives":
-          router.push("/relatives/booking");
-          break;
-        default:
-          router.push("/guest");
+      if (session?.user?.role === "admin") {
+        router.push("/admin");
+      } else {
+        setError("Unauthorized access");
+        return;
       }
     } catch (error) {
       setError("An error occurred during login");
@@ -86,20 +77,20 @@ export function LoginForm({
         <div className="flex flex-col gap-10">
           <div className="w-full flex flex-col gap-7">
             <div>
-              <Label htmlFor="phone" className="text-2xl font-medium">
-                Số điện thoại
+              <Label htmlFor="email" className="text-2xl font-medium">
+                Email
               </Label>
               <Input
-                id="phone"
-                type="tel"
-                placeholder="Số điện thoại"
+                id="email"
+                type="email"
+                placeholder="Email"
                 className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none"
                 disabled={loading}
-                {...register("phone")}
+                {...register("email")}
               />
-              {errors.phone && (
+              {errors.email && (
                 <div className="text-red-500 text-lg">
-                  {errors.phone.message as string}
+                  {errors.email.message as string}
                 </div>
               )}
             </div>

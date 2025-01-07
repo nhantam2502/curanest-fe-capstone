@@ -1,8 +1,6 @@
 "use client";
 import { LoginForm } from "@/components/login-form";
-import React from "react";
-import RightImage from "../../../../public/hero-bg.png";
-import Image from "next/image";
+import { AdminLoginForm } from "@/components/login-form-admin";
 import { QrCode } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
@@ -10,28 +8,20 @@ const LoginPage = () => {
   const searchParams = useSearchParams();
   const role = searchParams.get("role");
 
-  // React.useEffect(() => {
-  //   if (!role) {
-  //     window.location.href = "/auth/selectRole";
-  //   }
-  // }, [role]);
-
   const getRoleTitle = () => {
-    return role === "business"
+    return role === "business" 
       ? "Đăng nhập dành cho chuyên gia"
       : "Đăng nhập dành cho khách hàng";
   };
 
   return (
     <div className="w-full h-screen flex flex-col lg:flex-row items-center justify-center">
-      {/* Phần bên trái */}
       <div className="relative w-full lg:w-1/2 h-1/3 lg:h-full flex flex-col">
         <div className="absolute top-[20%] left-[10%] flex flex-col">
           <p className="text_para">
             Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eligendi
             nam dolorum aliquam, quibusdam aperiam voluptatum.
           </p>
-          {/* Mã QR */}
           <div className="mt-4">
             <QrCode size={128} />
           </div>
@@ -43,18 +33,17 @@ const LoginPage = () => {
         />
       </div>
 
-      {/* Phần bên phải */}
       <div className="relative w-full lg:w-2/4 h-full flex flex-col p-16 sm:p-20 lg:p-32 justify-center items-center">
         <div className="w-full flex flex-col max-w-2xl p-10">
           <div className="w-full flex flex-col mb-6">
             <h1 className="text-6xl sm:text-5xl font-bold mb-4">
               {getRoleTitle()}
-            </h1>{" "}
+            </h1>
             <p className="text-lg sm:text-xl mb-6">
               Chào mừng bạn quay trở lại
             </p>
           </div>
-          <LoginForm />
+          {role === "business" ? <AdminLoginForm /> : <LoginForm />}
         </div>
       </div>
     </div>
