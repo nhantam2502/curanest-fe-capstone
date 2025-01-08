@@ -49,7 +49,7 @@ const DetailNews = ({ post }: DetailNewsProps) => {
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-gray-400" />
-          <BreadcrumbItem className="">
+          <BreadcrumbItem>
             {isMobile ? (
               <TooltipProvider>
                 <Tooltip>

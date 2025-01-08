@@ -14,7 +14,7 @@ const Booking = () => {
       <div className="flex items-center justify-between mb-10">
         <p className="text-3xl font-bold text-gray-900">Thông tin khách hàng</p>
         <Button
-          onClick={() => router.push("/user/createPatientProfile")}
+          onClick={() => router.push("/relatives/patientProfile")}
           className="bg-lime-500 text-white font-bold px-4 py-2 rounded shadow-md transition-colors"
         >
           Tạo hồ sơ bệnh nhân

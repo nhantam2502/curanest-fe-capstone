@@ -46,7 +46,7 @@ const RelativesNavbar = () => {
     {
       id: 2,
       name: "Tìm kiếm điều dưỡng",
-      path: "",
+      path: "/relatives/findingNurse",
     },
     { id: 3, name: "Lịch hẹn sắp tới", path: "/relatives/appoinments" },
     { id: 4, name: "Lịch sử giao dịch", path: "" },
