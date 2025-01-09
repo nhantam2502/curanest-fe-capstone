@@ -26,5 +26,19 @@
     "city": "TP. Hồ Chí Minh",
     "medical_description": "Hậu phẫu gãy xương đùi, cần vật lý trị liệu",
     "note_for_nurses": "Tập vận động nhẹ nhàng, theo dõi vết thương"
+  },
+  {
+    "id": 3,
+    "avatar": "https://github.com/shadcn.png",
+    "full_name": "Trần Minh B",
+    "dob": "1985-05-15",
+    "citizen_id": "079202000002",
+    "phone_number": "0934567890",
+    "address": "456 Đường Lê Văn Việt",
+    "ward": "Phường 15",
+    "district": "Quận 9",
+    "city": "TP. Hồ Chí Minh",
+    "medical_description": "Hậu phẫu gãy xương đùi, cần vật lý trị liệu",
+    "note_for_nurses": "Tập vận động nhẹ nhàng, theo dõi vết thương"
   }
 ]

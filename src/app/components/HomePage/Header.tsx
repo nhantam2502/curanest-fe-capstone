@@ -71,7 +71,6 @@ const Header = () => {
     Menu.push({ id: 5, name: "Đặt lịch", path: "/relatives/booking" });
   }
 
-
   return (
     <header className="header flex items-center relative" ref={headerRef}>
       <div className="max-w-full w-[1140px] px-5 mx-auto">

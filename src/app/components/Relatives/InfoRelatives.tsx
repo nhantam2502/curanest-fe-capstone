@@ -20,13 +20,13 @@ const dummyProfile = {
 
 const InfoRelatives = () => {
   return (
-    <Card className="w-full p-6">
+    <div className="w-full p-6">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row gap-12">
           <div className="flex flex-col items-center gap-6">
             <Avatar className="w-60 h-60">
               <AvatarImage src={dummyProfile.avatar} />
-              <AvatarFallback className="text-4xl">{dummyProfile.full_name[0]}</AvatarFallback>
+              <AvatarFallback className="text-3xl">{dummyProfile.full_name[0]}</AvatarFallback>
             </Avatar>
             <h2 className="text-4xl font-bold">{dummyProfile.full_name}</h2>
           </div>
@@ -53,13 +53,13 @@ const InfoRelatives = () => {
           </div>
         </div>
       </CardContent>
-    </Card>
+    </div>
   );
 };
 
 const InfoField = ({ label, value }: { label: string; value: string }) => (
   <div className="space-y-2">
-    <p className="text-lg text-muted-foreground">{label}</p>
+    <p className="text-xl text-muted-foreground">{label}</p>
     <p className="text-xl font-medium">{value}</p>
   </div>
 );

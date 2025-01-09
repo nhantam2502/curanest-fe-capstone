@@ -7,14 +7,14 @@ import nurse from "@/dummy_data/dummy_nurse.json";
 const DetailNursePage = ({ params }: { params: { id: string } }) => {
   const { id } = params;
 
-  // Tìm bài viết dựa trên id từ dữ liệu tĩnh
+  // Tìm điều dưỡng dựa trên id từ dữ liệu tĩnh
   const detailNurse = nurse.find((nurse) => nurse.id === Number(id));
 
   if (!detailNurse) {
-    return <p>Bài viết không tồn tại.</p>;
+    return <p>Điều dưỡng không tồn tại.</p>;
   }
 
-  // Hiển thị bài viết nếu tìm thấy
+  // Hiển thị nếu tìm thấy
   return (
     <div>
       <DetailNurse nurse={detailNurse} />

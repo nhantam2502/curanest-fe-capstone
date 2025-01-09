@@ -56,6 +56,10 @@ const RelativesNavbar = () => {
     router.push("/");
   };
 
+  const handleNavigate = () => {
+    router.push("/relatives/settings");
+  };
+
   return (
     <header className="header flex items-center relative" ref={headerRef}>
       <div className="max-w-full w-[1140px] px-5 mx-auto">
@@ -98,13 +102,13 @@ const RelativesNavbar = () => {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="w-full p-4">
-                  <DropdownMenuItem className="text-xl">
+                  <DropdownMenuItem className="text-xl" onClick={handleNavigate}>
                     <User className="mr-4 h-7 w-7" /> Thông tin người dùng
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-xl">
+                  <DropdownMenuItem className="text-xl" onClick={handleNavigate}>
                     <Wallet className="mr-4 h-7 w-7" /> Ví tiền
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-xl">
+                  <DropdownMenuItem className="text-xl" onClick={handleNavigate}>
                     <Key className="mr-4 h-7 w-7" /> Thay đổi mật khẩu
                   </DropdownMenuItem>
 

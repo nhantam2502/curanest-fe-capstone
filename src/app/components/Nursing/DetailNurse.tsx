@@ -16,7 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DetailNurseProps } from "@/types/nurse";
+import { DetailNurseProps, Nurse } from "@/types/nurse";
 import {
   BookOpenCheck,
   Clock,
@@ -34,6 +34,7 @@ import Link from "next/link";
 import NursingCard from "./NursingCard";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DetailNurse = ({ nurse }: DetailNurseProps) => {
   const [isMobile, setIsMobile] = useState(false);
@@ -55,7 +56,13 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
   }, []);
 
   if (!nurse || !mounted) {
-    return <div>Loading...</div>;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="w-60 h-60 rounded-full" />
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-5 w-72" />
+      </div>
+    );
   }
 
   const relatedNurse = data_nurses
@@ -64,18 +71,25 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
     )
     .slice(0, 3);
 
-  const handleBookingClick = () => {
-    if (status === "unauthenticated") {
-      router.push("/api/auth/signin?callbackUrl=/relatives/booking");
-    } else if (session?.user?.role !== "relatives") {
-      router.push("/api/auth/signin?callbackUrl=/relatives/booking");
-    } else {
-      router.push("/relatives/booking");
+  const handleBookingClick = (nurse: Nurse) => {
+    if (!nurse) {
+      console.error("Nurse information is missing!");
+      return;
     }
+    const isUnauthenticated = status === "unauthenticated";
+    const isNotRelativesRole = session?.user?.role !== "relatives";
+
+    if (isUnauthenticated || isNotRelativesRole) {
+      router.push("/api/auth/signin?callbackUrl=/relatives/booking");
+      return;
+    }
+    // Điều hướng tới trang tìm kiếm y tá
+    router.push(`/relatives/findingNurse/${nurse.id}`);
   };
 
   // Get the services for the nurse's specialization
-  const nurseServices = services[nurse.specialization as keyof typeof services] || [];
+  const nurseServices =
+    services[nurse.specialization as keyof typeof services] || [];
 
   return (
     <div className="hero_section">
@@ -138,7 +152,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                     </span>
                   </div>
                   <Button
-                    onClick={handleBookingClick}
+                    onClick={() => handleBookingClick(nurse)}
                     className="w-full mb-4 bg-[#e5ab47] hover:bg-[#e5ab47]/90 text-xl"
                   >
                     Đặt lịch
