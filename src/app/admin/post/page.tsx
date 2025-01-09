@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
 import React, { useState } from 'react';
-import PostEditor from './PostEditor';
+import PostEditor from '@/app/admin/post/PostEditor';
 import {
   Table,
   TableBody,
@@ -20,7 +20,6 @@ export interface Post {
   createdAt: Date;
 }
 
-// Dummy data for the table (replace with your actual data fetching)
 const initialPosts: Post[] = [
   {
     id: 1,
@@ -38,7 +37,7 @@ const initialPosts: Post[] = [
   },
 ];
 
-function Page() {
+function PostPage() {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [showEditor, setShowEditor] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
@@ -133,4 +132,4 @@ function Page() {
   );
 }
 
-export default Page;
+export default PostPage;

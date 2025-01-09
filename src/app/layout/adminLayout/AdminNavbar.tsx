@@ -30,6 +30,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { title: "Thống kê", link: "/dashboard", icon: <LayoutDashboard /> },
   { title: "Người dùng", link: "/user", icon: <User /> },
+  { title: "Chuyên ngành", link: "/major", icon: <BookUser /> },
   { title: "Bài đăng", link: "/post", icon: <BookA /> },
   { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
   { title: "Tuyển dụng", link: "/recruit", icon: <BookUser /> },
