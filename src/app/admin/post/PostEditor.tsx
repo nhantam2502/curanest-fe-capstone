@@ -1,20 +1,21 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+
+import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import {
   Select,
-  SelectContent,
-  SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 import { Post } from "./page";
 
+const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
 
-interface PostEditorProps {
-  post: Post | null; // The post being edited (or null for a new post)
+export interface PostEditorProps {
+  post: Post | null;
   onSave: (post: Post) => void;
   onCancel: () => void;
 }
