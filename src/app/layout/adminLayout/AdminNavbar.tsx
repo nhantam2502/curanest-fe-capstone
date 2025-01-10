@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   CircleDollarSign,
-  BookUser
+  BookUser,
+  BriefcaseBusiness
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
@@ -30,7 +31,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { title: "Thống kê", link: "/dashboard", icon: <LayoutDashboard /> },
   { title: "Người dùng", link: "/user", icon: <User /> },
-  { title: "Chuyên ngành", link: "/major", icon: <BookUser /> },
+  { title: "Chuyên ngành", link: "/major", icon: <BriefcaseBusiness /> },
   { title: "Bài đăng", link: "/post", icon: <BookA /> },
   { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
   { title: "Tuyển dụng", link: "/recruit", icon: <BookUser /> },
@@ -99,9 +100,6 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
                 <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>
                   CURANEST
                 </p>
-                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>
-                  NURSING CARE
-                </p>
               </>
             )}
           </Link>
@@ -115,16 +113,6 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
               isCollapsed={isCollapsed}
             />
           ))}
-          {/* Log out Button */}
-          <Button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            variant="ghost"
-            className="flex items-center mt-auto text-red-500 hover:bg-red-50"
-            aria-label="Log out"
-          >
-            <LogOut className="mr-3" />
-            {!isCollapsed && "Log out"}
-          </Button>
         </nav>
       </div>
 

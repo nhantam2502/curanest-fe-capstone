@@ -45,7 +45,7 @@ function Page() {
   };
 
   return (
-    <main className="container mx-auto p-6 bg-white rounded-md">
+    <main className=" p-6 bg-white rounded-md">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Thống kê người dùng</h1>
         <Dialog>

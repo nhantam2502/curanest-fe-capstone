@@ -104,35 +104,13 @@ const initialNurseProfiles: NurseProfile[] = [
 
 export default function RecruitmentPage() {
   const [jobPostings, setJobPostings] = useState(initialJobPostings);
-  const [candidates, setCandidates] = useState(initialCandidates);
   const [nurseProfiles, setNurseProfiles] = useState(initialNurseProfiles);
   const [showJobForm, setShowJobForm] = useState(false);
-  const [showCandidateForm, setShowCandidateForm] = useState(false);
   const [editingJobPosting, setEditingJobPosting] = useState<
     JobPostingData | null
   >(null);
-  const [editingCandidate, setEditingCandidate] = useState<CandidateData | null>(
-    null
-  );
 
   // Job Postings
-  const handleAddJobPosting = (newJobPosting: JobPostingData) => {
-    setJobPostings([
-      ...jobPostings,
-      { ...newJobPosting, id: Math.max(...jobPostings.map((j) => j.id), 0) + 1 },
-    ]);
-    setShowJobForm(false);
-  };
-
-  const handleUpdateJobPosting = (updatedJobPosting: JobPostingData) => {
-    setJobPostings(
-      jobPostings.map((job) =>
-        job.id === updatedJobPosting.id ? updatedJobPosting : job
-      )
-    );
-    setShowJobForm(false);
-  };
-
   const handleEditJobPosting = (jobPosting: JobPostingData) => {
     setEditingJobPosting(jobPosting);
     setShowJobForm(true);
@@ -140,43 +118,6 @@ export default function RecruitmentPage() {
 
   const handleDeleteJobPosting = (jobPostingId: number) => {
     setJobPostings(jobPostings.filter((job) => job.id !== jobPostingId));
-  };
-
-  const handleCloseJobPostingForm = () => {
-    setEditingJobPosting(null);
-    setShowJobForm(false);
-  };
-
-  // Candidates
-  const handleAddCandidate = (newCandidate: CandidateData) => {
-    setCandidates([
-      ...candidates,
-      { ...newCandidate, id: Math.max(...candidates.map((c) => c.id), 0) + 1 },
-    ]);
-    setShowCandidateForm(false);
-  };
-
-  const handleUpdateCandidate = (updatedCandidate: CandidateData) => {
-    setCandidates(
-      candidates.map((candidate) =>
-        candidate.id === updatedCandidate.id ? updatedCandidate : candidate
-      )
-    );
-    setShowCandidateForm(false);
-  };
-
-  const handleEditCandidate = (candidate: CandidateData) => {
-    setEditingCandidate(candidate);
-    setShowCandidateForm(true);
-  };
-
-  const handleDeleteCandidate = (candidateId: number) => {
-    setCandidates(candidates.filter((candidate) => candidate.id !== candidateId));
-  };
-
-  const handleCloseCandidateForm = () => {
-    setEditingCandidate(null);
-    setShowCandidateForm(false);
   };
 
   // Nurse Profiles
@@ -201,9 +142,8 @@ export default function RecruitmentPage() {
       <h1 className="text-3xl font-bold mb-8">Recruitment Management</h1>
 
       <Tabs defaultValue="job-postings" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid w-full grid-cols-2 mb-8">
           <TabsTrigger value="job-postings">Job Postings</TabsTrigger>
-          <TabsTrigger value="candidates">Candidates</TabsTrigger>
           <TabsTrigger value="nurse-profiles">Nurse Profiles</TabsTrigger>
         </TabsList>
 
@@ -245,46 +185,6 @@ export default function RecruitmentPage() {
             jobPostings={jobPostings}
             onEdit={handleEditJobPosting}
             onDelete={handleDeleteJobPosting}
-          />
-        </TabsContent>
-
-        {/* Candidates Content */}
-        <TabsContent value="candidates">
-          <div className="flex justify-end mb-4">
-            <Dialog open={showCandidateForm} onOpenChange={setShowCandidateForm}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setShowCandidateForm(true)}>
-                  Add Candidate
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingCandidate ? "Edit Candidate" : "Add Candidate"}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {editingCandidate
-                      ? "Make changes to candidate here."
-                      : "Enter candidate details below."}
-                  </DialogDescription>
-                </DialogHeader>
-                {/* <CandidateForm
-                  candidate={editingCandidate}
-                  onSave={
-                    editingCandidate
-                      ? handleUpdateCandidate
-                      : handleAddCandidate
-                  }
-                  onCancel={handleCloseCandidateForm}
-                /> */}
-              </DialogContent>
-            </Dialog>
-          </div>
-          <CandidatesTable
-            candidates={candidates}
-            jobPostings={jobPostings}
-            onEdit={handleEditCandidate}
-            onDelete={handleDeleteCandidate}
           />
         </TabsContent>
 
