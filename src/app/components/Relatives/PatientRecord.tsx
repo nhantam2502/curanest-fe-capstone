@@ -55,6 +55,11 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
     router.push(`/relatives/booking/${id}`);
   };
 
+  const handleEditPatientRecord = (e: React.MouseEvent, profile: Profile) => {
+    e.stopPropagation();
+    router.push(`/relatives/editPatientRecord/${profile.id}`);
+  };
+
   if (!isExpanded) {
     return (
       <div
@@ -181,10 +186,11 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
             <Button
               variant="secondary"
               className="bg-[#FFD700] text-white hover:bg-[#FFC300] px-6 rounded-full text-xl"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => handleEditPatientRecord(e, profile)} // Pass the full `profile` object
             >
               Chỉnh sửa
             </Button>
+
             <Button
               className="bg-[#71DDD7] hover:bg-[#5fc4c0] px-6 rounded-full text-xl"
               onClick={(e) => handleBookNurse(e, profile.id)}
@@ -198,7 +204,7 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
   );
 };
 
-const PatientProfiles: React.FC = () => {
+const PatientRecords: React.FC = () => {
   const profiles: Profile[] = dummy_profile;
 
   return (
@@ -216,4 +222,4 @@ const PatientProfiles: React.FC = () => {
   );
 };
 
-export default PatientProfiles;
+export default PatientRecords;

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,13 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -34,15 +27,51 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Profile } from "@/types/profile";
 
-export default function CreatePatientProfile() {
-  const [date, setDate] = useState<Date>();
-  const [avatar, setAvatar] = useState<File | null>(null);
+export default function EditPatientRecord({ profile }: { profile: Profile }) {
+
+  const [date, setDate] = useState<Date | undefined>(() => {
+    const dob = profile?.dob;
+    return dob ? new Date(dob) : undefined;
+  });
+  const [avatar, setAvatar] = useState<string | null>(profile?.avatar);
+  const [formData, setFormData] = useState({
+    full_name: profile?.full_name || "",
+    phone_number: profile?.phone_number || "",
+    address: profile?.address || "",
+    ward: profile?.ward || "",
+    district: profile?.district || "",
+    city: profile?.city || "Hồ Chí Minh",
+    medical_description: profile?.medical_description || "",
+    note_for_nurses: profile?.note_for_nurses || "",
+  });
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setAvatar(e.target.files[0]);
+      const file = e.target.files[0];
+      setAvatar(URL.createObjectURL(file));
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle form submission logic here
+    console.log({
+      ...formData,
+      dob: date?.toISOString(),
+      avatar,
+    });
   };
 
   return (
@@ -50,30 +79,27 @@ export default function CreatePatientProfile() {
       <Breadcrumb className="px-10 mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink
-              href="/relatives/booking"
-              className="text-xl"
-            >
+            <BreadcrumbLink href="/relatives/profiles" className="text-xl">
               Hồ sơ bệnh nhân
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-gray-400 text-[32px]" />
           <BreadcrumbItem>
             <BreadcrumbLink className="text-xl cursor-pointer">
-              Tạo hồ sơ bệnh nhân
+              Chỉnh sửa hồ sơ bệnh nhân
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="max-w-[1400px] mx-auto">
-        <div className="w-full">
+        <form onSubmit={handleSubmit}>
           <CardHeader>
             <CardTitle className="text-4xl font-bold">
-              Tạo hồ sơ bệnh nhân
+              Chỉnh sửa hồ sơ bệnh nhân
             </CardTitle>
             <CardDescription className="text-lg">
-              Điền thông tin chi tiết để tạo hồ sơ mới cho bệnh nhân
+              Chỉnh sửa thông tin chi tiết của hồ sơ bệnh nhân
             </CardDescription>
           </CardHeader>
 
@@ -91,7 +117,7 @@ export default function CreatePatientProfile() {
                   />
                   {avatar ? (
                     <img
-                      src={URL.createObjectURL(avatar)}
+                      src={avatar}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
@@ -105,13 +131,15 @@ export default function CreatePatientProfile() {
 
               {/* Form Fields */}
               <div className="flex-1 space-y-6">
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="fullName">
+                    <Label className="text-xl" htmlFor="full_name">
                       Họ và Tên
                     </Label>
                     <Input
-                      id="fullName"
+                      id="full_name"
+                      value={formData.full_name}
+                      onChange={handleInputChange}
                       placeholder="Nhập họ và tên"
                       className="h-12 text-lg"
                     />
@@ -124,7 +152,7 @@ export default function CreatePatientProfile() {
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          variant={"outline"}
+                          variant="outline"
                           className={cn(
                             "h-12 w-full justify-start text-left font-normal text-lg",
                             !date && "text-muted-foreground"
@@ -144,31 +172,17 @@ export default function CreatePatientProfile() {
                       </PopoverContent>
                     </Popover>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="gender">
-                      Giới tính
-                    </Label>
-                    <Select>
-                      <SelectTrigger className="h-12 w-full text-lg">
-                        <SelectValue placeholder="Chọn giới tính" />
-                      </SelectTrigger>
-                      <SelectContent >
-                        <SelectItem className="text-lg" value="male">Nam</SelectItem>
-                        <SelectItem className="text-lg" value="female">Nữ</SelectItem>
-                        <SelectItem className="text-lg" value="other">Khác</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="phone">
+                    <Label className="text-xl" htmlFor="phone_number">
                       Số điện thoại
                     </Label>
                     <Input
-                      id="phone"
+                      id="phone_number"
+                      value={formData.phone_number}
+                      onChange={handleInputChange}
                       placeholder="Nhập số điện thoại"
                       className="h-12"
                     />
@@ -180,6 +194,8 @@ export default function CreatePatientProfile() {
                     </Label>
                     <Input
                       id="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
                       placeholder="Nhập địa chỉ"
                       className="h-12"
                     />
@@ -193,6 +209,8 @@ export default function CreatePatientProfile() {
                     </Label>
                     <Input
                       id="ward"
+                      value={formData.ward}
+                      onChange={handleInputChange}
                       placeholder="Nhập phường"
                       className="h-12"
                     />
@@ -204,6 +222,8 @@ export default function CreatePatientProfile() {
                     </Label>
                     <Input
                       id="district"
+                      value={formData.district}
+                      onChange={handleInputChange}
                       placeholder="Nhập quận"
                       className="h-12"
                     />
@@ -215,30 +235,34 @@ export default function CreatePatientProfile() {
                     </Label>
                     <Input
                       id="city"
+                      value={formData.city}
                       className="h-12"
-                      value={"Hồ Chí Minh"}
                       disabled
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xl" htmlFor="medicalDescription">
+                  <Label className="text-xl" htmlFor="medical_description">
                     Mô tả bệnh lý
                   </Label>
                   <Textarea
-                    id="medicalDescription"
+                    id="medical_description"
+                    value={formData.medical_description}
+                    onChange={handleInputChange}
                     placeholder="Nhập mô tả bệnh lý"
                     className="min-h-[120px]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xl" htmlFor="nurseNotes">
+                  <Label className="text-xl" htmlFor="note_for_nurses">
                     Lưu ý với điều dưỡng
                   </Label>
                   <Textarea
-                    id="nurseNotes"
+                    id="note_for_nurses"
+                    value={formData.note_for_nurses}
+                    onChange={handleInputChange}
                     placeholder="Nhập lưu ý với điều dưỡng"
                     className="min-h-[120px]"
                   />
@@ -248,6 +272,7 @@ export default function CreatePatientProfile() {
 
             <div className="flex justify-end space-x-4 mt-8">
               <Button
+                type="button"
                 variant="destructive"
                 className="h-12 px-6 text-xl"
                 onClick={() => window.history.back()}
@@ -255,12 +280,15 @@ export default function CreatePatientProfile() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Quay lại
               </Button>
-              <Button className="h-12 px-8 text-xl bg-[#64D1CB] hover:bg-[#71DDD7]">
-                Tạo
+              <Button
+                type="submit"
+                className="h-12 px-8 text-xl bg-[#64D1CB] hover:bg-[#71DDD7]"
+              >
+                Lưu thay đổi
               </Button>
             </div>
           </CardContent>
-        </div>
+        </form>
       </div>
     </div>
   );

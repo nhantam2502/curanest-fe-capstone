@@ -60,7 +60,7 @@ const Hero = () => {
                   data-aos-easing="ease-in-out"
                   className="btn mt-12 text-[20px]"
                   onClick={() => {
-                    router.push("/auth/signIn");
+                    router.push("/auth/selectRole");
                   }}
                 >
                   Trải nghiệm ngay
@@ -241,7 +241,7 @@ const Hero = () => {
                   data-aos-easing="ease-in-out"
                   className="btn mt-[38px] text-[20px]"
                   onClick={() => {
-                    router.push("/auth/signIn");
+                    router.push("/auth/selectRole");
                   }}
                 >
                   Trải nghiệm ngay

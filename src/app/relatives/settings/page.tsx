@@ -9,6 +9,8 @@ import {
   Pencil,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import dummyTransactions from "@/dummy_data/dummy_transaction.json";
+import DepositDialog from "@/app/components/Relatives/DepositDialog";
 
 const dummyProfile = {
   email: "nguyenvana@gmail.com",
@@ -21,44 +23,6 @@ const dummyProfile = {
   city: "TP. Hồ Chí Minh",
   address: "123 Đường Nguyễn Văn Linh",
 };
-
-const dummyTransactions = [
-  {
-    id: 1,
-    type: "deposit",
-    amount: 500000,
-    description: "Nạp tiền qua Momo",
-    date: "2024-01-09 14:30",
-  },
-  {
-    id: 2,
-    type: "withdraw",
-    amount: 200000,
-    description: "Thanh toán đơn hàng #HD001",
-    date: "2024-01-08 09:15",
-  },
-  {
-    id: 3,
-    type: "deposit",
-    amount: 1000000,
-    description: "Nạp tiền qua ngân hàng",
-    date: "2024-01-07 16:45",
-  },
-  {
-    id: 4,
-    type: "withdraw",
-    amount: 150000,
-    description: "Thanh toán đơn hàng #HD002",
-    date: "2024-01-06 11:20",
-  },
-  {
-    id: 5,
-    type: "deposit",
-    amount: 300000,
-    description: "Nạp tiền qua Zalopay",
-    date: "2024-01-05 13:50",
-  },
-];
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("wallet");
@@ -83,6 +47,7 @@ const SettingsPage = () => {
       minute: "2-digit",
     }).format(date);
   };
+
   const menuItems = [
     {
       id: "profile",
@@ -101,15 +66,19 @@ const SettingsPage = () => {
     },
   ];
 
-  const WalletContent = () => (
+  const WalletContent = () => {
+  const handleDeposit = (amount: number) => {
+    // Xử lý logic nạp tiền ở đây
+    console.log(`Nạp tiền: ${amount}₫`);
+  };
+
+  return (
     <div className="p-8">
       <h2 className="text-4xl font-semibold mb-8">Ví tiền</h2>
       <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-8 text-white mb-8">
         <div className="text-7xl font-bold mb-4">0đ</div>
         <div className="text-2xl mb-6">Số dư ví</div>
-        <button className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full transition text-xl">
-          Nạp tiền vào ví
-        </button>
+        <DepositDialog onDeposit={handleDeposit} />
       </div>
 
       <div className="bg-white rounded-xl p-8 shadow-sm">
@@ -151,6 +120,7 @@ const SettingsPage = () => {
       </div>
     </div>
   );
+};
 
   const ProfileContent = () => {
     // Assuming `dummyProfile` is being passed as a prop or is available in state.
