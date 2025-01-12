@@ -6,6 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
+import MedicalReport from "@/app/components/Relatives/MedicalReport";
+import nurseData from "@/dummy_data/dummy_nurse.json";
+import FeedbackDialog from "@/app/components/Relatives/FeedbackDialog";
 
 const dummyData = [
   {
@@ -20,8 +23,39 @@ const dummyData = [
     appointment_date: "2025-01-20",
     time_from_to: "08:00 - 09:00",
   },
-  // Add more completed appointments here
+  {
+    id: 2,
+    nurse_name: "Trần Thị B",
+    patientId: "patient-0",
+    avatar: "https://github.com/shadcn.png",
+    status: "completed",
+    phone_number: "0912345678",
+    techniques: "Kỹ thuật D-Kỹ thuật E",
+    total_fee: 300000,
+    appointment_date: "2025-01-20",
+    time_from_to: "10:00 - 11:00",
+  },
 ];
+
+const months = [
+  "Tháng 1",
+  "Tháng 2",
+  "Tháng 3",
+  "Tháng 4",
+  "Tháng 5",
+  "Tháng 6",
+  "Tháng 7",
+  "Tháng 8",
+  "Tháng 9",
+  "Tháng 10",
+  "Tháng 11",
+  "Tháng 12",
+];
+
+const years = Array.from(
+  { length: 5 },
+  (_, i) => new Date().getFullYear() - i
+).reverse();
 
 const AppointmentHistory = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
@@ -36,36 +70,70 @@ const AppointmentHistory = () => {
       currentDate.getMonth() + 1
     ).padStart(2, "0")}`;
   });
+  const [isMedicalReportOpen, setIsMedicalReportOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
-    return `${day}/${month}`;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const handleViewDetail = (appointment: any) => {
+    const nurse = nurseData.find((n) => n.id === appointment.id);
     setSelectedAppointment(appointment);
-    setSelectedNurse(appointment);
+    setSelectedNurse(nurse);
     setIsDialogOpen(true);
   };
 
   const handleViewMedicalReport = (appointment: any) => {
-    console.log("View medical report for appointment:", appointment.id);
+    const sampleReport = {
+      nurse_name: appointment.nurse_name,
+      avatar: appointment.avatar,
+      report_date: formatDate(new Date(appointment.appointment_date)),
+      report_time: appointment.time_from_to.split("-")[1].trim(),
+      report:
+        "Bệnh nhân đến khám trong tình trạng tỉnh táo, các chỉ số sinh tồn trong giới hạn bình thường.\n\nHuyết áp: 120/80 mmHg\nNhịp tim: 75 lần/phút\nNhiệt độ: 36.5°C\n\nĐã thực hiện đầy đủ các kỹ thuật theo yêu cầu. Bệnh nhân hợp tác tốt trong quá trình điều trị.",
+      advice: [
+        "Duy trì chế độ ăn uống lành mạnh, hạn chế thức ăn nhiều dầu mỡ",
+        "Tập thể dục đều đặn, mỗi ngày 30 phút",
+        "Uống đủ nước, ít nhất 2 lít mỗi ngày",
+        "Theo dõi huyết áp hàng ngày và ghi chép lại",
+      ],
+      techniques: appointment.techniques,
+    };
+
+    setSelectedReport(sampleReport);
+    setIsMedicalReportOpen(true);
   };
 
   const handleSendFeedback = (appointment: any) => {
-    console.log("Send feedback for appointment:", appointment.id);
+    setSelectedAppointment(appointment);
+    setIsFeedbackOpen(true);
+  };
+
+  const handleSubmitFeedback = async (feedback: { rating: number; content: string }) => {
+    console.log('Submitting feedback:', feedback);
   };
 
   const filteredAppointments = dummyData.filter((appointment) => {
-    const appointmentMonth = appointment.appointment_date.substring(0, 7);
+    // const appointmentMonth = appointment.appointment_date.substring(0, 7);
     return (
       appointment.status === "completed" &&
-      appointmentMonth === monthFilter &&
+      // appointmentMonth === monthFilter &&
       appointment.patientId === selectedPatientId
     );
   });
+
+  const handleMonthChange = (year: string, monthIndex: number) => {
+    const formattedMonth = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+    setMonthFilter(formattedMonth);
+  };
+
+  const currentYear = monthFilter.split("-")[0];
+  const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
   return (
     <section className="hero_section h-full">
@@ -106,7 +174,7 @@ const AppointmentHistory = () => {
                     index + 1
                   }`}</AvatarFallback>
                 </Avatar>
-                <span className="text-lg font-medium">
+                <span className="text-lg font-semibold">
                   Bệnh nhân {index + 1}
                 </span>
               </Button>
@@ -118,13 +186,35 @@ const AppointmentHistory = () => {
           <>
             {/* Month Filter */}
             <div className="flex justify-end items-center space-x-4">
-              <label className="text-lg font-medium">Chọn tháng:</label>
-              <input
-                type="month"
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-                className="px-4 py-2 border rounded-lg"
-              />
+              <label className="text-xl font-medium">Chọn tháng:</label>
+
+              <select
+                value={currentMonthIndex}
+                onChange={(e) =>
+                  handleMonthChange(currentYear, parseInt(e.target.value, 10))
+                }
+                className="px-4 py-2 border rounded-lg text-xl"
+              >
+                {months.map((month, index) => (
+                  <option key={index} value={index}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={currentYear}
+                onChange={(e) =>
+                  handleMonthChange(e.target.value, currentMonthIndex)
+                }
+                className="px-4 py-2 border rounded-lg text-xl"
+              >
+                {years.map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Appointments List */}
@@ -175,7 +265,7 @@ const AppointmentHistory = () => {
                                 .map((technique, index) => (
                                   <Badge
                                     key={index}
-                                    className="bg-[#71DDD7] hover:bg-[#71DDD7] text-white text-base"
+                                    className="text-white text-base"
                                   >
                                     {technique.trim()}
                                   </Badge>
@@ -194,7 +284,9 @@ const AppointmentHistory = () => {
                           <div>
                             <p className="text-lg text-gray-500">Ngày hẹn</p>
                             <p className="font-semibold text-xl text-gray-900">
-                              {formatDate(appointment.appointment_date)}
+                              {formatDate(
+                                new Date(appointment.appointment_date)
+                              )}
                             </p>
                           </div>
                           <div>
@@ -233,7 +325,7 @@ const AppointmentHistory = () => {
                   </Card>
                 ))
               ) : (
-                <div className="text-center py-12 bg-white rounded-lg shadow">
+                <div className="text-center py-12">
                   <p className="text-gray-600 text-xl font-medium">
                     Không có lịch sử cuộc hẹn nào trong tháng này
                   </p>
@@ -244,7 +336,7 @@ const AppointmentHistory = () => {
         )}
 
         {!selectedPatientId && (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
+          <div className="text-center py-12">
             <p className="text-gray-600 text-xl font-medium">
               Vui lòng chọn hồ sơ bệnh nhân để xem lịch sử cuộc hẹn
             </p>
@@ -259,6 +351,25 @@ const AppointmentHistory = () => {
           onClose={() => setIsDialogOpen(false)}
           appointment={selectedAppointment}
           nurse={selectedNurse}
+        />
+      )}
+
+      {/* Medical report */}
+      {selectedReport && (
+        <MedicalReport
+          isOpen={isMedicalReportOpen}
+          onClose={() => setIsMedicalReportOpen(false)}
+          medical_report={selectedReport}
+        />
+      )}
+
+      {/* Send Feedback */}
+      {selectedAppointment && (
+        <FeedbackDialog
+          isOpen={isFeedbackOpen}
+          onClose={() => setIsFeedbackOpen(false)}
+          appointment={selectedAppointment}
+          onSubmit={handleSubmitFeedback}
         />
       )}
     </section>

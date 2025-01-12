@@ -42,21 +42,21 @@ const RelativesNavbar = () => {
     };
   }, [isMenuOpen]);
 
-  useEffect(() => {
-    const handleStickyHeader = () => {
-      if (
-        document.body.scrollTop > 80 ||
-        document.documentElement.scrollTop > 80
-      ) {
-        headerRef.current?.classList.add("sticky_header");
-      } else {
-        headerRef.current?.classList.remove("sticky_header");
-      }
-    };
+  // useEffect(() => {
+  //   const handleStickyHeader = () => {
+  //     if (
+  //       document.body.scrollTop > 80 ||
+  //       document.documentElement.scrollTop > 80
+  //     ) {
+  //       headerRef.current?.classList.add("sticky_header");
+  //     } else {
+  //       headerRef.current?.classList.remove("sticky_header");
+  //     }
+  //   };
 
-    window.addEventListener("scroll", handleStickyHeader);
-    return () => window.removeEventListener("scroll", handleStickyHeader);
-  }, []);
+  //   window.addEventListener("scroll", handleStickyHeader);
+  //   return () => window.removeEventListener("scroll", handleStickyHeader);
+  // }, []);
 
   const Menu = [
     { id: 1, name: "Hồ sơ bệnh nhân", path: "/relatives/booking" },

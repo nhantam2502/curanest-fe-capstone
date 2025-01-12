@@ -13,7 +13,6 @@ import {
   MapPinned,
   ChevronDown,
   ChevronUp,
-  Star,
 } from "lucide-react";
 import { InfoItemProps, Profile } from "@/types/profile";
 import { useRouter } from "next/navigation";
@@ -60,144 +59,132 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
     router.push(`/relatives/editPatientRecord/${profile.id}`);
   };
 
-  if (!isExpanded) {
-    return (
-      <div
-        className="aspect-square border-2 cursor-pointer transition-all duration-200 hover:shadow-lg"
-        onClick={() => setIsExpanded(true)}
-      >
-        <CardContent className="h-full p-6 flex flex-col items-center justify-center text-center">
-          <Avatar className="w-40 h-40 mb-4">
-            <AvatarImage src={profile.avatar} alt={profile.full_name} />
-            <AvatarFallback className="text-2xl">
-              {profile.full_name
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </AvatarFallback>
-          </Avatar>
-
-          <div className="mt-4">
-            <h2 className="text-4xl font-bold text-gray-900">
-              {profile.full_name}
-            </h2>
-
-            <div className="text-gray-500 text-xl mt-2">
-              {calculateAge(profile.dob)} tuổi
-            </div>
-          </div>
-        </CardContent>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-5xl max-h-[90vh] overflow-y-auto">
+    <div>
+      <Card className="transition-all duration-200 hover:shadow-lg">
         <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex items-center gap-6">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={profile.avatar} alt={profile.full_name} />
-                <AvatarFallback className="text-xl">
-                  {profile.full_name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </AvatarFallback>
-              </Avatar>
+          <div
+            className="flex flex-col items-center cursor-pointer"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <Avatar className="w-40 h-40 mb-4">
+              <AvatarImage src={profile.avatar} alt={profile.full_name} />
+              <AvatarFallback className="text-2xl">
+                {profile.full_name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
 
-              <div>
-                <h2 className="text-3xl font-bold text-gray-900">
-                  {profile.full_name}
-                </h2>
-                <div className="text-xl text-gray-600 mt-1">
-                  {calculateAge(profile.dob)} tuổi
-                </div>
+            <div className="text-center">
+              <h2 className="text-4xl font-bold text-gray-900">
+                {profile.full_name}
+              </h2>
+              <div className="text-gray-500 text-xl mt-2">
+                {calculateAge(profile.dob)} tuổi
               </div>
             </div>
+
             <Button
               variant="ghost"
-              className="rounded-full p-2"
-              onClick={() => setIsExpanded(false)}
+              className="mt-4"
+              onClick={() => setIsExpanded(!isExpanded)}
             >
-              <ChevronDown size={40} />
+              {isExpanded ? (
+                <ChevronUp className="w-6 h-6" />
+              ) : (
+                <ChevronDown className="w-6 h-6" />
+              )}
             </Button>
           </div>
 
-          {/* Basic Information */}
-          <div className="grid grid-cols-2 gap-4">
-            <InfoItem
-              icon={Calendar}
-              label="Ngày sinh"
-              value={`${formatDateVN(profile.dob)}`}
-            />
-            <InfoItem
-              icon={Phone}
-              label="Số điện thoại"
-              value={profile.phone_number}
-            />
-          </div>
+          {/* Expanded Content */}
+          {isExpanded && (
+            <div className="mt-6 border-t pt-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                <InfoItem
+                  icon={Calendar}
+                  label="Ngày sinh"
+                  value={formatDateVN(profile.dob)}
+                />
+                <InfoItem
+                  icon={Phone}
+                  label="Số điện thoại"
+                  value={profile.phone_number}
+                />
+              </div>
 
-          {/* Address Information */}
-          <div className="border-t mt-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <InfoItem icon={Home} label="Địa chỉ" value={profile.address} />
-              <InfoItem
-                icon={Building2}
-                label="Phường/Xã"
-                value={profile.ward}
-              />
-              <InfoItem
-                icon={MapPinned}
-                label="Quận/Huyện"
-                value={profile.district}
-              />
-              <InfoItem
-                icon={MapPin}
-                label="Tỉnh/Thành phố"
-                value={profile.city}
-              />
-            </div>
-          </div>
+              {/* Address Information */}
+              <div className="border-t mt-4 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                  <InfoItem
+                    icon={Home}
+                    label="Địa chỉ"
+                    value={profile.address}
+                  />
+                  <InfoItem
+                    icon={Building2}
+                    label="Phường/Xã"
+                    value={profile.ward}
+                  />
+                  <InfoItem
+                    icon={MapPinned}
+                    label="Quận/Huyện"
+                    value={profile.district}
+                  />
+                  <InfoItem
+                    icon={MapPin}
+                    label="Tỉnh/Thành phố"
+                    value={profile.city}
+                  />
+                </div>
+              </div>
 
-          {/* Medical Information */}
-          <div className="border-t mt-4 pt-4 space-y-4">
-            <div className="flex items-start space-x-3">
-              <Stethoscope className="w-6 h-6 text-gray-500 mt-1" />
-              <div className="text-xl">
-                <span className="font-semibold">Mô tả bệnh lý: </span>
-                <span className="text-gray-600">
-                  {profile.medical_description}
-                </span>
+              {/* Medical Information */}
+              <div className="border-t mt-4 pt-4 space-y-4">
+                <div className="flex items-start space-x-3">
+                  <Stethoscope className="w-6 h-6 text-gray-500 mt-1" />
+                  <div className="text-xl">
+                    <span className="font-semibold">Mô tả bệnh lý: </span>
+                    <span className="text-gray-600">
+                      {profile.medical_description}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-3 text-xl">
+                  <AlertCircle className="w-6 h-6 text-gray-500 mt-1" />
+                  <div>
+                    <span className="font-semibold">
+                      Lưu ý với điều dưỡng:{" "}
+                    </span>
+                    <span className="text-gray-600">
+                      {profile.note_for_nurses}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end space-x-4 pt-4 border-t mt-4">
+                <Button
+                  variant="secondary"
+                  className="bg-[#FFD700] text-white hover:bg-[#FFC300] px-6 rounded-full text-xl"
+                  onClick={(e) => handleEditPatientRecord(e, profile)}
+                >
+                  Chỉnh sửa
+                </Button>
+
+                <Button
+                  className="bg-[#71DDD7] hover:bg-[#5fc4c0] px-6 rounded-full text-xl"
+                  onClick={(e) => handleBookNurse(e, profile.id)}
+                >
+                  Đặt điều dưỡng
+                </Button>
               </div>
             </div>
-            <div className="flex items-start space-x-3 text-xl">
-              <AlertCircle className="w-6 h-6 text-gray-500 mt-1" />
-              <div>
-                <span className="font-semibold">Lưu ý với điều dưỡng: </span>
-                <span className="text-gray-600">{profile.note_for_nurses}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end space-x-4 pt-4 border-t mt-4">
-            <Button
-              variant="secondary"
-              className="bg-[#FFD700] text-white hover:bg-[#FFC300] px-6 rounded-full text-xl"
-              onClick={(e) => handleEditPatientRecord(e, profile)} // Pass the full `profile` object
-            >
-              Chỉnh sửa
-            </Button>
-
-            <Button
-              className="bg-[#71DDD7] hover:bg-[#5fc4c0] px-6 rounded-full text-xl"
-              onClick={(e) => handleBookNurse(e, profile.id)}
-            >
-              Đặt điều dưỡng
-            </Button>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -213,7 +200,7 @@ const PatientRecords: React.FC = () => {
         <h1 className="text-4xl font-bold text-gray-900">Hồ sơ bệnh nhân</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {profiles.map((profile) => (
           <ProfileCard key={profile.id} profile={profile} />
         ))}
