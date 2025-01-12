@@ -47,7 +47,7 @@ const PatientInfo: React.FC<{ label: string; value: string | number }> = ({
 }) => (
   <div>
     <p className="text-gray-500 text-xl mb-1">{label}</p>
-    <p className="font-medium text-lg">{value}</p>
+    <p className="font-medium text-xl">{value}</p>
   </div>
 );
 
@@ -59,7 +59,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[1200px] max-h-[90vh] overflow-y-auto p-8">
+      <DialogContent className="sm:max-w-[1400px] max-h-[90vh] overflow-y-auto p-8">
         <DialogHeader className="mb-8">
           <DialogTitle className="text-2xl font-semibold">Chi tiết lịch hẹn</DialogTitle>
         </DialogHeader>
@@ -73,7 +73,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                 <AvatarImage src={appointment.avatar} alt="Patient Avatar" />
                 <AvatarFallback>Patient</AvatarFallback>
               </Avatar>
-              <div className="text-lg font-semibold">Huỳnh Đào</div>
+              <div className="text-xl font-semibold">Huỳnh Đào</div>
             </div>
             <div className="grid grid-cols-2 gap-8">
               <PatientInfo label="Ngày sinh" value="15/01/1943" />
@@ -108,14 +108,14 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
             <PatientInfo label="Lịch hẹn ngày" value={appointment.appointment_date} />
             <PatientInfo label="Thời gian" value={appointment.time_from_to} />
             <div>
-              <p className="text-gray-500 text-base mb-2">Trạng thái:</p>
+              <p className="text-gray-500 text-xl mb-2">Trạng thái:</p>
               <div className="flex items-center space-x-3">
                 <Clock className="w-6 h-6 text-green-500" />
-                <span className="text-green-500 text-lg font-semibold">{appointment.status}</span>
+                <span className="text-green-500 text-xl font-semibold">{appointment.status}</span>
               </div>
             </div>
             <div>
-              <p className="text-gray-500 text-base mb-2">Dịch vụ đã đăng kí:</p>
+              <p className="text-gray-500 text-xl mb-2">Dịch vụ đã đăng kí:</p>
               <div className="flex flex-wrap gap-3 mt-2">
                 {(appointment.techniques || '')
                   .split('-')

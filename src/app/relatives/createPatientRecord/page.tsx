@@ -50,10 +50,7 @@ export default function CreatePatientRecord() {
       <Breadcrumb className="px-10 mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink
-              href="/relatives/booking"
-              className="text-xl"
-            >
+            <BreadcrumbLink href="/relatives/booking" className="text-xl">
               Hồ sơ bệnh nhân
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -153,10 +150,16 @@ export default function CreatePatientRecord() {
                       <SelectTrigger className="h-12 w-full text-lg">
                         <SelectValue placeholder="Chọn giới tính" />
                       </SelectTrigger>
-                      <SelectContent >
-                        <SelectItem className="text-lg" value="male">Nam</SelectItem>
-                        <SelectItem className="text-lg" value="female">Nữ</SelectItem>
-                        <SelectItem className="text-lg" value="other">Khác</SelectItem>
+                      <SelectContent>
+                        <SelectItem className="text-lg" value="male">
+                          Nam
+                        </SelectItem>
+                        <SelectItem className="text-lg" value="female">
+                          Nữ
+                        </SelectItem>
+                        <SelectItem className="text-lg" value="other">
+                          Khác
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -191,22 +194,28 @@ export default function CreatePatientRecord() {
                     <Label className="text-xl" htmlFor="ward">
                       Phường
                     </Label>
-                    <Input
-                      id="ward"
-                      placeholder="Nhập phường"
-                      className="h-12"
-                    />
+                    <Select>
+                      <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectValue placeholder="Chọn phường" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem className="text-lg" value="phuong-1">Phường 1</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
                     <Label className="text-xl" htmlFor="district">
                       Quận
                     </Label>
-                    <Input
-                      id="district"
-                      placeholder="Nhập quận"
-                      className="h-12"
-                    />
+                    <Select>
+                      <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectValue placeholder="Chọn quận" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem className="text-lg" value="quan-1">Quận 1</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
