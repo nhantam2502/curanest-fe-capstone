@@ -13,7 +13,7 @@ const dummyData = [
     id: 1,
     nurse_name: "Nguyễn Văn A",
     avatar: "https://github.com/shadcn.png",
-    status: "completed",
+    status: "pending",
     phone_number: "0987654321",
     techniques: "Kỹ thuật A- Kỹ thuật B-Kỹ thuật C - Kỹ thuật G",
     total_fee: 500000,
