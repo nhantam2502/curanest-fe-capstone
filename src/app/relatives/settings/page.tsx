@@ -9,6 +9,8 @@ import {
   Pencil,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import dummyTransactions from "@/dummy_data/dummy_transaction.json";
+import DepositDialog from "@/app/components/Relatives/DepositDialog";
 
 const dummyProfile = {
   email: "nguyenvana@gmail.com",
@@ -21,44 +23,6 @@ const dummyProfile = {
   city: "TP. Hồ Chí Minh",
   address: "123 Đường Nguyễn Văn Linh",
 };
-
-const dummyTransactions = [
-  {
-    id: 1,
-    type: "deposit",
-    amount: 500000,
-    description: "Nạp tiền qua Momo",
-    date: "2024-01-09 14:30",
-  },
-  {
-    id: 2,
-    type: "withdraw",
-    amount: 200000,
-    description: "Thanh toán đơn hàng #HD001",
-    date: "2024-01-08 09:15",
-  },
-  {
-    id: 3,
-    type: "deposit",
-    amount: 1000000,
-    description: "Nạp tiền qua ngân hàng",
-    date: "2024-01-07 16:45",
-  },
-  {
-    id: 4,
-    type: "withdraw",
-    amount: 150000,
-    description: "Thanh toán đơn hàng #HD002",
-    date: "2024-01-06 11:20",
-  },
-  {
-    id: 5,
-    type: "deposit",
-    amount: 300000,
-    description: "Nạp tiền qua Zalopay",
-    date: "2024-01-05 13:50",
-  },
-];
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("wallet");
@@ -83,6 +47,7 @@ const SettingsPage = () => {
       minute: "2-digit",
     }).format(date);
   };
+
   const menuItems = [
     {
       id: "profile",
@@ -101,56 +66,61 @@ const SettingsPage = () => {
     },
   ];
 
-  const WalletContent = () => (
-    <div className="p-8">
-      <h2 className="text-4xl font-semibold mb-8">Ví tiền</h2>
-      <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-8 text-white mb-8">
-        <div className="text-7xl font-bold mb-4">0đ</div>
-        <div className="text-2xl mb-6">Số dư ví</div>
-        <button className="bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full transition text-xl">
-          Nạp tiền vào ví
-        </button>
-      </div>
+  const WalletContent = () => {
+    const handleDeposit = (amount: number) => {
+      // Xử lý logic nạp tiền ở đây
+      console.log(`Nạp tiền: ${amount}₫`);
+    };
 
-      <div className="bg-white rounded-xl p-8 shadow-sm">
-        <h3 className="text-3xl font-semibold mb-6">Lịch sử giao dịch</h3>
-        <div className="space-y-4">
-          {dummyTransactions.map((transaction) => (
-            <div
-              key={transaction.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
-            >
-              <div className="flex items-center space-x-4">
-                {transaction.type === "deposit" ? (
-                  <ArrowUpCircle className="w-10 h-10 text-green-500" />
-                ) : (
-                  <ArrowDownCircle className="w-10 h-10 text-red-500" />
-                )}
-                <div>
-                  <div className="font-medium text-xl">
-                    {transaction.description}
-                  </div>
-                  <div className="text-lg text-gray-500">
-                    {formatDate(transaction.date)}
+    return (
+      <div className="p-8">
+        <h2 className="text-4xl font-semibold mb-8">Ví tiền</h2>
+        <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-8 text-white mb-8">
+          <div className="text-7xl font-bold mb-4">0đ</div>
+          <div className="text-2xl mb-6">Số dư ví</div>
+          <DepositDialog onDeposit={handleDeposit} />
+        </div>
+
+        <div className="bg-white rounded-xl p-8 shadow-sm">
+          <h3 className="text-3xl font-semibold mb-6">Lịch sử giao dịch</h3>
+          <div className="space-y-4">
+            {dummyTransactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
+              >
+                <div className="flex items-center space-x-4">
+                  {transaction.type === "deposit" ? (
+                    <ArrowUpCircle className="w-10 h-10 text-green-500" />
+                  ) : (
+                    <ArrowDownCircle className="w-10 h-10 text-red-500" />
+                  )}
+                  <div>
+                    <div className="font-medium text-xl">
+                      {transaction.description}
+                    </div>
+                    <div className="text-lg text-gray-500">
+                      {formatDate(transaction.date)}
+                    </div>
                   </div>
                 </div>
+                <div
+                  className={`text-xl font-semibold ${
+                    transaction.type === "deposit"
+                      ? "text-green-500"
+                      : "text-red-500"
+                  }`}
+                >
+                  {transaction.type === "deposit" ? "+" : "-"}
+                  {formatCurrency(transaction.amount)}
+                </div>
               </div>
-              <div
-                className={`text-xl font-semibold ${
-                  transaction.type === "deposit"
-                    ? "text-green-500"
-                    : "text-red-500"
-                }`}
-              >
-                {transaction.type === "deposit" ? "+" : "-"}
-                {formatCurrency(transaction.amount)}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const ProfileContent = () => {
     // Assuming `dummyProfile` is being passed as a prop or is available in state.
