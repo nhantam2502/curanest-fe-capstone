@@ -1,67 +1,117 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+"use client";
 
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+  HomeIcon,
+  SettingsIcon,
+  HelpCircleIcon,
+  MenuIcon,
+  CircleUserRound,
+} from "lucide-react";
+import Link from "next/link";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { usePathname } from "next/navigation";
 
-// Menu items.
-const items = [
-  {
-    title: "Home",
-    url: "#",
-    icon: Home,
-  },
-  {
-    title: "Inbox",
-    url: "#",
-    icon: Inbox,
-  },
-  {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
-  },
-]
-
-export function StaffSidebar() {
-  return (
-    <Sidebar>
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
-  )
+interface SidebarItem {
+  label: string;
+  icon: React.ReactNode;
+  href: string;
 }
+
+const sidebarItems: SidebarItem[] = [
+  {
+    label: "Quản lý điều dưỡng",
+    icon: <CircleUserRound size={20} />,
+    href: "/staff/nurse-management",
+  },
+  { label: "Settings", icon: <SettingsIcon size={16} />, href: "/staff/settings" },
+  { label: "Help", icon: <HelpCircleIcon size={16} />, href: "/staff/help" },
+];
+
+interface CollapsibleSidebarProps {
+  isCollapsed: boolean;
+}
+
+const CollapsibleSidebar = ({ isCollapsed }: CollapsibleSidebarProps) => {
+  const pathname = usePathname();
+
+  return (
+    <aside
+      className={cn(
+        "bg-gray-100 border-r h-screen sticky top-0 transition-all duration-200",
+        isCollapsed ? "w-16" : "w-64"
+      )}
+    >
+      <div className="p-4 flex items-center justify-center">
+        {isCollapsed ? (
+          <MenuIcon size={16} />
+        ) : (
+          <span className="font-bold text-lg">My Sidebar</span>
+        )}
+      </div>
+
+      <nav className="flex-1 overflow-y-auto">
+        <TooltipProvider>
+          <ul>
+            {sidebarItems.map((item) => {
+              const isActive = pathname.startsWith("/staff") && pathname === item.href;
+              return (
+                <li key={item.label} className="mb-2">
+                  <Link href={item.href}>
+                    {isCollapsed ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full px-4 py-2 justify-center",
+                              isActive && "bg-gray-200 hover:bg-gray-200"
+                            )}
+                          >
+                            <div className="relative">
+                              {item.icon}
+                              {/* Indicator line for collapsed state */}
+                              {isActive && (
+                                <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-full h-0.5 bg-blue-500 rounded-full" />
+                              )}
+                            </div>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="bg-gray-200 text-gray-800">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full px-4 py-2 justify-start",
+                          isActive && "bg-gray-200 hover:bg-gray-200"
+                        )}
+                      >
+                        <div className="flex items-center gap-2">
+                          {item.icon}
+                          <span>{item.label}</span>
+                          {/* No indicator line in expanded state */}
+                        </div>
+                      </Button>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </TooltipProvider>
+      </nav>
+    </aside>
+  );
+};
+
+export default CollapsibleSidebar;
