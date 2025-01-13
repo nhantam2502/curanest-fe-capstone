@@ -119,10 +119,10 @@ const AppointmentHistory = () => {
   };
 
   const filteredAppointments = dummyData.filter((appointment) => {
-    // const appointmentMonth = appointment.appointment_date.substring(0, 7);
+    const appointmentMonth = appointment.appointment_date.substring(0, 7);
     return (
       appointment.status === "completed" &&
-      // appointmentMonth === monthFilter &&
+      appointmentMonth === monthFilter &&
       appointment.patientId === selectedPatientId
     );
   });

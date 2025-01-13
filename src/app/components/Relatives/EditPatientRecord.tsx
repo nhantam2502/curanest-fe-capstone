@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Pencil } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,7 +30,6 @@ import {
 import { Profile } from "@/types/profile";
 
 export default function EditPatientRecord({ profile }: { profile: Profile }) {
-
   const [date, setDate] = useState<Date | undefined>(() => {
     const dob = profile?.dob;
     return dob ? new Date(dob) : undefined;
@@ -57,11 +56,18 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
     }));
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setAvatar(URL.createObjectURL(file));
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Create a temporary URL for the selected file
+      const imageUrl = URL.createObjectURL(file);
+      setAvatar(imageUrl); // Update avatar state with the new image URL
+      console.log("Selected file:", file);
     }
+  };
+
+  const handleAvatarClick = () => {
+    document.getElementById("avatar-upload")?.click();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,7 +85,7 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
       <Breadcrumb className="px-10 mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/relatives/profiles" className="text-xl">
+            <BreadcrumbLink href="/relatives/booking" className="text-xl">
               Hồ sơ bệnh nhân
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -104,28 +110,31 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
           </CardHeader>
 
           <CardContent>
-            <div className="flex gap-10">
+            <div className="flex gap-10 mt-5">
               {/* Avatar Section */}
               <div className="w-80 flex-shrink-0">
-                <Label className="block mb-2 text-xl">Ảnh đại diện</Label>
-                <div className="w-80 h-80 relative border-2 rounded-lg overflow-hidden">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarChange}
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                  />
-                  {avatar ? (
+                {/* <Label className="block mb-2 text-xl">Ảnh đại diện</Label> */}
+                <div className="w-80 flex flex-col items-center space-y-6">
+                  <div className="relative group">
                     <img
-                      src={avatar}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
+                      src={avatar || "/placeholder-avatar.png"} // Add a placeholder image path
+                      alt="Profile"
+                      className="w-64 h-64 rounded-full object-cover border-6 border-violet-100 cursor-pointer"
                     />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-xl text-gray-500">
-                      Chọn ảnh
+                    <div
+                      className="absolute bottom-4 right-4 p-2 bg-yellowColor rounded-full cursor-pointer transition-colors group-hover:scale-110"
+                      onClick={handleAvatarClick}
+                    >
+                      <Pencil className="w-6 h-6 text-white" />
                     </div>
-                  )}
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                  </div>
                 </div>
               </div>
 
