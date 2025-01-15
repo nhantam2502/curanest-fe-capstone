@@ -8,6 +8,7 @@ import {
   } from "@/components/ui/table";
   import { Button } from "@/components/ui/button";
   import { MajorData } from "./MajorForm";
+import { Switch } from "@/components/ui/switch";
   
   interface MajorTableProps {
     majors: MajorData[];
@@ -21,32 +22,24 @@ import {
     onDelete,
   }: MajorTableProps) {
     return (
-      <Table>
+      <Table className="w-full border border-gray-200">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[80px]">ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead>Description</TableHead>
+            <TableHead>Tên</TableHead>
+            <TableHead>Mô tả</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {majors.map((major) => (
             <TableRow key={major.id}>
-              <TableCell className="font-medium">{major.id}</TableCell>
               <TableCell>{major.name}</TableCell>
               <TableCell>{major.description}</TableCell>
               <TableCell className="text-right space-x-2">
                 <Button variant="outline" size="sm" onClick={() => onEdit(major)}>
-                  Edit
+                  Sửa
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => onDelete(major.id)}
-                >
-                  Delete
-                </Button>
+                <Switch />
               </TableCell>
             </TableRow>
           ))}

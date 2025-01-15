@@ -10,11 +10,12 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Post } from "./page";
+import { Post } from "../page";
 
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+import "react-quill/dist/quill.snow.css";
 
-export interface PostEditorProps {
+interface PostEditorProps {
   post: Post | null;
   onSave: (post: Post) => void;
   onCancel: () => void;
@@ -67,21 +68,13 @@ const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onCancel }) => {
   ];
 
   const handleSave = () => {
-    const newPost: Post = post?.id
-      ? {
-          id: post.id,
-          title,
-          content,
-          status,
-          createdAt: new Date(),
-        }
-      : {
-          id: 0, // or any default value that makes sense for your application
-          title,
-          content,
-          status,
-          createdAt: new Date(),
-        };
+    const newPost: Post = {
+      id: post ? post.id : Date.now(), // Generate unique ID if it's a new post
+      title,
+      content,
+      status,
+      createdAt: new Date(),
+    };
     onSave(newPost);
   };
 
@@ -89,7 +82,7 @@ const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onCancel }) => {
     <div>
       <div className="mb-4">
         <label htmlFor="title" className="block mb-2 font-semibold">
-          Title
+          Tiêu đề
         </label>
         <input
           type="text"
@@ -102,25 +95,25 @@ const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onCancel }) => {
 
       <div className="mb-4">
         <label htmlFor="content" className="block mb-2 font-semibold">
-          Content
+          Nội dung
         </label>
         <ReactQuill
           theme="snow"
-          value={content}
-          onChange={setContent}
+          value={content} // Use value prop for controlled behavior
+          onChange={setContent} // Update content state directly
           modules={modules}
           formats={formats}
-          className="bg-white border border-gray-300 rounded-lg"
+          className="bg-white"
         />
       </div>
 
       <div className="mb-4">
         <label htmlFor="status" className="block mb-2 font-semibold">
-          Status
+          Trạng thái
         </label>
         <Select
+          value={status} // Use value prop for controlled behavior
           onValueChange={(value: "published" | "draft") => setStatus(value)}
-          defaultValue={status}
         >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a status" />
@@ -134,12 +127,12 @@ const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onCancel }) => {
 
       <div className="flex justify-end space-x-2">
         <Button variant="outline" onClick={onCancel}>
-          Cancel
+          Huỷ
         </Button>
-        <Button onClick={handleSave}>Save</Button>
+        <Button onClick={handleSave}>Lưu</Button>
       </div>
     </div>
   );
 };
 
-export default PostEditor;
+export default React.memo(PostEditor); // Memoize to prevent unnecessary re-renders

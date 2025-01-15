@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "first_name": "John",
+    "last_name": "Doe",
+    "phone_number": "0912345678",
+    "email": "john.doe@example.com",
+    "address": "123 Main Street",
+    "city": "Hanoi",
+    "ward": "Cau Giay",
+    "district": "Nam Tu Liem",
+    "dob": "1990-01-15"
+  },
+  {
+    "id": 2,
+    "first_name": "Jane", 
+    "last_name": "Smith",
+    "phone_number": "0987654321",
+    "email": "jane.smith@example.com",
+    "address": "456 Oak Avenue",
+    "city": "Ho Chi Minh",
+    "ward": "Ben Nghe",
+    "district": "District 1",
+    "dob": "1992-03-21"
+  },
+  {
+    "id": 3,
+    "first_name": "Jane", 
+    "last_name": "Smith",
+    "phone_number": "0987654321",
+    "email": "jane.smith@example.com",
+    "address": "456 Oak Avenue",
+    "city": "Ho Chi Minh",
+    "ward": "Ben Nghe",
+    "district": "District 1",
+    "dob": "1992-03-21"
+  },
+
+  {
+    "id": 4,
+    "first_name": "Jane", 
+    "last_name": "Smith",
+    "phone_number": "0987654321",
+    "email": "jane.smith@example.com",
+    "address": "456 Oak Avenue",
+    "city": "Ho Chi Minh",
+    "ward": "Ben Nghe",
+    "district": "District 1",
+    "dob": "1992-03-21"
+  }
+]

@@ -29,9 +29,9 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { title: "Thống kê", link: "/dashboard", icon: <LayoutDashboard /> },
-  { title: "Người dùng", link: "/user", icon: <User /> },
-  { title: "Chuyên ngành", link: "/major", icon: <BriefcaseBusiness /> },
+  { title: "Quản lý", link: "/dashboard", icon: <LayoutDashboard /> },
+  { title: "Khách hàng", link: "/user", icon: <User /> },
+  { title: "Chuyên khoa", link: "/major", icon: <BriefcaseBusiness /> },
   { title: "Bài đăng", link: "/post", icon: <BookA /> },
   { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
   { title: "Tuyển dụng", link: "/recruit", icon: <BookUser /> },
@@ -82,7 +82,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`h-screen p-4 fixed hidden lg:flex flex-col transition-all duration-300 ease-in-out bg-gray-100 ${
+        className={`h-screen p-4 fixed hidden lg:flex flex-col transition-all duration-300 ease-in-out bg-white ${
           isCollapsed ? "w-20" : "w-64"
         }`}
       >

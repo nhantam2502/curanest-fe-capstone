@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
-import PostEditor from '@/app/admin/post/PostEditor';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import {
   Table,
   TableBody,
@@ -11,12 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import PostFilter from "./PostFilter";
+import { Switch } from "@/components/ui/switch";
 
 export interface Post {
   id: number;
   title: string;
   content: string;
-  status: 'published' | 'draft';
+  status: "published" | "draft";
   createdAt: Date;
 }
 
@@ -39,17 +41,16 @@ const initialPosts: Post[] = [
 
 function PostPage() {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
-  const [showEditor, setShowEditor] = useState(false);
-  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const router = useRouter(); // Initialize useRouter
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>(initialPosts);
 
   const handleNewPost = () => {
-    setEditingPost(null);
-    setShowEditor(true);
+    router.push("/admin/post/create-post"); // Route to create-post page
   };
 
   const handleEditPost = (post: Post) => {
-    setEditingPost(post);
-    setShowEditor(true);
+    // You might want to pass the post ID in the URL for editing
+    router.push(`/admin/post/edit/${post.id}`);
   };
 
   const handleDeletePost = (postId: number) => {
@@ -57,41 +58,26 @@ function PostPage() {
     setPosts(posts.filter((post) => post.id !== postId));
   };
 
-  const handleSavePost = (newPost: Post) => {
-    if (editingPost) {
-      // Update existing post
-      setPosts(
-        posts.map((post) => (post.id === editingPost.id ? newPost : post))
-      );
-    } else {
-      // Add new post
-      setPosts([...posts, { ...newPost, id: Date.now() }]); // Generate a unique ID (replace with your ID generation logic)
-    }
-    setShowEditor(false);
-  };
-
   return (
-    <div className="p-6">
+    <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Post Manager</h1>
-        <Button onClick={handleNewPost}>New Post</Button>
+        <h1 className="text-2xl font-bold">Quản lý bài đăng</h1>
+        <Button onClick={handleNewPost}>Tạo</Button>
       </div>
-
+      <PostFilter posts={posts} setFilteredPosts={setFilteredPosts} />
       {/* Post Table */}
       <Table className="w-full border border-gray-200">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[80px]">ID</TableHead>
-            <TableHead>Title</TableHead>
-            <TableHead className="w-[150px]">Status</TableHead>
-            <TableHead className="w-[200px]">Created At</TableHead>
+            <TableHead>Tiêu đề</TableHead>
+            <TableHead className="w-[150px]">Trạng thái</TableHead>
+            <TableHead className="w-[200px]">Ngày tạo</TableHead>
             <TableHead className="text-right w-[180px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {posts.map((post) => (
             <TableRow key={post.id} className="hover:bg-gray-50">
-              <TableCell className="font-medium">{post.id}</TableCell>
               <TableCell>{post.title}</TableCell>
               <TableCell>{post.status}</TableCell>
               <TableCell>
@@ -103,31 +89,14 @@ function PostPage() {
                   size="sm"
                   onClick={() => handleEditPost(post)}
                 >
-                  Edit
+                  Sửa
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeletePost(post.id)}
-                >
-                  Delete
-                </Button>
+                <Switch/>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      {showEditor && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg w-full max-w-2xl">
-            <PostEditor
-              post={editingPost}
-              onSave={handleSavePost}
-              onCancel={() => setShowEditor(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

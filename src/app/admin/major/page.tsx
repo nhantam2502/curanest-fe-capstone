@@ -52,12 +52,12 @@ export default function MajorPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Major Management</h1>
+        <h1 className="text-3xl font-bold">Quản lý chuyên khoa</h1>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
-            <Button onClick={() => setShowForm(true)}>Add Major</Button>
+            <Button onClick={() => setShowForm(true)}>Thêm</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>

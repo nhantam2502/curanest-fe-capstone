@@ -53,9 +53,9 @@ export default function SalaryPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Salary Management</h1>
+        <h1 className="text-3xl font-bold">Quản lý lương</h1>
         {/* You can remove the Add Salary button if you don't need it */}
         {/* <Button>Add Salary</Button> */}
       </div>
