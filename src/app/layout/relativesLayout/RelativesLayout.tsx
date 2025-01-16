@@ -1,7 +1,7 @@
 import Footer from "@/app/components/HomePage/Footer";
 import RelativesNavbar from "./RelativesNavbar";
 
-export default function MainLayout({
+export default function RelativesLayout({
   children,
 }: {
   children: React.ReactNode;
