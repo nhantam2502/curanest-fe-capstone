@@ -10,16 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-
-const LoginSchema = z.object({
-  email: z
-    .string()
-    .email({ message: "Please enter a valid email address." })
-    .min(1, { message: "Email is required." }),
-  password: z
-    .string()
-    .min(1, { message: "Password is required." }),
-});
+import { EmailLoginSchema } from "@/schemaValidation/auth.schema";
 
 export function AdminLoginForm({
   className,
@@ -34,7 +25,7 @@ export function AdminLoginForm({
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(EmailLoginSchema),
     defaultValues: {
       email: "",
       password: "",

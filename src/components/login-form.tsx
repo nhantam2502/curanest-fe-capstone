@@ -8,18 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
-
-const LoginSchema = z.object({
-  phone: z
-    .string()
-    .regex(/^[0-9]{10}$/, { message: "Please enter a valid phone number (10 digits)." })
-    .min(1, { message: "Phone number is required." }),
-  password: z
-    .string()
-    .min(1, { message: "Password is required." }),
-});
+import { PhoneLoginSchema } from "@/schemaValidation/auth.schema";
 
 export function LoginForm({
   className,
@@ -34,7 +24,7 @@ export function LoginForm({
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(PhoneLoginSchema),
     defaultValues: {
       phone: "",
       password: "",
