@@ -8,18 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import dynamic from 'next/dynamic';
 import Calendar from "@/app/components/Relatives/Calendar";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
-
-interface Appointment {
-  id: number;
-  nurse_name: string;
-  avatar: string;
-  status: 'completed' | 'pending' | 'canceled';
-  phone_number: string;
-  techniques: string;
-  total_fee: number;
-  appointment_date: string;
-  time_from_to: string;
-}
+import { Appointment } from "@/types/appointment";
 
 const dummyData: Appointment[] = [
   {
