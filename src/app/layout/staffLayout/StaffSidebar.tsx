@@ -9,6 +9,7 @@ import {
   HelpCircleIcon,
   MenuIcon,
   CircleUserRound,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -31,8 +32,8 @@ const sidebarItems: SidebarItem[] = [
     icon: <CircleUserRound size={20} />,
     href: "/staff/nurse-management",
   },
-  { label: "Settings", icon: <SettingsIcon size={16} />, href: "/staff/settings" },
-  { label: "Help", icon: <HelpCircleIcon size={16} />, href: "/staff/help" },
+  { label: "Tuyển dụng", icon: <SettingsIcon size={16} />, href: "/staff/recruit" },
+  { label: "Lịch làm việc", icon: <Calendar size={16} />, href: "/staff/schedule" },
 ];
 
 interface CollapsibleSidebarProps {
