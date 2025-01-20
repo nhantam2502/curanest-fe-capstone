@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,8 +42,27 @@ import {
   CreatePatientSchema,
 } from "@/schemaValidation/relatives.schema";
 
+interface District {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+  ward: Ward[];
+}
+
+interface Ward {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+}
+
 export default function CreatePatientRecord() {
   const [avatar, setAvatar] = useState<File | null>(null);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
+  const [isLoadingWards, setIsLoadingWards] = useState(false);
 
   const {
     register,
@@ -56,6 +75,53 @@ export default function CreatePatientRecord() {
   });
 
   const date = watch("dateOfBirth");
+  const selectedDistrict = watch("district");
+
+  // Fetch districts when component mounts
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      setIsLoadingDistricts(true);
+      try {
+        const hcmCode = 79;
+        const response = await fetch(
+          `https://provinces.open-api.vn/api/p/${hcmCode}?depth=2`
+        );
+        const data = await response.json();
+        setDistricts(data.districts || []);
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      } finally {
+        setIsLoadingDistricts(false);
+      }
+    };
+
+    fetchDistricts();
+  }, []);
+
+  // Fetch wards when district changes
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (!selectedDistrict) {
+        setWards([]);
+        return;
+      }
+
+      setIsLoadingWards(true);
+      try {
+        const response = await fetch(
+          `https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`
+        );
+        const data = await response.json();
+        setWards(data.wards || []);
+      } catch (error) {
+        console.error("Error fetching wards:", error);
+      } finally {
+        setIsLoadingWards(false);
+      }
+    };
+
+    fetchWards();
+  }, [selectedDistrict]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -248,46 +314,73 @@ export default function CreatePatientRecord() {
 
                   <div className="grid grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-xl" htmlFor="ward">
-                        Phường
-                      </Label>
-                      <Select
-                        onValueChange={(value) => setValue("ward", value)}
-                      >
-                        <SelectTrigger className="h-12 w-full text-lg">
-                          <SelectValue placeholder="Chọn phường" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem className="text-lg" value="phuong-1">
-                            Phường 1
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {errors.ward && (
-                        <p className="text-red-500">{errors.ward.message}</p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
                       <Label className="text-xl" htmlFor="district">
                         Quận
                       </Label>
                       <Select
-                        onValueChange={(value) => setValue("district", value)}
+                        onValueChange={(value) => {
+                          setValue("district", value);
+                          setValue("ward", ""); // Reset ward when district changes
+                        }}
+                        disabled={isLoadingDistricts}
                       >
                         <SelectTrigger className="h-12 w-full text-lg">
-                          <SelectValue placeholder="Chọn quận" />
+                          <SelectValue
+                            placeholder={
+                              isLoadingDistricts ? "Đang tải..." : "Chọn quận"
+                            }
+                          />
                         </SelectTrigger>
+
                         <SelectContent>
-                          <SelectItem className="text-lg" value="quan-1">
-                            Quận 1
-                          </SelectItem>
+                          {districts.map((district) => (
+                            <SelectItem
+                              key={district.code}
+                              value={district.code.toString()}
+                              className="text-lg"
+                            >
+                              {district.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       {errors.district && (
                         <p className="text-red-500">
                           {errors.district.message}
                         </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xl" htmlFor="ward">
+                        Phường
+                      </Label>
+                      <Select
+                        onValueChange={(value) => setValue("ward", value)}
+                        disabled={!selectedDistrict || isLoadingWards}
+                      >
+                        <SelectTrigger className="h-12 w-full text-lg">
+                          <SelectValue
+                            placeholder={
+                              isLoadingWards ? "Đang tải..." : "Chọn phường"
+                            }
+                          />
+                        </SelectTrigger>
+
+                        <SelectContent>
+                          {wards.map((ward) => (
+                            <SelectItem
+                              key={ward.code}
+                              value={ward.code.toString()}
+                              className="text-lg"
+                            >
+                              {ward.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.ward && (
+                        <p className="text-red-500">{errors.ward.message}</p>
                       )}
                     </div>
 
