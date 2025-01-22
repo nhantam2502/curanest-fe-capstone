@@ -13,15 +13,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import AppointmentSchedule from "@/app/components/Nursing/AppointmentSchedule";
 import DonutChart from "@/app/components/Nursing/DonutChart";
-import {
-  Appointment,
-  CalendarViewType,
-  ScheduleEvent,
-} from "@/types/appointment";
+import { Appointment, ScheduleEvent } from "@/types/appointment";
 
 const NurseScheduleCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [view, setView] = useState<CalendarViewType>("WEEK");
 
   // Dữ liệu mẫu cho appointments
   const appointments: Appointment[] = [
@@ -97,7 +92,7 @@ const NurseScheduleCalendar = () => {
   const getStartOfWeek = (date: Date): Date => {
     const start = new Date(date);
     const day = start.getDay();
-    const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Tính thứ Hai
+    const diff = start.getDate() - day + (day === 0 ? -6 : 1);
     start.setDate(diff);
     return start;
   };
@@ -105,12 +100,12 @@ const NurseScheduleCalendar = () => {
   const getEndOfWeek = (date: Date): Date => {
     const startOfWeek = getStartOfWeek(date);
     const end = new Date(startOfWeek);
-    end.setDate(startOfWeek.getDate() + 6); // Thêm 6 ngày để có Chủ nhật
+    end.setDate(startOfWeek.getDate() + 6);
     return end;
   };
 
   return (
-    <div className="w-full h-screen bg-gray-100 p-4">
+    <div className="w-full h-full bg-gray-100 p-4">
       <div className="flex gap-4 h-full">
         {/* Left Sidebar */}
         <Card className="w-72 h-full">
@@ -136,41 +131,46 @@ const NurseScheduleCalendar = () => {
         </Card>
 
         {/* Main Calendar Area */}
-        <Card className="flex-1 h-full">
+        <Card className="flex-1 h-full shadow-lg">
           <CardHeader className="p-4 border-b">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="hover:bg-blue-50"
                   onClick={() => setSelectedDate(new Date())}
                 >
                   Hôm nay
                 </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const previousMonth = new Date(selectedDate);
-                    previousMonth.setMonth(selectedDate.getMonth() - 1);
-                    setSelectedDate(previousMonth);
-                  }}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
+                <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-white"
+                    onClick={() => {
+                      const prev = new Date(selectedDate);
+                      prev.setDate(prev.getDate() - 7);
+                      setSelectedDate(prev);
+                    }}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    const nextMonth = new Date(selectedDate);
-                    nextMonth.setMonth(selectedDate.getMonth() + 1);
-                    setSelectedDate(nextMonth);
-                  }}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 hover:bg-white"
+                    onClick={() => {
+                      const next = new Date(selectedDate);
+                      next.setDate(next.getDate() + 7);
+                      setSelectedDate(next);
+                    }}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
 
                 <span className="text-lg font-medium">
                   {selectedDate.toLocaleDateString("vi-VN", {
@@ -180,114 +180,117 @@ const NurseScheduleCalendar = () => {
                 </span>
               </div>
 
-              {/* Nút thông báo */}
               <div className="flex items-center gap-2">
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    console.log("Notification button clicked");
-                    // Thêm logic mở/tắt thông báo ở đây
-                  }}
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-blue-50"
                 >
-                  <Bell className="w-4 h-4" />
+                  <Bell className="w-4 h-4 mr-2" />
+                  Thông báo
                 </Button>
               </div>
             </div>
           </CardHeader>
 
           <CardContent className="p-4 overflow-auto">
-            <div className="grid grid-cols-8 gap-4 min-w-[1000px]">
-              {/* Time column */}
-              <div className="space-y-16 pt-10">
-                {Array.from({ length: 13 }, (_, i) => {
-                  const hour = 8 + i;
-                  const time = `${hour}:00`;
-                  return (
-                    <div
-                      key={time}
-                      className="text-sm text-gray-500 -translate-y-3"
-                    >
-                      {time}
-                    </div>
-                  );
-                })}
+            <div className="grid grid-cols-8 min-w-[1000px]">
+              {/* Header row with time label and days */}
+              <div className="col-span-1 p-4 border-r border-b">
+                <div className="text-sm font-medium text-gray-500">Giờ</div>
               </div>
-
-              {/* Days columns */}
               {Array.from({ length: 7 }).map((_, dayIndex) => {
-                const startOfWeek = getStartOfWeek(selectedDate);
-                const currentDate = new Date(startOfWeek);
-                currentDate.setDate(startOfWeek.getDate() + dayIndex);
+                const currentDate = new Date(getStartOfWeek(selectedDate));
+                currentDate.setDate(currentDate.getDate() + dayIndex);
                 const isToday =
                   currentDate.toDateString() === new Date().toDateString();
 
                 return (
-                  <div key={dayIndex} className="relative min-h-[600px]">
-                    {/* Date header */}
-                    <div className="text-sm text-center pb-1 border-b">
-                      <div className="text-gray-500">
-                        {currentDate.toLocaleDateString("vi-VN", {
-                          weekday: "short",
+                  <div
+                    key={dayIndex}
+                    className="col-span-1 p-4 border-b text-center"
+                  >
+                    <div className="text-sm text-gray-500">
+                      {currentDate.toLocaleDateString("vi-VN", {
+                        weekday: "short",
+                      })}
+                    </div>
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center mx-auto mt-1",
+                        isToday
+                          ? "bg-blue-100 text-blue-600 font-medium"
+                          : "text-gray-900"
+                      )}
+                    >
+                      {currentDate.getDate()}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Time slots */}
+              {Array.from({ length: 13 }).map((_, hourIndex) => {
+                const hour = 8 + hourIndex;
+                return (
+                  <React.Fragment key={hour}>
+                    <div className="col-span-1 border-r border-b h-20 p-4">
+                      <div className="text-sm text-gray-500">{`${hour}:00`}</div>
+                    </div>
+                    {Array.from({ length: 7 }).map((_, dayIndex) => (
+                      <div
+                        key={`${hour}-${dayIndex}`}
+                        className="col-span-1 border-b border-r h-20 relative"
+                      >
+                        {scheduleData.map((event) => {
+                          const startHour = parseInt(
+                            event.startTime.split(":")[0]
+                          );
+                          if (startHour === hour && dayIndex === 0) {
+                            return (
+                              <div
+                                key={event.id}
+                                className={cn(
+                                  "absolute left-1 right-1 p-2 rounded-lg border transition-colors",
+                                  getEventColor(event.type, event.classType)
+                                )}
+                                style={{
+                                  top: "4px",
+                                  height: "calc(100% - 8px)",
+                                }}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <Building2 className="w-4 h-4 flex-shrink-0" />
+                                  <div className="min-w-0">
+                                    <div className="text-xs font-medium truncate">
+                                      {event.title}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {event.startTime} - {event.endTime}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 mt-2">
+                                  <Users className="w-3 h-3" />
+                                  <div className="flex -space-x-2">
+                                    {Array.from({
+                                      length: event.participants,
+                                    }).map((_, i) => (
+                                      <div
+                                        key={i}
+                                        className="w-4 h-4 rounded-full bg-white border border-gray-200"
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
                         })}
                       </div>
-                      <div
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center mx-auto",
-                          isToday ? "bg-blue-100" : ""
-                        )}
-                      >
-                        {currentDate.getDate()}
-                      </div>
-                    </div>
-
-                    {/* Events */}
-                    {scheduleData.map((event) => {
-                      const startHour = parseInt(event.startTime.split(":")[0]);
-                      const endHour = parseInt(event.endTime.split(":")[0]);
-                      const duration = endHour - startHour;
-
-                      return (
-                        <div
-                          key={event.id}
-                          className={cn(
-                            "absolute left-2 right-2 p-3 rounded-lg border",
-                            getEventColor(event.type, event.classType)
-                          )}
-                          style={{
-                            top: `${(startHour - 7) * 64 + 48}px`,
-                            height: `${duration * 64}px`,
-                          }}
-                        >
-                          <div className="flex items-start gap-2">
-                            <Building2 className="w-4 h-4 flex-shrink-0" />
-                            <div className="min-w-0">
-                              <div className="text-xs font-medium truncate">
-                                {event.title}
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {event.startTime} - {event.endTime}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 mt-2">
-                            <Users className="w-3 h-3" />
-                            <div className="flex -space-x-2">
-                              {Array.from({ length: event.participants }).map(
-                                (_, i) => (
-                                  <div
-                                    key={i}
-                                    className="w-4 h-4 rounded-full bg-gray-200 border border-white"
-                                  />
-                                )
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-
-                  </div>
+                    ))}
+                  </React.Fragment>
                 );
               })}
             </div>
