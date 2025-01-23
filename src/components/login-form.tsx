@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,12 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { PhoneLoginSchema } from "@/schemaValidation/auth.schema";
+import {
+  PhoneLoginSchema,
+  PhoneLoginInput,
+} from "@/schemaValidation/auth.schema";
+import authApiRequest from "@/apiRequest/auth";
+import { getSession, signIn } from "next-auth/react";
 
 export function LoginForm({
   className,
@@ -23,33 +27,33 @@ export function LoginForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
+  } = useForm<PhoneLoginInput>({
     resolver: zodResolver(PhoneLoginSchema),
     defaultValues: {
-      phone: "",
+      "phone-number": "",
       password: "",
     },
   });
-
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: PhoneLoginInput) => {
     try {
       setLoading(true);
       setError("");
-
-      const result = await signIn("credentials", {
-        identifier: data.phone, 
+  
+      const result = await signIn('credentials', {
+        redirect: true, // Prevent automatic redirection
+        identifier: data['phone-number'],
         password: data.password,
-        redirect: false,
       });
-
+  
       if (result?.error) {
-        setError("Invalid phone number or password");
+        setError(result.error);
         return;
       }
-
-      const session = await getSession();
+  
+      // Manually handle routing based on role
+      const session = await getSession(); // Import getSession from next-auth/react
       const role = session?.user?.role;
-
+  
       switch (role) {
         case "nurse":
           router.push("/nurse");
@@ -61,9 +65,10 @@ export function LoginForm({
           router.push("/relatives/booking");
           break;
         default:
-          router.push("/guest");
+          router.push("/");
       }
     } catch (error) {
+      console.log("Login Error:", error);
       setError("An error occurred during login");
     } finally {
       setLoading(false);
@@ -85,11 +90,11 @@ export function LoginForm({
                 placeholder="Số điện thoại"
                 className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none"
                 disabled={loading}
-                {...register("phone")}
+                {...register("phone-number")}
               />
-              {errors.phone && (
+              {errors["phone-number"] && (
                 <div className="text-red-500 text-lg">
-                  {errors.phone.message as string}
+                  {errors["phone-number"].message as string}
                 </div>
               )}
             </div>
@@ -116,7 +121,10 @@ export function LoginForm({
 
           <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center" />
-            <Link href="" className="text-lg font-medium whitespace-nowrap cursor-pointer">
+            <Link
+              href=""
+              className="text-lg font-medium whitespace-nowrap cursor-pointer"
+            >
               Quên mật khẩu ?
             </Link>
           </div>

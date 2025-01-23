@@ -28,7 +28,7 @@ const NurseScheduleCalendar = () => {
       phone_number: "0123456789",
       techniques: "Kỹ thuật 1",
       total_fee: 1000000,
-      appointment_date: "2024-09-20",
+      appointment_date: "2025-01-25",
       time_from_to: "8:00-10:00",
     },
     // Thêm các appointment khác nếu cần
@@ -44,24 +44,27 @@ const NurseScheduleCalendar = () => {
       type: "normal",
       participants: 3,
       classType: "writing",
+      appointment_date: "2025-01-25",
     },
     {
       id: "2",
       title: "Nói Nâng Cao",
-      startTime: "8:00",
-      endTime: "10:00",
+      startTime: "14:00",
+      endTime: "15:00",
       type: "normal",
       participants: 3,
       classType: "speaking",
+      appointment_date: "2025-01-26", // Ngày hẹn khác
     },
     {
       id: "3",
       title: "Nghe Nâng Cao",
-      startTime: "13:30",
-      endTime: "15:30",
+      startTime: "16:30",
+      endTime: "18:00", // Sửa thời gian kết thúc hợp lý
       type: "makeup",
       participants: 3,
       classType: "listening",
+      appointment_date: "2025-01-27", // Ngày hẹn khác
     },
   ];
 
@@ -87,7 +90,11 @@ const NurseScheduleCalendar = () => {
     }
   };
 
-  const timeSlots = Array.from({ length: 10 }, (_, i) => `${i + 7}:00`);
+  const timeSlots = Array.from({ length: 26 }, (_, i) => {
+    const hour = Math.floor(i / 2) + 8;
+    const minutes = i % 2 === 0 ? "00" : "30";
+    return `${hour}:${minutes}`;
+  });
 
   const getStartOfWeek = (date: Date): Date => {
     const start = new Date(date);
@@ -102,6 +109,39 @@ const NurseScheduleCalendar = () => {
     const end = new Date(startOfWeek);
     end.setDate(startOfWeek.getDate() + 6);
     return end;
+  };
+
+  const shouldShowEvent = (
+    event: ScheduleEvent,
+    timeSlot: string,
+    dayIndex: number
+  ) => {
+    const currentDate = new Date(getStartOfWeek(selectedDate));
+    currentDate.setDate(currentDate.getDate() + dayIndex);
+    const eventDate = new Date(event.appointment_date);
+
+    // Kiểm tra ngày
+    if (currentDate.toDateString() !== eventDate.toDateString()) return false;
+
+    const [slotHour, slotMinutes] = timeSlot.split(":").map(Number);
+    const [startHour, startMinutes] = event.startTime.split(":").map(Number);
+    const [endHour, endMinutes] = event.endTime.split(":").map(Number);
+
+    const slotTime = slotHour * 60 + slotMinutes;
+    const startTime = startHour * 60 + startMinutes;
+    const endTime = endHour * 60 + endMinutes;
+
+    return slotTime === startTime;
+  };
+
+  const getEventDuration = (event: ScheduleEvent) => {
+    const [startHour, startMinutes] = event.startTime.split(":").map(Number);
+    const [endHour, endMinutes] = event.endTime.split(":").map(Number);
+
+    const startTime = startHour * 60 + startMinutes;
+    const endTime = endHour * 60 + endMinutes;
+
+    return (endTime - startTime) / 30;
   };
 
   return (
@@ -230,69 +270,64 @@ const NurseScheduleCalendar = () => {
               })}
 
               {/* Time slots */}
-              {Array.from({ length: 13 }).map((_, hourIndex) => {
-                const hour = 8 + hourIndex;
-                return (
-                  <React.Fragment key={hour}>
-                    <div className="col-span-1 border-r border-b h-20 p-4">
-                      <div className="text-sm text-gray-500">{`${hour}:00`}</div>
-                    </div>
-                    {Array.from({ length: 7 }).map((_, dayIndex) => (
-                      <div
-                        key={`${hour}-${dayIndex}`}
-                        className="col-span-1 border-b border-r h-20 relative"
-                      >
-                        {scheduleData.map((event) => {
-                          const startHour = parseInt(
-                            event.startTime.split(":")[0]
-                          );
-                          if (startHour === hour && dayIndex === 0) {
-                            return (
-                              <div
-                                key={event.id}
-                                className={cn(
-                                  "absolute left-1 right-1 p-2 rounded-lg border transition-colors",
-                                  getEventColor(event.type, event.classType)
-                                )}
-                                style={{
-                                  top: "4px",
-                                  height: "calc(100% - 8px)",
-                                }}
-                              >
-                                <div className="flex items-start gap-2">
-                                  <Building2 className="w-4 h-4 flex-shrink-0" />
-                                  <div className="min-w-0">
-                                    <div className="text-xs font-medium truncate">
-                                      {event.title}
-                                    </div>
-                                    <div className="text-xs text-gray-500">
-                                      {event.startTime} - {event.endTime}
-                                    </div>
+              {timeSlots.map((timeSlot, index) => (
+                <React.Fragment key={timeSlot}>
+                  <div className="col-span-1 border-r border-b h-20 p-4">
+                    <div className="text-sm text-gray-500">{timeSlot}</div>
+                  </div>
+                  {Array.from({ length: 7 }).map((_, dayIndex) => (
+                    <div
+                      key={`${timeSlot}-${dayIndex}`}
+                      className="col-span-1 border-b border-r h-20 relative"
+                    >
+                      {scheduleData.map((event) => {
+                        if (shouldShowEvent(event, timeSlot, dayIndex)) {
+                          const duration = getEventDuration(event);
+                          return (
+                            <div
+                              key={event.id}
+                              className={cn(
+                                "absolute left-1 right-1 p-2 rounded-lg border transition-colors",
+                                getEventColor(event.type, event.classType)
+                              )}
+                              style={{
+                                top: "4px",
+                                height: `calc(${duration} * 5rem - 8px)`,
+                              }}
+                            >
+                              <div className="flex items-start gap-2">
+                                <Building2 className="w-4 h-4 flex-shrink-0" />
+                                <div className="min-w-0">
+                                  <div className="text-xs font-medium truncate">
+                                    {event.title}
                                   </div>
-                                </div>
-                                <div className="flex items-center gap-1 mt-2">
-                                  <Users className="w-3 h-3" />
-                                  <div className="flex -space-x-2">
-                                    {Array.from({
-                                      length: event.participants,
-                                    }).map((_, i) => (
-                                      <div
-                                        key={i}
-                                        className="w-4 h-4 rounded-full bg-white border border-gray-200"
-                                      />
-                                    ))}
+                                  <div className="text-xs text-gray-500">
+                                    {event.startTime} - {event.endTime}
                                   </div>
                                 </div>
                               </div>
-                            );
-                          }
-                          return null;
-                        })}
-                      </div>
-                    ))}
-                  </React.Fragment>
-                );
-              })}
+                              <div className="flex items-center gap-1 mt-2">
+                                <Users className="w-3 h-3" />
+                                <div className="flex -space-x-2">
+                                  {Array.from({
+                                    length: event.participants,
+                                  }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="w-4 h-4 rounded-full bg-white border border-gray-200"
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  ))}
+                </React.Fragment>
+              ))}
             </div>
           </CardContent>
         </Card>

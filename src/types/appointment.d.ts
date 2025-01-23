@@ -19,6 +19,7 @@ export type ScheduleEvent = {
   type: "normal" | "makeup" | "substitute";
   participants: number;
   classType: "writing" | "speaking" | "listening";
+  appointment_date: string;
 };
 
 export type CalendarViewType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "SCHEDULE";

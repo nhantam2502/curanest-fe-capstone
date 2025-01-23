@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React from "react";
 import Header from "../components/HomePage/Header";
 import Footer from "../components/HomePage/Footer";
@@ -8,10 +8,14 @@ import { redirect } from "next/navigation";
 
 const UserPage = () => {
   const { data: session, status } = useSession();
-      
-      if (!session) {
-        redirect("/api/auth/signin?callbackUrl=/relatives");
-      }
+
+  // Debug session and status
+  console.log("Session data:", session);
+  console.log("Session status:", status);
+  
+  if (!session) {
+    redirect("/api/auth/signin?callbackUrl=/relatives");
+  }
 
   return (
     <div>

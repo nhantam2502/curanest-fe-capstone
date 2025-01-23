@@ -1,13 +1,6 @@
-import { User } from "@/types/account";
+import authApiRequest from "@/apiRequest/auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-const users: User[] = [
-  { id: "1", email: "", phone: "0123456789", password: "123", role: "nurse" },
-  { id: "2", email: "", phone: "0987654321", password: "123", role: "staff" },
-  { id: "3", email: "admin@gmail.com", phone:"", password: "123", role: "admin" },
-  { id: "4", email: "", phone: "0123123123", password: "123", role: "relatives" },
-];
 
 export const options: NextAuthOptions = {
   providers: [
@@ -26,43 +19,54 @@ export const options: NextAuthOptions = {
         },
       },
       async authorize(credentials) {
+        if (!credentials?.identifier || !credentials.password) {
+          return null;
+        }
+      
         try {
-          const user = users.find((user) => {
-            if (user.role === "admin") {
-              return user.email === credentials?.identifier;
-            } else {
-              return user.phone === credentials?.identifier;
-            }
+          const response = await authApiRequest.login({
+            "phone-number": credentials.identifier,
+            password: credentials.password,
           });
-
-          if (user && credentials?.password === user.password) {
+      
+          console.log("Full login response: ", response);
+      
+          // Ensure the response contains the necessary user information
+          if (response.payload?.data) {
             return {
-              id: user.id,
-              email: user.email || user.phone, // Use phone as email for non-admin
-              role: user.role,
+              id: response.payload.data.id.toString(), // Ensure id is a string
+              email: response.payload.data["phone-number"],
+              role: response.payload.data.role,
+              name: response.payload.data["full-name"],
             };
           }
+      
           return null;
-        } catch {
+        } catch (error) {
+          console.error("Login Error:", error);
           return null;
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.role = token.role;
-      }
-      return session;
-    },
+  async jwt({ token, user }) {
+    if (user) {
+      token.email = user.email;
+      token.role = user.role;
+      token.name = user.name;
+    }
+    return token;
   },
+  async session({ session, token }) {
+    if (session?.user) {
+      session.user.email = token.email;
+      session.user.role = token.role;
+      session.user.name = token.name;
+    }
+    return session;
+  },
+},
   pages: {
     signIn: "/auth/signIn",
     signOut: "/auth/signout",
