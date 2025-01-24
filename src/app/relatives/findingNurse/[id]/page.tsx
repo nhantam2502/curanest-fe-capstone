@@ -18,7 +18,7 @@ import PatientProfileSelection from "@/app/components/Relatives/PatientRecordSel
 import dummyProfiles from "@/dummy_data/dummy_profile.json";
 import dummyNursing from "@/dummy_data/dummy_nurse.json";
 
-import { Profile } from "@/types/profile";
+import { Profile } from "@/types/patient";
 import { Badge } from "@/components/ui/badge";
 
 type SelectedTime = {

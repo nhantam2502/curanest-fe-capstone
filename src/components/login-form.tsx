@@ -13,7 +13,7 @@ import {
   PhoneLoginInput,
 } from "@/schemaValidation/auth.schema";
 import authApiRequest from "@/apiRequest/auth";
-import { getSession, signIn } from "next-auth/react";
+import { signIn } from "next-auth/react";
 
 export function LoginForm({
   className,
@@ -34,47 +34,53 @@ export function LoginForm({
       password: "",
     },
   });
+
   const onSubmit = async (data: PhoneLoginInput) => {
     try {
       setLoading(true);
       setError("");
   
-      const result = await signIn('credentials', {
-        redirect: true, // Prevent automatic redirection
-        identifier: data['phone-number'],
+      const result = await signIn("credentials", {
+        redirect: false, 
+        identifier: data["phone-number"], 
         password: data.password,
       });
   
       if (result?.error) {
-        setError(result.error);
+        setError("Thông tin đăng nhập không chính xác."); 
         return;
       }
   
-      // Manually handle routing based on role
-      const session = await getSession(); // Import getSession from next-auth/react
-      const role = session?.user?.role;
+      // Fetch session để lấy thông tin role và điều hướng
+      const session = await fetch("/api/auth/session").then((res) => res.json());
   
-      switch (role) {
-        case "nurse":
-          router.push("/nurse");
-          break;
-        case "staff":
-          router.push("/staff");
-          break;
-        case "relatives":
-          router.push("/relatives/booking");
-          break;
-        default:
-          router.push("/");
+      console.log("session: ", session.user)
+      if (session?.user?.role) {
+        console.log("User role:", session.user.role);
+        switch (session.user.role) {
+          case "nurse":
+            router.push("/nurse");
+            break;
+          case "staff":
+            router.push("/staff");
+            break;
+          case "relatives":
+            router.push("/relatives/booking");
+            break;
+          default:
+            router.push("/");
+        }
+      } else {
+        setError("Không thể xác định vai trò của người dùng.");
       }
     } catch (error) {
-      console.log("Login Error:", error);
-      setError("An error occurred during login");
+      console.error("Đăng nhập thất bại:", error);
+      setError("Có lỗi xảy ra trong quá trình đăng nhập.");
     } finally {
       setLoading(false);
     }
-  };
-
+  };  
+  
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>

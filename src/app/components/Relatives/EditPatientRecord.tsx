@@ -27,7 +27,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Profile } from "@/types/profile";
+import { Profile } from "@/types/patient";
 import {
   Select,
   SelectContent,

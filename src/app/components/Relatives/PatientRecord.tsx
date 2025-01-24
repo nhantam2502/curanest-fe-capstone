@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,10 +13,13 @@ import {
   MapPinned,
   ChevronDown,
   ChevronUp,
+  Loader,
+  Loader2,
 } from "lucide-react";
-import { InfoItemProps, Profile } from "@/types/profile";
+import { InfoItemProps, PatientRecord } from "@/types/patient";
 import { useRouter } from "next/navigation";
 import dummy_profile from "@/dummy_data/dummy_profile.json";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
 const formatDateVN = (dateString: string): string => {
   const date = new Date(dateString);
@@ -45,16 +48,19 @@ const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value }) => (
   </div>
 );
 
-const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
+const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const router = useRouter();
 
-  const handleBookNurse = (e: React.MouseEvent, id: number) => {
+  const handleBookNurse = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     router.push(`/relatives/booking/${id}`);
   };
 
-  const handleEditPatientRecord = (e: React.MouseEvent, profile: Profile) => {
+  const handleEditPatientRecord = (
+    e: React.MouseEvent,
+    profile: PatientRecord
+  ) => {
     e.stopPropagation();
     router.push(`/relatives/editPatientRecord/${profile.id}`);
   };
@@ -68,9 +74,9 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <Avatar className="w-40 h-40 mb-4">
-              <AvatarImage src={profile.avatar} alt={profile.full_name} />
+              <AvatarImage src={profile.avatar} alt={profile["full-name"]} />
               <AvatarFallback className="text-2xl">
-                {profile.full_name
+                {profile["full-name"]
                   .split(" ")
                   .map((n) => n[0])
                   .join("")}
@@ -79,7 +85,7 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
 
             <div className="text-center">
               <h2 className="text-4xl font-bold text-gray-900">
-                {profile.full_name}
+                {profile["full-name"]}
               </h2>
               <div className="text-gray-500 text-xl mt-2">
                 {calculateAge(profile.dob)} tuổi
@@ -112,7 +118,7 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
                 <InfoItem
                   icon={Phone}
                   label="Số điện thoại"
-                  value={profile.phone_number}
+                  value={profile["phone-number"]}
                 />
               </div>
 
@@ -149,7 +155,7 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
                   <div className="text-xl">
                     <span className="font-semibold">Mô tả bệnh lý: </span>
                     <span className="text-gray-600">
-                      {profile.medical_description}
+                      {profile["desc-pathology"]}
                     </span>
                   </div>
                 </div>
@@ -160,7 +166,7 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
                       Lưu ý với điều dưỡng:{" "}
                     </span>
                     <span className="text-gray-600">
-                      {profile.note_for_nurses}
+                      {profile["note-for-nurse"]}
                     </span>
                   </div>
                 </div>
@@ -192,7 +198,51 @@ const ProfileCard: React.FC<{ profile: Profile }> = ({ profile }) => {
 };
 
 const PatientRecords: React.FC = () => {
-  const profiles: Profile[] = dummy_profile;
+  const [profiles, setProfiles] = useState<PatientRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPatientRecords = async () => {
+      try {
+        const response = await patientApiRequest.getPatientRecord();
+        console.log("patient records :", response.payload.data);
+        setProfiles(response.payload.data);
+        setIsLoading(false);
+      } catch (err) {
+        setError("Không thể tải hồ sơ bệnh nhân");
+        setIsLoading(false);
+      }
+    };
+
+    fetchPatientRecords();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center mt-10">
+        <div className="relative">
+          {/* Outer ring with pulse effect */}
+          <div className="absolute -inset-4 rounded-full bg-[#A8E0E9] opacity-30 animate-pulse"></div>
+
+          {/* Inner spinner */}
+          <Loader2
+            className="h-12 w-12 animate-spin text-[#64D1CB]"
+            aria-label="Loading..."
+          />
+        </div>
+        <div className="text-[#64D1CB] text-sm font-medium mt-4 animate-fade-in">
+          Đang tải...
+        </div>{" "}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-2xl text-red-500 mt-10">{error}</div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -200,11 +250,17 @@ const PatientRecords: React.FC = () => {
         <h1 className="text-4xl font-bold text-gray-900">Hồ sơ bệnh nhân</h1>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {profiles.map((profile) => (
-          <ProfileCard key={profile.id} profile={profile} />
-        ))}
-      </div>
+      {profiles.length === 0 ? (
+        <div className="text-center text-2xl text-gray-500 mt-10">
+          Không có hồ sơ bệnh nhân
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {profiles.map((profile) => (
+            <ProfileCard key={profile.id} profile={profile} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

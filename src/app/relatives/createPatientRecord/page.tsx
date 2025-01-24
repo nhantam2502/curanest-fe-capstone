@@ -74,7 +74,7 @@ export default function CreatePatientRecord() {
     resolver: zodResolver(CreatePatientSchema),
   });
 
-  const date = watch("dateOfBirth");
+  const date = watch("dob");
   const selectedDistrict = watch("district");
 
   // Fetch districts when component mounts
@@ -123,13 +123,13 @@ export default function CreatePatientRecord() {
     fetchWards();
   }, [selectedDistrict]);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setAvatar(file);
-      setValue("avatar", file);
-    }
-  };
+  // const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (e.target.files && e.target.files[0]) {
+  //     const file = e.target.files[0];
+  //     setAvatar(file);
+  //     setValue("avatar", file);
+  //   }
+  // };
 
   const onSubmit = (data: CreatePatientInput) => {
     console.log(data);
@@ -169,7 +169,7 @@ export default function CreatePatientRecord() {
             <form onSubmit={handleSubmit(onSubmit)}>
               <div className="flex gap-10">
                 {/* Avatar Section */}
-                <div className="w-80 flex-shrink-0">
+                {/* <div className="w-80 flex-shrink-0">
                   <Label className="block mb-2 text-xl">Ảnh đại diện</Label>
                   <div className="w-80 h-80 relative border-2 rounded-lg overflow-hidden">
                     <input
@@ -193,24 +193,24 @@ export default function CreatePatientRecord() {
                   {errors.avatar && (
                     <p className="text-red-500 mt-1">{errors.avatar.message}</p>
                   )}
-                </div>
+                </div> */}
 
                 {/* Form Fields */}
                 <div className="flex-1 space-y-6">
                   <div className="grid grid-cols-3 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-xl" htmlFor="fullName">
+                      <Label className="text-xl" htmlFor="full-name">
                         Họ và Tên
                       </Label>
                       <Input
-                        id="fullName"
+                        id="full-name"
                         placeholder="Nhập họ và tên"
                         className="h-12 text-lg"
-                        {...register("fullName")}
+                        {...register("full-name")}
                       />
-                      {errors.fullName && (
+                      {errors["full-name"] && (
                         <p className="text-red-500">
-                          {errors.fullName.message}
+                          {errors["full-name"].message}
                         </p>
                       )}
                     </div>
@@ -235,22 +235,21 @@ export default function CreatePatientRecord() {
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={date || undefined}
+                            selected={date ? new Date(date) : undefined}
                             onSelect={(date: Date | undefined) =>
-                              date && setValue("dateOfBirth", date)
+                              date &&
+                              setValue("dob", format(date, "dd/MM/yyyy"))
                             }
                             initialFocus
                           />
                         </PopoverContent>
                       </Popover>
-                      {errors.dateOfBirth && (
-                        <p className="text-red-500">
-                          {errors.dateOfBirth.message}
-                        </p>
+                      {errors.dob && (
+                        <p className="text-red-500">{errors.dob.message}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
+                    {/* <div className="space-y-2">
                       <Label className="text-xl" htmlFor="gender">
                         Giới tính
                       </Label>
@@ -277,22 +276,24 @@ export default function CreatePatientRecord() {
                       {errors.gender && (
                         <p className="text-red-500">{errors.gender.message}</p>
                       )}
-                    </div>
+                    </div> */}
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label className="text-xl" htmlFor="phone">
+                      <Label className="text-xl" htmlFor="phone-number">
                         Số điện thoại
                       </Label>
                       <Input
-                        id="phone"
+                        id="phone-number"
                         placeholder="Nhập số điện thoại"
                         className="h-12"
-                        {...register("phone")}
+                        {...register("phone-number")}
                       />
-                      {errors.phone && (
-                        <p className="text-red-500">{errors.phone.message}</p>
+                      {errors["phone-number"] && (
+                        <p className="text-red-500">
+                          {errors["phone-number"].message}
+                        </p>
                       )}
                     </div>
 
@@ -399,35 +400,35 @@ export default function CreatePatientRecord() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="medicalDescription">
+                    <Label className="text-xl" htmlFor="desc-pathology">
                       Mô tả bệnh lý
                     </Label>
                     <Textarea
-                      id="medicalDescription"
+                      id="desc-pathology"
                       placeholder="Nhập mô tả bệnh lý"
                       className="min-h-[120px]"
-                      {...register("medicalDescription")}
+                      {...register("desc-pathology")}
                     />
-                    {errors.medicalDescription && (
+                    {errors["desc-pathology"] && (
                       <p className="text-red-500">
-                        {errors.medicalDescription.message}
+                        {errors["desc-pathology"].message}
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="nurseNotes">
+                    <Label className="text-xl" htmlFor="note-for-nurse">
                       Lưu ý với điều dưỡng
                     </Label>
                     <Textarea
-                      id="nurseNotes"
+                      id="note-for-nurse"
                       placeholder="Nhập lưu ý với điều dưỡng"
                       className="min-h-[120px]"
-                      {...register("nurseNotes")}
+                      {...register("note-for-nurse")}
                     />
-                    {errors.nurseNotes && (
+                    {errors["note-for-nurse"] && (
                       <p className="text-red-500">
-                        {errors.nurseNotes.message}
+                        {errors["note-for-nurse"].message}
                       </p>
                     )}
                   </div>

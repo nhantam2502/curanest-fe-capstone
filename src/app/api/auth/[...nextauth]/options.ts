@@ -18,55 +18,69 @@ export const options: NextAuthOptions = {
           placeholder: "your-password",
         },
       },
-      async authorize(credentials) {
+      authorize: async (credentials) => {
         if (!credentials?.identifier || !credentials.password) {
+          console.log("Missing credentials.");
           return null;
         }
-      
-        try {
-          const response = await authApiRequest.login({
-            "phone-number": credentials.identifier,
-            password: credentials.password,
-          });
-      
-          console.log("Full login response: ", response);
-      
-          // Ensure the response contains the necessary user information
-          if (response.payload?.data) {
-            return {
-              id: response.payload.data.id.toString(), // Ensure id is a string
-              email: response.payload.data["phone-number"],
-              role: response.payload.data.role,
-              name: response.payload.data["full-name"],
-            };
-          }
-      
-          return null;
-        } catch (error) {
-          console.error("Login Error:", error);
-          return null;
+
+        const response = await authApiRequest.login({
+          "phone-number": credentials.identifier,
+          password: credentials.password,
+        });
+
+        // console.log("API Response in authorize: ", response); // Kiểm tra dữ liệu trả về từ API
+
+        if (response.status === 200 && response.payload?.data) {
+          const user = response.payload.data["account-info"];
+          // console.log("User data in authorize: ", user); // Kiểm tra user data
+
+          return {
+            id: user.id || "",
+            name: user["full-name"],
+            "phone-number": user["phone-number"],
+            email: user.email,
+            role: user.role,
+            // address: user.address || "N/A",
+            // city: user.city || "N/A",
+            // dob: user.dob || "N/A",
+          };
         }
+        return null;
       },
     }),
   ],
   callbacks: {
-  async jwt({ token, user }) {
-    if (user) {
-      token.email = user.email;
-      token.role = user.role;
-      token.name = user.name;
-    }
-    return token;
+    async session({ session, token }) {
+      if (session?.user) {
+        session.user.role = token.role;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user["phone-number"] = token["phone-number"];
+        // session.user.address = token.address;
+        // session.user.city = token.city;
+        // session.user.dob = token.dob;
+
+        // console.log("Session in session callback: ", session); // Log session để kiểm tra dữ liệu
+      }
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+        token.name = user.name;
+        token.email = user.email;
+        token["phone-number"] = user["phone-number"];
+        // token.address = user.address;
+        // token.city = user.city;
+        // token.dob = user.dob;
+
+        // console.log("Token in jwt callback: ", token); // Log token để kiểm tra dữ liệu
+      }
+      return token;
+    },
   },
-  async session({ session, token }) {
-    if (session?.user) {
-      session.user.email = token.email;
-      session.user.role = token.role;
-      session.user.name = token.name;
-    }
-    return session;
-  },
-},
+
   pages: {
     signIn: "/auth/signIn",
     signOut: "/auth/signout",
