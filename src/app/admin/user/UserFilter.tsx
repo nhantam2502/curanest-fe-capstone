@@ -2,7 +2,6 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { User } from "./UserTable"; // Import the User interface from your UserTable file
 import {
   Select,
   SelectContent,
@@ -12,30 +11,91 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
+interface User {
+  id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone_number: string;
+  city: string;
+  district: string;
+  ward: string;
+}
+
 interface UserFilterProps {
   users: User[];
   setFilteredUsers: (users: User[]) => void;
 }
 
-export default function UserFilter({ users, setFilteredUsers }: UserFilterProps) {
+interface Province {
+  code: string;
+  name: string;
+}
+
+interface District {
+  code: string;
+  name: string;
+  province_code: string;
+}
+
+interface Ward {
+  code: string;
+  name: string;
+  district_code: string;
+}
+
+export default function UserFilter({
+  users,
+  setFilteredUsers,
+}: UserFilterProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("79"); // Default city to Ho Chi Minh City (code: 79)
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedWard, setSelectedWard] = useState("");
 
-  const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+
+  useEffect(() => {
+    // Fetch provinces from the API
+    fetch("https://provinces.open-api.vn/api/p/")
+      .then((response) => response.json())
+      .then((data) => setProvinces(data))
+      .catch((error) => console.error("Error fetching provinces:", error));
+  }, []);
+
+  useEffect(() => {
+    // Fetch districts for the default city (HCM) when the component mounts
+    if (selectedCity) {
+      fetch(`https://provinces.open-api.vn/api/p/${selectedCity}?depth=2`)
+        .then((response) => response.json())
+        .then((data) => setDistricts(data.districts))
+        .catch((error) => console.error("Error fetching districts:", error));
+    }
+  }, [selectedCity]);
 
   const handleCityChange = (value: string) => {
     setSelectedCity(value);
     setSelectedDistrict(""); // Reset district and ward when city changes
     setSelectedWard("");
+
+    // Fetch districts for the selected city
+    fetch(`https://provinces.open-api.vn/api/p/${value}?depth=2`)
+      .then((response) => response.json())
+      .then((data) => setDistricts(data.districts))
+      .catch((error) => console.error("Error fetching districts:", error));
   };
 
   const handleDistrictChange = (value: string) => {
     setSelectedDistrict(value);
-    setSelectedWard(""); // Reset ward when district changes
+    setSelectedWard("");
+
+    // Fetch wards for the selected district
+    fetch(`https://provinces.open-api.vn/api/d/${value}?depth=2`)
+      .then((response) => response.json())
+      .then((data) => setWards(data.wards))
+      .catch((error) => console.error("Error fetching wards:", error));
   };
 
   const handleWardChange = (value: string) => {
@@ -43,59 +103,33 @@ export default function UserFilter({ users, setFilteredUsers }: UserFilterProps)
   };
 
   const handleSearch = () => {
-        const filtered = users.filter((user) => {
-          const fullName = `${user.first_name} ${user.last_name}`;
-          const searchMatch =
-            fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.phone_number.includes(searchQuery);
-          const cityMatch = selectedCity ? user.city === selectedCity : true;
-          const districtMatch = selectedDistrict
-            ? user.district === selectedDistrict
-            : true;
-          const wardMatch = selectedWard ? user.ward === selectedWard : true;
+    const filtered = users.filter((user) => {
+      const fullName = `${user.first_name} ${user.last_name}`;
+      const searchMatch =
+        fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.phone_number.includes(searchQuery);
+      const cityMatch = selectedCity ? user.city === selectedCity : true;
+      const districtMatch = selectedDistrict
+        ? user.district === selectedDistrict
+        : true;
+      const wardMatch = selectedWard ? user.ward === selectedWard : true;
 
-          return searchMatch && cityMatch && districtMatch && wardMatch;
-        });
-        setFilteredUsers(filtered);
-  }
+      return searchMatch && cityMatch && districtMatch && wardMatch;
+    });
+    setFilteredUsers(filtered);
+  };
 
   useEffect(() => {
-    handleSearch()
+    handleSearch();
   }, [searchQuery, selectedCity, selectedDistrict, selectedWard, users]);
-
-  const getUniqueCities = () => {
-    return Array.from(new Set(users.map((user) => user.city)));
-  };
-
-  const getUniqueDistricts = () => {
-    return Array.from(
-      new Set(
-        users
-          .filter((user) => user.city === selectedCity)
-          .map((user) => user.district)
-      )
-    );
-  };
-
-  const getUniqueWards = () => {
-    return Array.from(
-      new Set(
-        users
-          .filter(
-            (user) =>
-              user.city === selectedCity && user.district === selectedDistrict
-          )
-          .map((user) => user.ward)
-      )
-    );
-  };
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCity("");
+    setSelectedCity("79"); // Reset to HCM
     setSelectedDistrict("");
     setSelectedWard("");
+    setFilteredUsers(users); // Reset filters
   };
 
   return (
@@ -106,7 +140,7 @@ export default function UserFilter({ users, setFilteredUsers }: UserFilterProps)
             type="text"
             placeholder="Tìm theo tên"
             value={searchQuery}
-            onChange={handleSearchInputChange}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full"
           />
           <Button onClick={handleSearch}>
@@ -116,14 +150,19 @@ export default function UserFilter({ users, setFilteredUsers }: UserFilterProps)
         </div>
 
         <div className="flex gap-4">
-          <Select onValueChange={handleCityChange} value={selectedCity}>
+          <Select onValueChange={handleCityChange} value={selectedCity} disabled>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Chọn thành phố" />
+              <SelectValue>
+                {provinces.length > 0
+                  ? provinces.find((p) => p.code === selectedCity)?.name ||
+                    "TP. Hồ Chí Minh"
+                  : "Loading..."}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-white">
-              {getUniqueCities().map((city) => (
-                <SelectItem key={city} value={city}>
-                  {city}
+              {provinces.map((province) => (
+                <SelectItem key={province.code} value={province.code}>
+                  {province.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -138,9 +177,9 @@ export default function UserFilter({ users, setFilteredUsers }: UserFilterProps)
               <SelectValue placeholder="Chọn quận" />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              {getUniqueDistricts().map((district) => (
-                <SelectItem key={district} value={district}>
-                  {district}
+              {districts.map((district) => (
+                <SelectItem key={district.code} value={district.code}>
+                  {district.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -155,9 +194,9 @@ export default function UserFilter({ users, setFilteredUsers }: UserFilterProps)
               <SelectValue placeholder="Chọn phường" />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              {getUniqueWards().map((ward) => (
-                <SelectItem key={ward} value={ward}>
-                  {ward}
+              {wards.map((ward) => (
+                <SelectItem key={ward.code} value={ward.code}>
+                  {ward.name}
                 </SelectItem>
               ))}
             </SelectContent>

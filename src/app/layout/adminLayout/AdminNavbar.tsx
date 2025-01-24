@@ -11,12 +11,20 @@ import {
   X,
   CircleDollarSign,
   BookUser,
-  BriefcaseBusiness
+  BriefcaseBusiness,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
-import logo from '../../../../public/logo.jpg';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import logo from "../../../../public/logo.jpg";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const PRIMARY_COLOR = "text-sky-400";
 const ACTIVE_BG_COLOR = "bg-sky-100";
@@ -90,17 +98,10 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         <div className="mb-8 flex items-center justify-center">
           <Link href="/" className="flex flex-col items-center">
             {isCollapsed ? (
-              <Image
-                src={logo}
-                alt="Curanest Logo"
-                width={40}
-                height={40}
-              />
+              <Image src={logo} alt="Curanest Logo" width={40} height={40} />
             ) : (
               <>
-                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>
-                  CURANEST
-                </p>
+                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>CURANEST</p>
               </>
             )}
           </Link>
@@ -115,6 +116,35 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
             />
           ))}
         </nav>
+
+        {/* Current User Section */}
+        <div className="mt-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-4">
+                <Avatar className="w-8 h-8">
+                    <AvatarImage src="/placeholder.png" alt="User Name" />
+                    <AvatarFallback>UN</AvatarFallback>
+                  </Avatar>
+                  {!isCollapsed && <span>Current User</span>}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="text-red-500 hover:bg-red-50"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Mobile Navbar */}
@@ -123,11 +153,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           <p className="font-bold text-xl">CURANEST</p>
         </Link>
         <Button onClick={toggleMobileMenu} variant="ghost" size="icon">
-          {isOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
       </div>
 

@@ -1,7 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Check } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface NurseForStaff {
   id: number;
@@ -18,8 +25,31 @@ export interface NurseForStaff {
   slogan: string;
 }
 
+interface Province {
+  code: string;
+  name: string;
+}
+
+interface District {
+  code: string;
+  name: string;
+  province_code: string;
+}
+
+interface Ward {
+  code: string;
+  name: string;
+  district_code: string;
+}
+
 const NurseForm: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [selectedCity, setSelectedCity] = useState("79"); // Default city to Ho Chi Minh City (code: 79)
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedWard, setSelectedWard] = useState("");
   const [nurseData, setNurseData] = useState<NurseForStaff>({
     id: 0,
     name: "",
@@ -34,6 +64,33 @@ const NurseForm: React.FC = () => {
     gender: "",
     slogan: "",
   });
+
+  useEffect(() => {
+    fetch("https://provinces.open-api.vn/api/")
+      .then((response) => response.json())
+      .then((data) => setProvinces(data))
+      .catch((error) => console.error("Error fetching provinces:", error));
+  }, []);
+
+  // Fetch districts when selectedCity changes
+  useEffect(() => {
+    if (selectedCity) {
+      fetch(`https://provinces.open-api.vn/api/p/${selectedCity}?depth=2`)
+        .then((response) => response.json())
+        .then((data) => setDistricts(data.districts))
+        .catch((error) => console.error("Error fetching districts:", error));
+    }
+  }, [selectedCity]);
+
+  // Fetch wards when selectedDistrict changes
+  useEffect(() => {
+    if (selectedDistrict) {
+      fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`)
+        .then((response) => response.json())
+        .then((data) => setWards(data.wards))
+        .catch((error) => console.error("Error fetching wards:", error));
+    }
+  }, [selectedDistrict]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -56,6 +113,21 @@ const NurseForm: React.FC = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value);
+    setSelectedDistrict("");
+    setSelectedWard("");
+  };
+
+  const handleDistrictChange = (value: string) => {
+    setSelectedDistrict(value);
+    setSelectedWard("");
+  };
+
+  const handleWardChange = (value: string) => {
+    setSelectedWard(value);
   };
 
   const renderStepContent = () => {
@@ -108,30 +180,61 @@ const NurseForm: React.FC = () => {
               placeholder="Địa chỉ"
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             />
-            <input
-              type="text"
-              name="ward"
-              value={nurseData.ward}
-              onChange={handleInputChange}
-              placeholder="Phường"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="text"
-              name="district"
-              value={nurseData.district}
-              onChange={handleInputChange}
-              placeholder="Quận"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="text"
-              name="city"
-              value={nurseData.city}
-              onChange={handleInputChange}
-              placeholder="Thành phố"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+              <Select
+                onValueChange={handleCityChange}
+                value={selectedCity}
+                disabled
+              >
+                <SelectTrigger>
+                  <SelectValue>
+                    {provinces.length > 0
+                      ? provinces.find((p) => p.code === selectedCity)?.name ||
+                        "TP. Hồ Chí Minh"
+                      : "Loading..."}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {provinces.map((province) => (
+                    <SelectItem key={province.code} value={province.code}>
+                      {province.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                onValueChange={handleDistrictChange}
+                value={selectedDistrict}
+                disabled={!selectedCity}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn quận" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {districts.map((district) => (
+                    <SelectItem key={district.code} value={district.code}>
+                      {district.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                onValueChange={handleWardChange}
+                value={selectedWard}
+                disabled={!selectedDistrict}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Chọn phường" />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  {wards.map((ward) => (
+                    <SelectItem key={ward.code} value={ward.code}>
+                      {ward.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
           </div>
         );
       case 3:
