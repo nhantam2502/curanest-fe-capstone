@@ -1,15 +1,24 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import { CheckIcon, SearchIcon, UserIcon } from "lucide-react";
-
+import {
+  CheckIcon,
+  SearchIcon,
+  UserIcon,
+  ChevronDownIcon,
+} from "lucide-react";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
-}
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface WorkingHour {
   day: string;
@@ -30,15 +39,12 @@ interface ScheduleSlot {
   time: string;
 }
 
-const Card: React.FC<CardProps> = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-xl shadow-lg ${className}`}>{children}</div>
-);
-
 const SchedulePage: React.FC = () => {
   const nurses: Nurse[] = [
     {
       id: 1,
       name: "Nguyễn Văn A",
+      avatar: "/avatars/01.png",
       workingHours: [
         { day: "Thứ Hai", startTime: "08:00", endTime: "10:00" },
         { day: "Thứ Hai", startTime: "13:00", endTime: "15:00" },
@@ -49,6 +55,7 @@ const SchedulePage: React.FC = () => {
     {
       id: 2,
       name: "Trần Thị B",
+      avatar: "/avatars/02.png",
       workingHours: [
         { day: "Thứ Hai", startTime: "14:00", endTime: "16:00" },
         { day: "Thứ Tư", startTime: "13:00", endTime: "15:00" },
@@ -63,6 +70,7 @@ const SchedulePage: React.FC = () => {
   const [selectedNurse, setSelectedNurse] = useState<number | null>(null);
   const [schedule, setSchedule] = useState<ScheduleSlot[]>([]);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState<boolean>(false);
 
   const filteredNurses = nurses.filter((nurse) =>
     nurse.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -90,7 +98,7 @@ const SchedulePage: React.FC = () => {
       );
       if (selectedNurseData) {
         const newSchedule: ScheduleSlot[] = [];
-        selectedNurseData.workingHours.forEach((wh:any) => {
+        selectedNurseData.workingHours.forEach((wh: any) => {
           const startHour = parseInt(wh.startTime.split(":"));
           const endHour = parseInt(wh.endTime.split(":"));
           for (let hour = startHour; hour < endHour; hour++) {
@@ -109,16 +117,21 @@ const SchedulePage: React.FC = () => {
 
   const handleNurseSelect = (nurseId: number) => {
     if (hasChanges) {
-      if (
-        window.confirm(
-          "Bạn có thay đổi chưa lưu. Bạn có chắc muốn chuyển sang điều dưỡng khác không?"
-        )
-      ) {
-        setSelectedNurse(nurseId);
-      }
+      setShowConfirmDialog(true);
     } else {
       setSelectedNurse(nurseId);
     }
+  };
+
+  const handleConfirmChangeNurse = () => {
+    setSelectedNurse(
+      nurses.find((nurse) => nurse.id !== selectedNurse)?.id || null
+    );
+    setShowConfirmDialog(false);
+  };
+
+  const handleCancelChangeNurse = () => {
+    setShowConfirmDialog(false);
   };
 
   const handleCellClick = (time: string, day: string): void => {
@@ -188,126 +201,147 @@ const SchedulePage: React.FC = () => {
     );
 
     if (isSelected)
-      return "bg-emerald-300 hover:bg-emerald-400 border-2 border-black";
+      return "bg-emerald-100 hover:bg-emerald-200 text-emerald-600";
     return "bg-white hover:bg-gray-100";
   };
 
-  const getCellIcon = (time: string, day: string) => {
-    const isSelected = schedule.some(
-      (s) => s.nurseId === selectedNurse && s.day === day && s.time === time
-    );
-
-    if (isSelected) return <CheckIcon />;
-    return null;
-  };
-
   return (
-    <div className="flex gap-4 p-4 h-screen bg-gray-50">
-      <Card className="w-80 p-4 flex flex-col">
-        <h2 className="text-xl font-bold mb-4">Điều dưỡng</h2>
+    <div className="flex gap-6 p-6 bg-gray-100 min-h-screen">
+      <div className="w-72 bg-white rounded-lg shadow-md p-4 space-y-6">
+        <h2 className="text-xl font-semibold">Điều dưỡng</h2>
 
-        <div className="relative mb-4">
+        <div className="relative">
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             placeholder="Tìm kiếm..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <span className="text-gray-400 absolute left-3 top-2.5">
-            <SearchIcon />
-          </span>
         </div>
 
-        <div className="space-y-2 overflow-y-auto flex-1">
+        <div className="space-y-3">
           {filteredNurses.map((nurse) => (
             <div
               key={nurse.id}
-              className={`p-3 rounded-lg cursor-pointer flex items-center gap-3 transition-all ${
+              className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
                 selectedNurse === nurse.id
-                  ? "bg-teal-50 shadow-md rounded-xl"
+                  ? "bg-emerald-50 shadow-lg ring-1 ring-emerald-200"
                   : "hover:bg-gray-100"
               }`}
               onClick={() => handleNurseSelect(nurse.id)}
             >
-              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                {nurse.avatar ? (
-                  <Image
-                    src={nurse.avatar}
-                    alt={nurse.name}
-                    className="w-10 h-10 rounded-full"
-                  />
-                ) : (
-                  <span className="text-gray-500">
-                    <UserIcon />
-                  </span>
-                )}
-              </div>
-              <div>
-                <span className="font-medium">{nurse.name}</span>
-              </div>
+              <Image
+                src={nurse.avatar || "/"}
+                alt={nurse.name}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+              <span
+                className={`font-medium ${
+                  selectedNurse === nurse.id ? "text-emerald-600" : ""
+                }`}
+              >
+                {nurse.name}
+              </span>
             </div>
           ))}
         </div>
-      </Card>
+      </div>
 
-      <Card className="flex-1 p-4 overflow-hidden flex flex-col relative">
-        <div className="flex-row flex justify-between items-center">
-          <h2 className="text-xl font-bold mb-4">Lịch làm việc</h2>
-          <button 
-            className="text-lg font-bold mb-4 p-3 bg-teal-300 rounded-xl text-white hover:bg-teal-400 transition-colors"
+      <div className="flex-1 bg-white rounded-lg shadow-md p-6 relative">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Lịch làm việc</h2>
+          <Button
             onClick={handleRegister}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg"
           >
             Đăng ký
-          </button>
+          </Button>
         </div>
-        <div className="overflow-auto flex-1">
-          <div className="min-w-[800px]">
-            <div
-              className={`grid grid-cols-8 border border-gray-200 rounded-xl overflow-hidden ${
-                !selectedNurse ? "opacity-50" : ""
-              }`}
-            >
-              <div className="font-bold p-3 text-center">Giờ</div>
-              {days.map((day) => (
-                <div
-                  key={day}
-                  className="font-bold text-center p-3 border-gray-200"
-                >
-                  {day}
-                </div>
-              ))}
 
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse border border-gray-300">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="py-2 px-4 border-b border-gray-300 text-left">
+                  Giờ
+                </th>
+                {days.map((day) => (
+                  <th
+                    key={day}
+                    className="py-2 px-4 border-b border-gray-300 text-left"
+                  >
+                    {day}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
               {hours.map((time) => (
-                <React.Fragment key={time}>
-                  <div className="py-3 px-2 font-semibold text-gray-600 text-center">
+                <tr key={time}>
+                  <td className="py-2 px-4 border-b border-gray-300 font-medium">
                     {time}
-                  </div>
+                  </td>
                   {days.map((day) => (
-                    <div
+                    <td
                       key={`${day}-${time}`}
-                      className={`p-2 rounded-xl cursor-pointer transition-all flex items-center justify-center border-t border-l border-gray-200 ${getCellColor(
+                      className={`py-2 px-4 border border-gray-300 cursor-pointer text-center align-middle ${getCellColor(
                         time,
                         day
                       )}`}
                       onClick={() => handleCellClick(time, day)}
                     >
-                      {getCellIcon(time, day)}
-                    </div>
+                      {schedule.some(
+                        (s) =>
+                          s.nurseId === selectedNurse &&
+                          s.day === day &&
+                          s.time === time
+                      ) && <CheckIcon className="h-4 w-4 text-emerald-600" />}
+                    </td>
                   ))}
-                </React.Fragment>
+                </tr>
               ))}
-            </div>
-          </div>
+            </tbody>
+          </table>
         </div>
+
         {!selectedNurse && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 bg-opacity-50 rounded-lg">
-            <span className="text-white text-xl font-bold">
-              Vui lòng chọn điều dưỡng trước khi đăng ký lịch
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-lg">
+            <span className="text-white text-xl font-semibold">
+              Vui lòng chọn điều dưỡng để xem lịch
             </span>
           </div>
         )}
-      </Card>
+      </div>
+
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">
+              Bạn có thay đổi chưa lưu. Bạn có chắc muốn chuyển sang điều dưỡng
+              khác không?
+            </h3>
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                className="px-4 py-2 rounded-lg"
+                onClick={handleCancelChangeNurse}
+              >
+                Hủy
+              </Button>
+              <Button
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
+                onClick={handleConfirmChangeNurse}
+              >
+                Xác nhận
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

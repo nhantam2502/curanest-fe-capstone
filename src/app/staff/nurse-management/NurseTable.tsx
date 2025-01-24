@@ -22,6 +22,7 @@ import { Pencil, Trash } from "lucide-react";
 import EditNurseForm from "./EditNurseForm";
 import { NurseForStaff } from "@/types/nurse";
 import NurseFilter from "./NurseFilter";
+import { Switch } from "@/components/ui/switch";
 
 interface NurseTableProps {
   Nurses: NurseForStaff[];
@@ -108,7 +109,7 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
             <TableHead>Tên</TableHead>
             <TableHead>Chuyên môn</TableHead>
             <TableHead>Trạng thái</TableHead>
-            <TableHead></TableHead>
+            <TableHead>Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -136,7 +137,7 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
                   </Button>
 
                   {/* Delete Button */}
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="icon"
                     onClick={(e) => {
@@ -145,7 +146,11 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
                     }}
                   >
                     <Trash className="h-4 w-4 text-red-500" />
-                  </Button>
+                  </Button> */}
+                  <Switch  onClick={(e) => {
+                      e.stopPropagation();
+                      // handleDeleteNurse(nurse.id);
+                    }} />
                 </div>
               </TableCell>
             </TableRow>

@@ -33,8 +33,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ToastAction } from "@/components/ui/toast"
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface CandidateCardProps {
   candidate: Candidate;
@@ -42,27 +42,16 @@ interface CandidateCardProps {
 }
 
 export type Candidate = {
-
   id: number;
-
   firstName: string;
-
   lastName: string;
-
   email: string;
-
   phone: string;
-
   position: string;
-
   status: string;
-
   appliedDate: string;
-
   profileSummary: string;
-
   fullProfile: string;
-
 };
 
 function CandidateCard({
@@ -71,6 +60,7 @@ function CandidateCard({
 }: CandidateCardProps) {
   const [openDialog, setOpenDialog] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
   const handleApprove = () => {
     onUpdateCandidateStatus(candidate.id, "approved");
     setOpenDialog(false);
@@ -92,7 +82,7 @@ function CandidateCard({
   };
 
   return (
-    <Card className="mb-4">
+    <Card className="mb-4" onClick={() => router.push(`/staff/recruit/${candidate.id}`)}>
       <CardHeader>
         <CardTitle>
           {candidate.firstName} {candidate.lastName}
@@ -118,90 +108,6 @@ function CandidateCard({
           </Badge>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2">
-        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-          <DialogTrigger asChild>
-            <Button variant="outline">View Profile</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>
-                {candidate.firstName} {candidate.lastName}
-              </DialogTitle>
-              <DialogDescription>
-                Full profile of {candidate.firstName} {candidate.lastName}
-              </DialogDescription>
-            </DialogHeader>
-            <div
-              className="py-4"
-              dangerouslySetInnerHTML={{ __html: candidate.fullProfile }}
-            ></div>
-            <DialogFooter>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="default"
-                    onClick={() => setOpenDialog(true)}
-                    disabled={candidate.status !== "pending"}
-                  >
-                    Approve
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently approve
-                      this candidate.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setOpenDialog(true)}>
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction onClick={handleApprove}>
-                      Continue
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="destructive"
-                    onClick={() => setOpenDialog(true)}
-                    disabled={candidate.status !== "pending"}
-                  >
-                    Reject
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you absolutely sure?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently reject
-                      this candidate.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setOpenDialog(true)}>
-                      Cancel
-                    </AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReject}>
-                      Continue
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </CardFooter>
     </Card>
   );
 }

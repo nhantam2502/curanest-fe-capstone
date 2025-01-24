@@ -1,6 +1,7 @@
 import NurseTable from "@/app/staff/nurse-management/NurseTable";
 import { Button } from "@/components/ui/button";
 import { NurseForStaff } from "@/types/nurse";
+import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const nurses: NurseForStaff[] = [
@@ -54,7 +55,20 @@ const nurses: NurseForStaff[] = [
   },
 ];
 
-export default function NurseManagementPage() {
+export default function NurseManagementPage({
+  items,
+}: {
+  items: {
+    title: string;
+    url: string;
+    icon?: LucideIcon;
+    isActive?: boolean;
+    items?: {
+      title: string;
+      url: string;
+    }[];
+  }[];
+}) {
   return (
     <div>
       <div className="flex justify-between">

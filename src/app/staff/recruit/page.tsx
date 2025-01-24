@@ -22,7 +22,7 @@ function RecruitmentPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Recruitment Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-4">Quản lý tuyển dụng</h1>
       <CandidateList
         candidates={candidates}
         onUpdateCandidateStatus={handleUpdateCandidateStatus}

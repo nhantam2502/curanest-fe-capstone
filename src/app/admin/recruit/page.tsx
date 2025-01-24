@@ -138,8 +138,8 @@ export default function RecruitmentPage() {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Recruitment Management</h1>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-8">Quản lý tuyển dụng</h1>
 
       <Tabs defaultValue="job-postings" className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-8">

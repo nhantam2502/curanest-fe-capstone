@@ -40,3 +40,9 @@ export interface NurseForStaff {
   gender: string;
   slogan: string;
 }
+
+export interface NurseService {
+  id: number;
+  name: string;
+  major_id: number; // ID of the major they belong to
+}

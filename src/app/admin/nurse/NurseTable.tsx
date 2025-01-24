@@ -109,7 +109,7 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
             <TableHead>Tên</TableHead>
             <TableHead>Chuyên môn</TableHead>
             <TableHead>Trạng thái</TableHead>
-            <TableHead></TableHead>
+            <TableHead>Hành động</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -135,18 +135,6 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-
-                  {/* Delete Button */}
-                  {/* <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteNurse(nurse.id);
-                    }}
-                  >
-                    <Trash className="h-4 w-4 text-red-500" />
-                  </Button> */}
                   <Switch/>
                 </div>
               </TableCell>
