@@ -13,33 +13,29 @@ import {
   MapPinned,
   ChevronDown,
   ChevronUp,
-  Loader,
   Loader2,
 } from "lucide-react";
 import { InfoItemProps, PatientRecord } from "@/types/patient";
 import { useRouter } from "next/navigation";
-import dummy_profile from "@/dummy_data/dummy_profile.json";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
-const formatDateVN = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("vi-VN");
-};
-
 const calculateAge = (dateString: string): number => {
+  const [day, month, year] = dateString.split('/').map(Number);
+  const birthDate = new Date(year, month - 1, day);
   const today = new Date();
-  const birthDate = new Date(dateString);
+  
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
+  
   if (
     monthDiff < 0 ||
     (monthDiff === 0 && today.getDate() < birthDate.getDate())
   ) {
     age--;
   }
+  
   return age;
 };
-
 const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value }) => (
   <div className="flex items-center space-x-2">
     <Icon className="w-6 h-6 text-gray-500" />
@@ -113,7 +109,7 @@ const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
                 <InfoItem
                   icon={Calendar}
                   label="Ngày sinh"
-                  value={formatDateVN(profile.dob)}
+                  value={profile.dob}
                 />
                 <InfoItem
                   icon={Phone}
@@ -251,7 +247,7 @@ const PatientRecords: React.FC = () => {
       </div>
 
       {profiles.length === 0 ? (
-        <div className="text-center text-2xl text-gray-500 mt-10">
+        <div className="text-center text-2xl text-red-500 mt-10">
           Không có hồ sơ bệnh nhân
         </div>
       ) : (

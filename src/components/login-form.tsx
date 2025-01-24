@@ -53,8 +53,12 @@ export function LoginForm({
   
       // Fetch session để lấy thông tin role và điều hướng
       const session = await fetch("/api/auth/session").then((res) => res.json());
-  
-      console.log("session: ", session.user)
+      // console.log("session: ", session.user)
+
+      if (session?.user?.access_token) {
+        localStorage.setItem('sessionToken', session.user.access_token);
+      }
+
       if (session?.user?.role) {
         console.log("User role:", session.user.role);
         switch (session.user.role) {

@@ -12,6 +12,7 @@ declare module "next-auth" {
     city?: string;
     email?: string;
     "full-name"?: string;
+    "access_token"?: string;
   }
 
   interface Session {
@@ -25,6 +26,7 @@ declare module "next-auth" {
       city?: User["city"];
       email?: User["email"];
       "full-name"?: User["full-name"];
+      "access_token"?: string;
     } & DefaultSession["user"];
   }
 }
@@ -40,5 +42,6 @@ declare module "next-auth/jwt" {
     city?: User["city"];
     email?: User["email"];
     "full-name"?: User["full-name"];
+    "access_token"?: string;
   }
 }
