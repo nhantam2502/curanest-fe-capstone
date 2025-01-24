@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Suspense } from "react";
 import LoadingPage from "./loading";
-import RelativesLayout from "../layout/relativesLayout/RelativesLayout";
+import NurseLayout from "../layout/nurseLayout/NurseLayout";
 
 export default function RootLayout({
   children,
@@ -11,7 +11,7 @@ export default function RootLayout({
   return (
     <div>
       <Suspense fallback={<LoadingPage />}>
-        <RelativesLayout>{children}</RelativesLayout>
+        <NurseLayout>{children}</NurseLayout>
         <Toaster />
       </Suspense>
     </div>

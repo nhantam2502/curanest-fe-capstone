@@ -27,7 +27,29 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Profile } from "@/types/profile";
+import { Profile } from "@/types/patient";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface District {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+  wards: Ward[];
+}
+
+interface Ward {
+  name: string;
+  code: number;
+  division_type: string;
+  codename: string;
+}
 
 export default function EditPatientRecord({ profile }: { profile: Profile }) {
   const [date, setDate] = useState<Date | undefined>(() => {
@@ -35,6 +57,11 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
     return dob ? new Date(dob) : undefined;
   });
   const [avatar, setAvatar] = useState<string | null>(profile?.avatar);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
+  const [isLoadingWards, setIsLoadingWards] = useState(false);
+
   const [formData, setFormData] = useState({
     full_name: profile?.full_name || "",
     phone_number: profile?.phone_number || "",
@@ -46,6 +73,52 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
     note_for_nurses: profile?.note_for_nurses || "",
   });
 
+  // Fetch districts when component mounts
+  useEffect(() => {
+    const fetchDistricts = async () => {
+      setIsLoadingDistricts(true);
+      try {
+        const hcmCode = 79;
+        const response = await fetch(
+          `https://provinces.open-api.vn/api/p/${hcmCode}?depth=2`
+        );
+        const data = await response.json();
+        setDistricts(data.districts || []);
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      } finally {
+        setIsLoadingDistricts(false);
+      }
+    };
+
+    fetchDistricts();
+  }, []);
+
+  // Fetch wards when district changes
+  useEffect(() => {
+    const fetchWards = async () => {
+      if (!formData.district) {
+        setWards([]);
+        return;
+      }
+
+      setIsLoadingWards(true);
+      try {
+        const response = await fetch(
+          `https://provinces.open-api.vn/api/d/${formData.district}?depth=2`
+        );
+        const data = await response.json();
+        setWards(data.wards || []);
+      } catch (error) {
+        console.error("Error fetching wards:", error);
+      } finally {
+        setIsLoadingWards(false);
+      }
+    };
+
+    fetchWards();
+  }, [formData.district]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -53,6 +126,21 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
     setFormData((prev) => ({
       ...prev,
       [id]: value,
+    }));
+  };
+
+  const handleDistrictChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      district: value,
+      ward: "", // Reset ward when district changes
+    }));
+  };
+
+  const handleWardChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      ward: value,
     }));
   };
 
@@ -213,29 +301,63 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
 
                 <div className="grid grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="ward">
-                      Phường
-                    </Label>
-                    <Input
-                      id="ward"
-                      value={formData.ward}
-                      onChange={handleInputChange}
-                      placeholder="Nhập phường"
-                      className="h-12"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
                     <Label className="text-xl" htmlFor="district">
                       Quận
                     </Label>
-                    <Input
-                      id="district"
+                    <Select
+                      onValueChange={handleDistrictChange}
                       value={formData.district}
-                      onChange={handleInputChange}
-                      placeholder="Nhập quận"
-                      className="h-12"
-                    />
+                      disabled={isLoadingDistricts}
+                    >
+                      <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectValue
+                          placeholder={
+                            isLoadingDistricts ? "Đang tải..." : "Chọn quận"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {districts.map((district) => (
+                          <SelectItem
+                            key={district.code}
+                            value={district.code.toString()}
+                            className="text-lg"
+                          >
+                            {district.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xl" htmlFor="ward">
+                      Phường
+                    </Label>
+                    <Select
+                      onValueChange={handleWardChange}
+                      value={formData.ward}
+                      disabled={!formData.district || isLoadingWards}
+                    >
+                      <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectValue
+                          placeholder={
+                            isLoadingWards ? "Đang tải..." : "Chọn phường"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {wards.map((ward) => (
+                          <SelectItem
+                            key={ward.code}
+                            value={ward.code.toString()}
+                            className="text-lg"
+                          >
+                            {ward.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">

@@ -1,13 +1,6 @@
-import { User } from "@/types/account";
+import authApiRequest from "@/apiRequest/auth";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-
-const users: User[] = [
-  { id: "1", email: "", phone: "0123456789", password: "123", role: "nurse" },
-  { id: "2", email: "", phone: "0987654321", password: "123", role: "staff" },
-  { id: "3", email: "admin@gmail.com", phone:"", password: "123", role: "admin" },
-  { id: "4", email: "", phone: "0123123123", password: "123", role: "relatives" },
-];
 
 export const options: NextAuthOptions = {
   providers: [
@@ -25,44 +18,69 @@ export const options: NextAuthOptions = {
           placeholder: "your-password",
         },
       },
-      async authorize(credentials) {
-        try {
-          const user = users.find((user) => {
-            if (user.role === "admin") {
-              return user.email === credentials?.identifier;
-            } else {
-              return user.phone === credentials?.identifier;
-            }
-          });
-
-          if (user && credentials?.password === user.password) {
-            return {
-              id: user.id,
-              email: user.email || user.phone, // Use phone as email for non-admin
-              role: user.role,
-            };
-          }
-          return null;
-        } catch {
+      authorize: async (credentials) => {
+        if (!credentials?.identifier || !credentials.password) {
+          console.log("Missing credentials.");
           return null;
         }
+
+        const response = await authApiRequest.login({
+          "phone-number": credentials.identifier,
+          password: credentials.password,
+        });
+
+        // console.log("API Response in authorize: ", response); // Kiểm tra dữ liệu trả về từ API
+
+        if (response.status === 200 && response.payload?.data) {
+          const user = response.payload.data["account-info"];
+          // console.log("User data in authorize: ", user); // Kiểm tra user data
+
+          return {
+            id: user.id || "",
+            name: user["full-name"],
+            "phone-number": user["phone-number"],
+            email: user.email,
+            role: user.role,
+            // address: user.address || "N/A",
+            // city: user.city || "N/A",
+            // dob: user.dob || "N/A",
+          };
+        }
+        return null;
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
-      return token;
-    },
     async session({ session, token }) {
       if (session?.user) {
         session.user.role = token.role;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user["phone-number"] = token["phone-number"];
+        // session.user.address = token.address;
+        // session.user.city = token.city;
+        // session.user.dob = token.dob;
+
+        // console.log("Session in session callback: ", session); // Log session để kiểm tra dữ liệu
       }
       return session;
     },
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+        token.name = user.name;
+        token.email = user.email;
+        token["phone-number"] = user["phone-number"];
+        // token.address = user.address;
+        // token.city = user.city;
+        // token.dob = user.dob;
+
+        // console.log("Token in jwt callback: ", token); // Log token để kiểm tra dữ liệu
+      }
+      return token;
+    },
   },
+
   pages: {
     signIn: "/auth/signIn",
     signOut: "/auth/signout",
