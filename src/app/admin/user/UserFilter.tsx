@@ -10,17 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
-
-interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone_number: string;
-  city: string;
-  district: string;
-  ward: string;
-}
+import { User } from "@/types/user";
 
 interface UserFilterProps {
   users: User[];

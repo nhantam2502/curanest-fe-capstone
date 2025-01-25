@@ -68,7 +68,7 @@ function PostPage() {
       {/* Post Table */}
       <Table className="w-full border border-gray-200">
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-gray-100">
             <TableHead>Tiêu đề</TableHead>
             <TableHead className="w-[150px]">Trạng thái</TableHead>
             <TableHead className="w-[200px]">Ngày tạo</TableHead>

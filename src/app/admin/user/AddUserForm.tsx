@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { User } from "./UserTable";
+import { User } from "@/types/user";
 
 interface AddUserFormProps {
   onSave: (newUser: User) => void;
@@ -32,11 +32,15 @@ export default function AddUserForm({
   const handleSave = () => {
     const newUser: User = {
       id: Date.now(),
-      name,
       email,
       first_name,
       last_name,
       phone_number,
+      address: "",
+      ward: "",
+      district: "",
+      city: "",
+      dob: ""
     };
 
     onSave(newUser);

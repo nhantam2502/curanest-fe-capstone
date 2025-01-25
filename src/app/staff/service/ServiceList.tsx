@@ -94,9 +94,9 @@ function ServiceList({
       <Table className="mb-4">
         <TableHeader>
           <TableRow>
-            <TableHead>Service Name</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Fee</TableHead>
+            <TableHead>Tên dịch vụ</TableHead>
+            <TableHead>Mô tả</TableHead>
+            <TableHead>Phí</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -116,12 +116,8 @@ function ServiceList({
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        Are you absolutely sure?
+                        Bạn có chắc chắn muốn xóa dịch vụ này?
                       </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the service.
-                      </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -142,19 +138,19 @@ function ServiceList({
       <div className="flex justify-end">
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline">Add Service</Button>
+            <Button variant="outline">Thêm</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Service</DialogTitle>
+              <DialogTitle>Thêm dịch vụ</DialogTitle>
               <DialogDescription>
-                Enter the name and description of the new service.
+                Nhập thông tin của dịch vụ.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
-                  Name
+                  Tên
                 </Label>
                 <Input
                   id="name"
@@ -165,7 +161,7 @@ function ServiceList({
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="description" className="text-right">
-                  Description
+                  Mô tả
                 </Label>
                 <Input
                   id="description"
@@ -180,10 +176,10 @@ function ServiceList({
                 variant="outline"
                 onClick={() => setIsAddDialogOpen(false)}
               >
-                Cancel
+                Huỷ
               </Button>
               <Button type="submit" onClick={handleAddService}>
-                Add
+                Thêm
               </Button>
             </DialogFooter>
           </DialogContent>

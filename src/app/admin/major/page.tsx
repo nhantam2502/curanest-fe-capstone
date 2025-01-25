@@ -53,8 +53,8 @@ export default function MajorPage() {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Quản lý chuyên khoa</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Quản lý chuyên khoa</h1>
         <Dialog open={showForm} onOpenChange={setShowForm}>
           <DialogTrigger asChild>
             <Button onClick={() => setShowForm(true)}>Thêm</Button>

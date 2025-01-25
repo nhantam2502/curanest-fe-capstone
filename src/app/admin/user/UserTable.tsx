@@ -21,19 +21,8 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useRouter } from "next/navigation";
+import { User } from "@/types/user";
 
-export interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  phone_number: string;
-  email: string;
-  address: string;
-  ward: string;
-  district: string;
-  city: string;
-  dob: string;
-}
 
 interface UserTableProps {
   users: User[];
@@ -65,7 +54,7 @@ export default function UserTable({ users }: UserTableProps) {
     <div className="w-full">
       <Table className="w-full border border-gray-200">
         <TableHeader>
-          <TableRow className="hover:bg-gray-50">
+          <TableRow className="bg-gray-100">
             <TableHead className="px-4 py-2">Tên</TableHead>
             <TableHead className="px-4 py-2">Email</TableHead>
             <TableHead className="px-4 py-2">SĐT</TableHead>

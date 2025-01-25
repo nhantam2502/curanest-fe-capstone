@@ -30,9 +30,9 @@ import {
     onDelete,
   }: SalaryTableProps) {
     return (
-      <Table>
+      <Table className="w-full border border-gray-200 overflow-hidden">
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-gray-100">
             <TableHead>Employee Name</TableHead>
             <TableHead>Department</TableHead>
             <TableHead>Salary</TableHead>
