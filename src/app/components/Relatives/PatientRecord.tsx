@@ -20,22 +20,52 @@ import { useRouter } from "next/navigation";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
 const calculateAge = (dateString: string): number => {
-  const [day, month, year] = dateString.split('/').map(Number);
+  let day: number, month: number, year: number;
+
+  if (dateString.includes("/")) {
+    // Định dạng dd/mm/yyyy
+    [day, month, year] = dateString.split("/").map(Number);
+  } else if (dateString.includes("-")) {
+    // Định dạng yyyy-mm-dd
+    [year, month, day] = dateString.split("-").map(Number);
+  } else {
+    throw new Error("Invalid date format");
+  }
+
   const birthDate = new Date(year, month - 1, day);
   const today = new Date();
-  
+
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
-  
+
   if (
     monthDiff < 0 ||
     (monthDiff === 0 && today.getDate() < birthDate.getDate())
   ) {
     age--;
   }
-  
+
   return age;
 };
+
+const formatDOB = (dob: string): string => {
+  if (dob.includes("/")) {
+    // Nếu là định dạng dd/mm/yyyy, giữ nguyên
+    return dob;
+  } else if (dob.includes("-")) {
+    // Nếu là định dạng yyyy-mm-dd, chuyển sang dd/mm/yyyy
+    const date = new Date(dob);
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear().toString();
+
+    return `${day}/${month}/${year}`;
+  } else {
+    throw new Error("Invalid date format");
+  }
+};
+
+
 const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value }) => (
   <div className="flex items-center space-x-2">
     <Icon className="w-6 h-6 text-gray-500" />
@@ -69,7 +99,7 @@ const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
             className="flex flex-col items-center cursor-pointer"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            <Avatar className="w-40 h-40 mb-4">
+            {/* <Avatar className="w-40 h-40 mb-4">
               <AvatarImage src={profile.avatar} alt={profile["full-name"]} />
               <AvatarFallback className="text-2xl">
                 {profile["full-name"]
@@ -77,7 +107,7 @@ const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>
-            </Avatar>
+            </Avatar> */}
 
             <div className="text-center">
               <h2 className="text-4xl font-bold text-gray-900">
@@ -109,8 +139,9 @@ const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
                 <InfoItem
                   icon={Calendar}
                   label="Ngày sinh"
-                  value={profile.dob}
+                  value={formatDOB(profile.dob)}
                 />
+
                 <InfoItem
                   icon={Phone}
                   label="Số điện thoại"
@@ -202,7 +233,7 @@ const PatientRecords: React.FC = () => {
     const fetchPatientRecords = async () => {
       try {
         const response = await patientApiRequest.getPatientRecord();
-        console.log("patient records :", response.payload.data);
+        // console.log("patient records :", response.payload.data);
         setProfiles(response.payload.data);
         setIsLoading(false);
       } catch (err) {

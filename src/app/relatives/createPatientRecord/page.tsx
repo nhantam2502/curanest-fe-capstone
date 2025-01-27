@@ -28,7 +28,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 import { CalendarIcon, ArrowLeft } from "lucide-react";
 import {
   Breadcrumb,
@@ -41,6 +41,9 @@ import {
   CreatePatientInput,
   CreatePatientSchema,
 } from "@/schemaValidation/relatives.schema";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface District {
   name: string;
@@ -61,8 +64,14 @@ export default function CreatePatientRecord() {
   const [avatar, setAvatar] = useState<File | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
+  const [selectedDistrictName, setSelectedDistrictName] = useState<string>("");
+  const [selectedWardName, setSelectedWardName] = useState<string>("");
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
   const [isLoadingWards, setIsLoadingWards] = useState(false);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const {
     register,
@@ -76,6 +85,30 @@ export default function CreatePatientRecord() {
 
   const date = watch("dob");
   const selectedDistrict = watch("district");
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) =>
+    (currentYear - i).toString()
+  );
+
+  const handleYearSelect = (year: string) => {
+    setSelectedYear(year);
+    setValue("dob", "");
+  };
+
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    if (selectedDate && selectedYear) {
+      // Combine selected year with selected date
+      const formattedDate = format(
+        new Date(
+          parseInt(selectedYear),
+          selectedDate.getMonth(),
+          selectedDate.getDate()
+        ),
+        "yyyy-MM-dd"
+      );
+      setValue("dob", formattedDate);
+    }
+  };
 
   // Fetch districts when component mounts
   useEffect(() => {
@@ -131,9 +164,41 @@ export default function CreatePatientRecord() {
   //   }
   // };
 
-  const onSubmit = (data: CreatePatientInput) => {
-    console.log(data);
-    // Xử lý gửi dữ liệu
+  const onSubmit = async (data: CreatePatientInput) => {
+    setIsSubmitting(true);
+    try {
+      const response = await patientApiRequest.createPatientRecord({
+        "full-name": data["full-name"],
+        "phone-number": data["phone-number"],
+        dob: data.dob,
+        gender: data.gender,
+        address: data.address,
+        district: selectedDistrictName,
+        ward: selectedWardName,
+        city: data.city,
+        "desc-pathology": data["desc-pathology"],
+        "note-for-nurse": data["note-for-nurse"],
+      });
+      console.log("Patient record created:", response);
+
+      toast({
+        title: "Thành công",
+        description: "Đã tạo thành công hồ sơ bệnh nhân.",
+        variant: "default",
+      });
+
+      router.push("/relatives/booking");
+    } catch (error) {
+      console.error("Error creating patient record:", error);
+      setIsSubmitting(false);
+      toast({
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi tạo hồ sơ bệnh nhân.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -216,6 +281,31 @@ export default function CreatePatientRecord() {
                     </div>
 
                     <div className="space-y-2">
+                      <Label className="text-xl" htmlFor="year">
+                        Năm sinh
+                      </Label>
+                      <Select onValueChange={handleYearSelect}>
+                        <SelectTrigger className="h-12 w-full text-xl">
+                          <SelectValue placeholder="Chọn năm" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((year) => (
+                            <SelectItem
+                              key={year}
+                              value={year}
+                              className="text-lg"
+                            >
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.dob && (
+                        <p className="text-red-500">{errors.dob.message}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
                       <Label className="text-xl" htmlFor="dateOfBirth">
                         Ngày sinh
                       </Label>
@@ -223,23 +313,32 @@ export default function CreatePatientRecord() {
                         <PopoverTrigger asChild>
                           <Button
                             variant={"outline"}
+                            disabled={!selectedYear}
                             className={cn(
-                              "h-12 w-full justify-start text-left font-normal text-lg",
+                              "h-12 w-full justify-start text-left font-normal text-xl",
                               !date && "text-muted-foreground"
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, "dd/MM/yyyy") : "Chọn ngày"}
+                            {date
+                              ? format(
+                                  parse(date, "yyyy-MM-dd", new Date()),
+                                  "dd/MM/yyyy"
+                                )
+                              : "Chọn ngày"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
+                            fromYear={parseInt(
+                              selectedYear || currentYear.toString()
+                            )}
+                            toYear={parseInt(
+                              selectedYear || currentYear.toString()
+                            )}
                             selected={date ? new Date(date) : undefined}
-                            onSelect={(date: Date | undefined) =>
-                              date &&
-                              setValue("dob", format(date, "dd/MM/yyyy"))
-                            }
+                            onSelect={handleDateSelect}
                             initialFocus
                           />
                         </PopoverContent>
@@ -248,38 +347,34 @@ export default function CreatePatientRecord() {
                         <p className="text-red-500">{errors.dob.message}</p>
                       )}
                     </div>
+                  </div>
 
-                    {/* <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="space-y-2">
                       <Label className="text-xl" htmlFor="gender">
                         Giới tính
                       </Label>
                       <Select
                         onValueChange={(value) =>
-                          setValue("gender", value as any)
+                          setValue("gender", value === "true")
                         }
                       >
-                        <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectTrigger className="h-12 w-full text-xl">
                           <SelectValue placeholder="Chọn giới tính" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem className="text-lg" value="male">
+                          <SelectItem className="text-lg" value="true">
                             Nam
                           </SelectItem>
-                          <SelectItem className="text-lg" value="female">
+                          <SelectItem className="text-lg" value="false">
                             Nữ
-                          </SelectItem>
-                          <SelectItem className="text-lg" value="other">
-                            Khác
                           </SelectItem>
                         </SelectContent>
                       </Select>
                       {errors.gender && (
                         <p className="text-red-500">{errors.gender.message}</p>
                       )}
-                    </div> */}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6">
+                    </div>
                     <div className="space-y-2">
                       <Label className="text-xl" htmlFor="phone-number">
                         Số điện thoại
@@ -321,11 +416,17 @@ export default function CreatePatientRecord() {
                       <Select
                         onValueChange={(value) => {
                           setValue("district", value);
-                          setValue("ward", ""); // Reset ward when district changes
+                          setValue("ward", "");
+                          const district = districts.find(
+                            (d) => d.code.toString() === value
+                          );
+                          if (district) {
+                            setSelectedDistrictName(district.name);
+                          }
                         }}
                         disabled={isLoadingDistricts}
                       >
-                        <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectTrigger className="h-12 w-full text-xl">
                           <SelectValue
                             placeholder={
                               isLoadingDistricts ? "Đang tải..." : "Chọn quận"
@@ -357,10 +458,18 @@ export default function CreatePatientRecord() {
                         Phường
                       </Label>
                       <Select
-                        onValueChange={(value) => setValue("ward", value)}
+                        onValueChange={(value) => {
+                          setValue("ward", value);
+                          const ward = wards.find(
+                            (w) => w.code.toString() === value
+                          );
+                          if (ward) {
+                            setSelectedWardName(ward.name);
+                          }
+                        }}
                         disabled={!selectedDistrict || isLoadingWards}
                       >
-                        <SelectTrigger className="h-12 w-full text-lg">
+                        <SelectTrigger className="h-12 w-full text-xl">
                           <SelectValue
                             placeholder={
                               isLoadingWards ? "Đang tải..." : "Chọn phường"
@@ -406,7 +515,7 @@ export default function CreatePatientRecord() {
                     <Textarea
                       id="desc-pathology"
                       placeholder="Nhập mô tả bệnh lý"
-                      className="min-h-[120px]"
+                      className="min-h-[120px] text-xl"
                       {...register("desc-pathology")}
                     />
                     {errors["desc-pathology"] && (
@@ -423,7 +532,7 @@ export default function CreatePatientRecord() {
                     <Textarea
                       id="note-for-nurse"
                       placeholder="Nhập lưu ý với điều dưỡng"
-                      className="min-h-[120px]"
+                      className="min-h-[120px] text-xl"
                       {...register("note-for-nurse")}
                     />
                     {errors["note-for-nurse"] && (
@@ -448,8 +557,9 @@ export default function CreatePatientRecord() {
                 <Button
                   type="submit"
                   className="h-12 px-8 text-xl bg-[#64D1CB] hover:bg-[#71DDD7]"
+                  disabled={isSubmitting}
                 >
-                  Tạo
+                  {isSubmitting ? "Đang xử lý..." : "Tạo hồ sơ"}
                 </Button>
               </div>
             </form>
