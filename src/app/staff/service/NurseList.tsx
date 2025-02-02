@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { NurseService } from "@/types/nurse";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, Search } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +46,7 @@ function NurseList({
 }: NurseListProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newNurseName, setNewNurseName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleAddNurse = () => {
     if (!newNurseName.trim()) {
@@ -64,27 +65,45 @@ function NurseList({
     setIsAddDialogOpen(false);
   };
 
+  // Filter nurses based on search term
+  const filteredNurses = nurses.filter((nurse) =>
+    nurse.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Nurses</h2>
+        <h2 className="text-lg font-semibold">Điều dưỡng</h2>
+        <div className="flex items-center space-x-2">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-80"
+          />
+          <Button variant="outline" size="icon">
+            <Search className="h-4 w-4" />
+          </Button>
+        </div>
+
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline">
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Nurse
+              <PlusCircle className="mr-2 h-4 w-4" /> Thêm
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Nurse</DialogTitle>
+              <DialogTitle>Thêm 1 điều dưỡng mới</DialogTitle>
               <DialogDescription>
-                Enter the name of the new nurse.
+                Nhập tên của điều dưỡng.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
-                  Name
+                  Tên
                 </Label>
                 <Input
                   id="name"
@@ -99,17 +118,18 @@ function NurseList({
                 variant="outline"
                 onClick={() => setIsAddDialogOpen(false)}
               >
-                Cancel
+                Huỷ
               </Button>
               <Button type="submit" onClick={handleAddNurse}>
-                Add
+                Thêm
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        {nurses.map((nurse) => (
+        {/* Use filteredNurses here */}
+        {filteredNurses.map((nurse) => (
           <Card key={nurse.id}>
             <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-base font-medium">
@@ -124,24 +144,19 @@ function NurseList({
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>
-                      Are you absolutely sure?
+                      Bạn có muốn xoá điều dưỡng này không?
                     </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently
-                      delete the nurse.
-                    </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Huỷ</AlertDialogCancel>
                     <AlertDialogAction onClick={() => onDeleteNurse(nurse.id)}>
-                      Delete
+                      Xoá
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </CardHeader>
-            <CardContent>
-            </CardContent>
+            <CardContent></CardContent>
           </Card>
         ))}
       </div>

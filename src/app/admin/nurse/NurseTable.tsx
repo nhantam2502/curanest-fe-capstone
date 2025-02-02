@@ -30,7 +30,9 @@ interface NurseTableProps {
 
 export default function NurseTable({ Nurses }: NurseTableProps) {
   const [nurses, setNurses] = useState<NurseForStaff[]>(Nurses);
-  const [selectedNurse, setSelectedNurse] = useState<NurseForStaff | null>(null);
+  const [selectedNurse, setSelectedNurse] = useState<NurseForStaff | null>(
+    null
+  );
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -48,7 +50,7 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
     setNurses(nurses.filter((n) => n.id !== nurseId));
   };
 
-  const detailFields = [
+  const detailFields: { label: string; value: string | undefined }[] = [
     { label: "Tên", value: selectedNurse?.name },
     { label: "Trạng thái", value: selectedNurse?.status },
     { label: "Ngày sinh", value: selectedNurse?.dob },
@@ -72,26 +74,26 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
 
     if (filters.department) {
       filteredNurses = filteredNurses.filter(
-        nurse => nurse.department === filters.department
+        (nurse) => nurse.department === filters.department
       );
     }
 
     if (filters.status) {
       filteredNurses = filteredNurses.filter(
-        nurse => nurse.status === filters.status
+        (nurse) => nurse.status === filters.status
       );
     }
 
     if (filters.gender) {
       filteredNurses = filteredNurses.filter(
-        nurse => nurse.gender === filters.gender
+        (nurse) => nurse.gender === filters.gender
       );
     }
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filteredNurses = filteredNurses.filter(
-        nurse =>
+        (nurse) =>
           nurse.name.toLowerCase().includes(searchLower) ||
           nurse.email.toLowerCase().includes(searchLower)
       );
@@ -103,9 +105,9 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
   return (
     <div>
       <NurseFilter onFilterChange={handleFilterChange} />
-      <Table className="mt-4 border">
+      <Table className="w-full border border-gray-200 overflow-hidden mt-4">
         <TableHeader>
-          <TableRow>
+          <TableRow className="bg-gray-100">
             <TableHead>Tên</TableHead>
             <TableHead>Chuyên môn</TableHead>
             <TableHead>Trạng thái</TableHead>
@@ -135,7 +137,10 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Switch/>
+                  <Switch
+                    checked={nurse.status === "active"}
+                    onChange={() => handleEditNurse(nurse)}
+                  />
                 </div>
               </TableCell>
             </TableRow>
@@ -183,9 +188,11 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
               nurse={selectedNurse}
               onClose={() => setIsEditModalOpen(false)}
               onSave={(updatedNurse) => {
-                setNurses(nurses.map(nurse => 
-                  nurse.id === updatedNurse.id ? updatedNurse : nurse
-                ));
+                setNurses(
+                  nurses.map((nurse) =>
+                    nurse.id === updatedNurse.id ? updatedNurse : nurse
+                  )
+                );
                 setIsEditModalOpen(false);
               }}
             />

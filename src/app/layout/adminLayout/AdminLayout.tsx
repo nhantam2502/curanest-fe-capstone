@@ -47,43 +47,7 @@ export default function AdminLayout({
           >
             {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
           </Button>
-          <div className="flex items-center space-x-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="relative w-8 h-8 rounded-full"
-                >
-                  {/* Placeholder image */}
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src="/placeholder.png" alt="User Name" />
-                    <AvatarFallback>UN</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    {/* Placeholder name and email */}
-                    <p className="text-sm font-medium leading-none">
-                      User Name
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      username@example.com
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <Link href="/admin/profile">
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/" })} className="!text-red-500 focus:bg-red-100 ">
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+
         </header>
 
         <main className="flex-1 lg:p-4 bg-gray-100 min-h-[calc(100vh-4.5rem)]">

@@ -1,8 +1,9 @@
 "use client";
 import React, { useState } from "react";
-import UserTable, { User } from "./UserTable";
+import UserTable from "./UserTable";
 import users from "@/dummy_data/dummy_user_list.json";
 import UserFilter from "./UserFilter";
+import { User } from "@/types/user";
 
 const initialUsers: User[] = users;
 

@@ -1,28 +1,59 @@
 "use client";
-
-import { AppSidebar } from "@/app/layout/staffLayout/StaffSidebar";
-import { Separator } from "@/components/ui/separator";
+import AdminNavbar from "@/app/layout/adminLayout/AdminNavbar";
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { signOut } from "next-auth/react";
+import Link from "next/link";
+import StaffNavbar from "./StaffNavbar";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleToggleSidebar = (collapsed: boolean) => {
+    setIsCollapsed(collapsed);
+  };
+
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b border-gray-200">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-          </div>
+    <main>
+      <StaffNavbar
+        onToggleSidebar={handleToggleSidebar}
+        isCollapsed={isCollapsed}
+      />
+      <div
+        className={`relative flex-1 flex flex-col transition-all duration-300 ease-in-out ${
+          isCollapsed ? "lg:ml-20" : "lg:ml-64"
+        }`}
+      >
+        {/* Header Container */}
+        <header className="sticky top-0 z-99 w-full bg-white border-b border-gray-200 p-3 flex items-center justify-between">
+          <Button
+            onClick={() => handleToggleSidebar(!isCollapsed)}
+            className="p-2 rounded-sm hover:bg-gray-200 text-gray-600"
+            aria-label="Toggle Sidebar"
+            variant="ghost"
+          >
+            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+          </Button>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+
+        <main className="flex-1 lg:p-4 min-h-[calc(100vh-4.5rem)]">
           {children}
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </main>
+      </div>
+    </main>
   );
 }

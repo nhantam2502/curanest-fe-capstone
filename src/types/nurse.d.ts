@@ -39,6 +39,8 @@ export interface NurseForStaff {
   city: string;
   gender: string;
   slogan: string;
+  department?: string; 
+  email?: string;
 }
 
 export interface NurseService {

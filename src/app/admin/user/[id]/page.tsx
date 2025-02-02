@@ -2,8 +2,8 @@
 import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import users from "@/dummy_data/dummy_user_list.json";
-import { User } from "../UserTable";
 import { Button } from "@/components/ui/button";
+import { User } from "@/types/user";
 
 
 export default function UserDetailsPage() {

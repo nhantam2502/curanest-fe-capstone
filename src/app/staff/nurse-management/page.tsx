@@ -55,20 +55,7 @@ const nurses: NurseForStaff[] = [
   },
 ];
 
-export default function NurseManagementPage({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon?: LucideIcon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
-  }[];
-}) {
+export default function NurseManagementPage() {
   return (
     <div>
       <div className="flex justify-between">

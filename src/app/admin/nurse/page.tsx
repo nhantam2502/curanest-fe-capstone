@@ -63,7 +63,7 @@ export default function NurseManagementPage() {
           <Button className="mb-4"> Thêm</Button>
         </Link>
       </div>
-      <NurseTable Nurses={nurses} />
+      <NurseTable Nurses={nurses || []} />
     </div>
   );
 }
