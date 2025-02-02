@@ -18,7 +18,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { CalendarIcon, ArrowLeft, Pencil } from "lucide-react";
 import {
   Breadcrumb,
@@ -27,7 +26,7 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Profile } from "@/types/patient";
+import { PatientRecord } from "@/types/patient";
 import {
   Select,
   SelectContent,
@@ -35,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { format, parse, set } from "date-fns";
 
 interface District {
   name: string;
@@ -51,27 +51,46 @@ interface Ward {
   codename: string;
 }
 
-export default function EditPatientRecord({ profile }: { profile: Profile }) {
-  const [date, setDate] = useState<Date | undefined>(() => {
-    const dob = profile?.dob;
-    return dob ? new Date(dob) : undefined;
-  });
-  const [avatar, setAvatar] = useState<string | null>(profile?.avatar);
+export default function EditPatientRecord({
+  profile,
+}: {
+  profile: PatientRecord;
+}) {
+  const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
+
+  const initialDate = profile?.dob ? new Date(profile.dob) : undefined;
+
+  const [selectedYear, setSelectedYear] = useState<string>(
+    initialDate ? initialDate.getFullYear().toString() : ""
+  );
+
+  const [date, setDate] = useState<Date | undefined>(initialDate);
+
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false);
   const [isLoadingWards, setIsLoadingWards] = useState(false);
 
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || "",
-    phone_number: profile?.phone_number || "",
+    full_name: profile?.["full-name"] || "",
+    phone_number: profile?.["phone-number"] || "",
     address: profile?.address || "",
-    ward: profile?.ward || "",
-    district: profile?.district || "",
+    district: "",
+    ward: "",
     city: profile?.city || "Hồ Chí Minh",
-    medical_description: profile?.medical_description || "",
-    note_for_nurses: profile?.note_for_nurses || "",
+    medical_description: profile?.["desc-pathology"] || "",
+    note_for_nurses: profile?.["note-for-nurse"] || "",
+    year_of_birth: selectedYear,
+    date: initialDate ? format(initialDate, "dd/MM/yyyy") : "",
   });
+
+  const findDistrictByName = (districts: District[], name: string) => {
+    return districts.find((d) => d.name === name)?.code.toString();
+  };
+
+  const findWardByName = (wards: Ward[], name: string) => {
+    return wards.find((w) => w.name === name)?.code.toString();
+  };
 
   // Fetch districts when component mounts
   useEffect(() => {
@@ -93,6 +112,19 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
 
     fetchDistricts();
   }, []);
+
+  // After districts load, set the correct district code
+  useEffect(() => {
+    if (districts.length > 0 && profile?.district) {
+      const districtCode = findDistrictByName(districts, profile.district);
+      if (districtCode) {
+        setFormData((prev) => ({
+          ...prev,
+          district: districtCode,
+        }));
+      }
+    }
+  }, [districts, profile?.district]);
 
   // Fetch wards when district changes
   useEffect(() => {
@@ -119,6 +151,73 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
     fetchWards();
   }, [formData.district]);
 
+  useEffect(() => {
+    if (wards.length > 0 && profile?.ward) {
+      const wardCode = findWardByName(wards, profile.ward);
+      if (wardCode) {
+        setFormData((prev) => ({
+          ...prev,
+          ward: wardCode,
+        }));
+      }
+    }
+  }, [wards, profile?.ward]);
+
+  const handleYearSelect = (value: string) => {
+    setSelectedYear(value);
+
+    // Update year_of_birth in formData
+    setFormData((prev) => ({
+      ...prev,
+      year_of_birth: value,
+    }));
+
+    // If there's an existing date, update it to the new year
+    if (date) {
+      const newDate = set(date, { year: parseInt(value) });
+      setDate(newDate);
+      setFormData((prev) => ({
+        ...prev,
+        date: format(newDate, "dd/MM/yyyy"),
+      }));
+    } else {
+      // If no date is selected yet, clear the date field
+      setFormData((prev) => ({
+        ...prev,
+        date: "",
+      }));
+    }
+  };
+
+  const handleDateChange = (selectedDate: Date | undefined) => {
+    if (!selectedDate) {
+      setDate(undefined);
+      setFormData((prev) => ({
+        ...prev,
+        date: "",
+      }));
+      return;
+    }
+
+    if (selectedYear) {
+      // Create a new date with the selected year and the chosen date's month and day
+      const dateInSelectedYear = set(selectedDate, {
+        year: parseInt(selectedYear),
+      });
+
+      setDate(dateInSelectedYear);
+      setFormData((prev) => ({
+        ...prev,
+        date: format(dateInSelectedYear, "dd/MM/yyyy"),
+      }));
+    }
+  };
+
+  const disableDate = (date: Date) => {
+    if (!selectedYear) return true;
+    return date.getFullYear() !== parseInt(selectedYear);
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -144,30 +243,16 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
     }));
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Create a temporary URL for the selected file
-      const imageUrl = URL.createObjectURL(file);
-      setAvatar(imageUrl); // Update avatar state with the new image URL
-      console.log("Selected file:", file);
-    }
-  };
-
-  const handleAvatarClick = () => {
-    document.getElementById("avatar-upload")?.click();
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission logic here
     console.log({
       ...formData,
       dob: date?.toISOString(),
-      avatar,
     });
   };
 
+  console.log("formData: ", formData);
   return (
     <div className="hero_section h-full">
       <Breadcrumb className="px-10 mb-6">
@@ -198,37 +283,10 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
           </CardHeader>
 
           <CardContent>
-            <div className="flex gap-10 mt-5">
-              {/* Avatar Section */}
-              <div className="w-80 flex-shrink-0">
-                {/* <Label className="block mb-2 text-xl">Ảnh đại diện</Label> */}
-                <div className="w-80 flex flex-col items-center space-y-6">
-                  <div className="relative group">
-                    <img
-                      src={avatar || "/placeholder-avatar.png"} // Add a placeholder image path
-                      alt="Profile"
-                      className="w-64 h-64 rounded-full object-cover border-6 border-violet-100 cursor-pointer"
-                    />
-                    <div
-                      className="absolute bottom-4 right-4 p-2 bg-yellowColor rounded-full cursor-pointer transition-colors group-hover:scale-110"
-                      onClick={handleAvatarClick}
-                    >
-                      <Pencil className="w-6 h-6 text-white" />
-                    </div>
-                    <input
-                      type="file"
-                      id="avatar-upload"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
-                  </div>
-                </div>
-              </div>
-
+            <div className="flex gap-10">
               {/* Form Fields */}
               <div className="flex-1 space-y-6">
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-3 gap-6">
                   <div className="space-y-2">
                     <Label className="text-xl" htmlFor="full_name">
                       Họ và Tên
@@ -243,28 +301,59 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="dob">
+                    <Label className="text-xl" htmlFor="year_of_birth">
+                      Năm sinh
+                    </Label>
+                    <Select
+                      onValueChange={handleYearSelect}
+                      value={selectedYear}
+                    >
+                      <SelectTrigger className="h-12 w-full text-xl">
+                        <SelectValue placeholder="Chọn năm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem
+                            key={year}
+                            value={year.toString()}
+                            className="text-lg"
+                          >
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xl" htmlFor="dateOfBirth">
                       Ngày sinh
                     </Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
-                          variant="outline"
+                          variant={"outline"}
                           className={cn(
-                            "h-12 w-full justify-start text-left font-normal text-lg",
+                            "h-12 w-full justify-start text-left font-normal text-xl",
+                            !selectedYear && "opacity-50 cursor-not-allowed",
                             !date && "text-muted-foreground"
                           )}
+                          disabled={!selectedYear}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "dd/MM/yyyy") : "Chọn ngày"}
+                          {formData.date || "Chọn ngày"}
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
                           selected={date}
-                          onSelect={setDate}
+                          onSelect={handleDateChange}
+                          disabled={disableDate}
                           initialFocus
+                          defaultMonth={
+                            date || new Date(parseInt(selectedYear), 0, 1)
+                          }
                         />
                       </PopoverContent>
                     </Popover>
@@ -309,7 +398,7 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
                       value={formData.district}
                       disabled={isLoadingDistricts}
                     >
-                      <SelectTrigger className="h-12 w-full text-lg">
+                      <SelectTrigger className="h-12 w-full text-xl">
                         <SelectValue
                           placeholder={
                             isLoadingDistricts ? "Đang tải..." : "Chọn quận"
@@ -339,7 +428,7 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
                       value={formData.ward}
                       disabled={!formData.district || isLoadingWards}
                     >
-                      <SelectTrigger className="h-12 w-full text-lg">
+                      <SelectTrigger className="h-12 w-full text-xl">
                         <SelectValue
                           placeholder={
                             isLoadingWards ? "Đang tải..." : "Chọn phường"
@@ -382,7 +471,7 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
                     value={formData.medical_description}
                     onChange={handleInputChange}
                     placeholder="Nhập mô tả bệnh lý"
-                    className="min-h-[120px]"
+                    className="min-h-[120px] text-xl"
                   />
                 </div>
 
@@ -395,7 +484,7 @@ export default function EditPatientRecord({ profile }: { profile: Profile }) {
                     value={formData.note_for_nurses}
                     onChange={handleInputChange}
                     placeholder="Nhập lưu ý với điều dưỡng"
-                    className="min-h-[120px]"
+                    className="min-h-[120px] text-xl"
                   />
                 </div>
               </div>

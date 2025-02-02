@@ -6,13 +6,33 @@ export const CreatePatientSchema = z.object({
     .min(1, { message: "Họ và tên không được để trống" })
     .max(100, { message: "Họ và tên không được vượt quá 100 ký tự" }),
 
-  dob: z.string().refine(
-    (val) => {
-      const date = new Date(val);
-      return !isNaN(date.getTime());
-    },
-    { message: "Ngày sinh không hợp lệ" }
-  ),
+  dob: z
+    .string({
+      required_error: "Ngày sinh không được để trống",
+      invalid_type_error: "Ngày sinh không hợp lệ",
+    })
+    .refine(
+      (val) => {
+        const date = new Date(val);
+        return !isNaN(date.getTime());
+      },
+      { message: "Ngày sinh không hợp lệ" }
+    ),
+
+  gender: z.boolean({
+    required_error: "Vui lòng chọn giới tính",
+    invalid_type_error: "Giới tính không hợp lệ",
+  }),
+
+  district: z.string({
+    required_error: "Vui lòng chọn quận",
+    invalid_type_error: "Quận không hợp lệ",
+  }),
+
+  ward: z.string({
+    required_error: "Vui lòng chọn phường",
+    invalid_type_error: "Phường không hợp lệ",
+  }),
 
   "phone-number": z
     .string()
@@ -25,10 +45,6 @@ export const CreatePatientSchema = z.object({
     .string()
     .min(1, { message: "Địa chỉ không được để trống" })
     .max(200, { message: "Địa chỉ không được vượt quá 200 ký tự" }),
-
-  ward: z.string().min(1, { message: "Vui lòng chọn phường" }),
-
-  district: z.string().min(1, { message: "Vui lòng chọn quận" }),
 
   city: z.string().min(1, { message: "Thành phố không được để trống" }),
 
@@ -45,7 +61,11 @@ export const CreatePatientSchema = z.object({
       z.string().max(1000, { message: "Lưu ý không được vượt quá 1000 ký tự" })
     ),
 
-  email: z.string().email({ message: "Địa chỉ email không hợp lệ" }).optional(),
+  // email: z
+  //   .string()
+  //   .email({ message: "Địa chỉ email không hợp lệ" })
+  //   .optional()
+  //   .transform((val) => val || undefined),
 
   // avatar: z
   //   .instanceof(File, { message: "Vui lòng chọn ảnh đại diện" })

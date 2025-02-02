@@ -161,6 +161,8 @@ function toast({ ...props }: Toast) {
       onOpenChange: (open) => {
         if (!open) dismiss()
       },
+      className: "text-xl font-bold right-5 top-5", // Thêm Tailwind hoặc CSS để chỉnh font và vị trí
+
     },
   })
 
