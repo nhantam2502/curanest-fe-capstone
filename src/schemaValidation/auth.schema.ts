@@ -1,3 +1,4 @@
+import { add } from "date-fns";
 import { z } from "zod";
 
 export const EmailLoginSchema = z.object({
@@ -41,15 +42,38 @@ export const LoginRes = z.object({
       "full-name": z.string(),
       email: z.string(),
       "phone-number": z.string(),
-      role: z.string()
+      role: z.string(),
     }),
     token: z.object({
-      "access_token": z.string(),
-      "access_token_exp_in": z.number()
-    })
+      access_token: z.string(),
+      access_token_exp_in: z.number(),
+    }),
   }),
-  success: z.boolean()
+  success: z.boolean(),
 });
+
+export const AccountRes = z
+  .object({
+    data: z.object({
+      id: z.string(),
+      role: z.string(),
+      "full-name": z.string(),
+      email: z.string(),
+      "phone-number": z.string(),
+      avatar: z.string(),
+      gender: z.boolean(),
+      dob: z.string(),
+      address: z.string(),
+      ward: z.string(),
+      district: z.string(),
+      city: z.string(),
+    }),
+    message: z.string(),
+    status: z.number(),
+  })
+  .strict();
+
+export type AccountResType = z.TypeOf<typeof AccountRes>;
 
 export type LoginResType = z.TypeOf<typeof LoginRes>;
 

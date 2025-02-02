@@ -8,6 +8,7 @@ export interface LoginResType {
       email: string;
       "phone-number": string;
       role: string;
+      avatar: string;
     };
     token: {
       access_token: string;
@@ -27,6 +28,7 @@ type EntityErrorPayload = {
 };
 
 // HTTP Client Configuration
+export const isClient = () => typeof window !== "undefined";
 type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 type CustomOptions = Omit<RequestInit, "method"> & {
   baseUrl?: string;

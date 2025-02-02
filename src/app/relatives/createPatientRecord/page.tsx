@@ -42,8 +42,8 @@ import {
   CreatePatientSchema,
 } from "@/schemaValidation/relatives.schema";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
-import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { toast, ToastContainer } from "react-toastify";
 
 interface District {
   name: string;
@@ -70,7 +70,6 @@ export default function CreatePatientRecord() {
   const [isLoadingWards, setIsLoadingWards] = useState(false);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
 
   const {
@@ -181,20 +180,18 @@ export default function CreatePatientRecord() {
       });
       console.log("Patient record created:", response);
 
-      toast({
-        title: "Thành công",
-        description: "Đã tạo thành công hồ sơ bệnh nhân.",
-        variant: "default",
+      toast.success("Đã tạo thành công hồ sơ bệnh nhân.", {
+        position: "top-right",
+        autoClose: 3000,
       });
 
       router.push("/relatives/booking");
     } catch (error) {
       console.error("Error creating patient record:", error);
       setIsSubmitting(false);
-      toast({
-        title: "Lỗi",
-        description: "Có lỗi xảy ra khi tạo hồ sơ bệnh nhân.",
-        variant: "destructive",
+
+      toast.error("Có lỗi xảy ra khi tạo hồ sơ bệnh nhân.", {
+        autoClose: 3000,
       });
     } finally {
       setIsSubmitting(false);
