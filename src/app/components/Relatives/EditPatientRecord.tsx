@@ -35,8 +35,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format, parse, set } from "date-fns";
+import { useParams, useRouter } from "next/navigation";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
+import {
+  CreatePatientSchema,
+  UpdatePatientInput,
+} from "@/schemaValidation/relatives.schema";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface District {
+export interface District {
   name: string;
   code: number;
   division_type: string;
@@ -44,7 +52,7 @@ interface District {
   wards: Ward[];
 }
 
-interface Ward {
+export interface Ward {
   name: string;
   code: number;
   division_type: string;
@@ -56,6 +64,30 @@ export default function EditPatientRecord({
 }: {
   profile: PatientRecord;
 }) {
+  const { id } = useParams();
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UpdatePatientInput>({
+    resolver: zodResolver(CreatePatientSchema),
+    defaultValues: {
+      id: profile?.id || "",
+      "full-name": profile?.["full-name"] || "",
+      "phone-number": profile?.["phone-number"] || "",
+      gender: profile?.gender ?? false,
+      address: profile?.address || "",
+      district: profile?.district || "",
+      ward: profile?.ward || "",
+      city: profile?.city || "Hồ Chí Minh",
+      "desc-pathology": profile?.["desc-pathology"] || "",
+      "note-for-nurse": profile?.["note-for-nurse"] || "",
+      dob: profile?.dob || "",
+    },
+  });
+
   const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
 
   const initialDate = profile?.dob ? new Date(profile.dob) : undefined;
@@ -74,6 +106,7 @@ export default function EditPatientRecord({
   const [formData, setFormData] = useState({
     full_name: profile?.["full-name"] || "",
     phone_number: profile?.["phone-number"] || "",
+    gender: profile?.gender ?? false,
     address: profile?.address || "",
     district: "",
     ward: "",
@@ -243,16 +276,30 @@ export default function EditPatientRecord({
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission logic here
-    console.log({
-      ...formData,
-      dob: date?.toISOString(),
-    });
+  const onSubmit = async (data: UpdatePatientInput) => {
+    try {
+      // Map district and ward codes back to names
+      const districtName =
+        districts.find((d) => d.code.toString() === formData.district)?.name ||
+        "";
+      const wardName =
+        wards.find((w) => w.code.toString() === formData.ward)?.name || "";
+
+      const updatedData = {
+        ...data,
+        district: districtName,
+        ward: wardName,
+        dob: date ? format(date, "yyyy-MM-dd") : "", // Use ISO format
+      };
+
+      const response = await patientApiRequest.updatePatientRecord(updatedData);
+      console.log("Updated patient record:", response);
+      router.push("/relatives/booking");
+    } catch (error) {
+      console.error("Error updating patient record:", error);
+    }
   };
 
-  console.log("formData: ", formData);
   return (
     <div className="hero_section h-full">
       <Breadcrumb className="px-10 mb-6">
@@ -272,7 +319,7 @@ export default function EditPatientRecord({
       </Breadcrumb>
 
       <div className="max-w-[1400px] mx-auto">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <CardHeader>
             <CardTitle className="text-4xl font-bold">
               Chỉnh sửa hồ sơ bệnh nhân
@@ -293,11 +340,17 @@ export default function EditPatientRecord({
                     </Label>
                     <Input
                       id="full_name"
+                      {...register("full-name")}
                       value={formData.full_name}
                       onChange={handleInputChange}
                       placeholder="Nhập họ và tên"
                       className="h-12 text-lg"
                     />
+                    {errors["full-name"] && (
+                      <p className="text-red-500">
+                        {errors["full-name"].message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -305,6 +358,7 @@ export default function EditPatientRecord({
                       Năm sinh
                     </Label>
                     <Select
+                      {...register("dob")}
                       onValueChange={handleYearSelect}
                       value={selectedYear}
                     >
@@ -323,6 +377,9 @@ export default function EditPatientRecord({
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.dob && (
+                      <p className="text-red-500">{errors.dob.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -347,6 +404,7 @@ export default function EditPatientRecord({
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
+                          {...register("dob")}
                           selected={date}
                           onSelect={handleDateChange}
                           disabled={disableDate}
@@ -357,21 +415,61 @@ export default function EditPatientRecord({
                         />
                       </PopoverContent>
                     </Popover>
+                    {errors.dob && (
+                      <p className="text-red-500">{errors.dob.message}</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-xl" htmlFor="gender">
+                      Giới tính
+                    </Label>
+                    <Select
+                      {...register("gender")}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          gender: value === "true",
+                        }))
+                      }
+                      value={formData.gender ? "true" : "false"}
+                    >
+                      <SelectTrigger className="h-12 w-full text-xl">
+                        <SelectValue placeholder="Chọn giới tính" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem className="text-lg" value="true">
+                          Nam
+                        </SelectItem>
+                        <SelectItem className="text-lg" value="false">
+                          Nữ
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && (
+                      <p className="text-red-500">{errors.gender.message}</p>
+                    )}
+                  </div>
+
                   <div className="space-y-2">
                     <Label className="text-xl" htmlFor="phone_number">
                       Số điện thoại
                     </Label>
                     <Input
                       id="phone_number"
+                      {...register("phone-number")}
                       value={formData.phone_number}
                       onChange={handleInputChange}
                       placeholder="Nhập số điện thoại"
                       className="h-12"
                     />
+                    {errors["phone-number"] && (
+                      <p className="text-red-500">
+                        {errors["phone-number"].message}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -380,11 +478,15 @@ export default function EditPatientRecord({
                     </Label>
                     <Input
                       id="address"
+                      {...register("address")}
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="Nhập địa chỉ"
                       className="h-12"
                     />
+                    {errors.address && (
+                      <p className="text-red-500">{errors.address.message}</p>
+                    )}
                   </div>
                 </div>
 
@@ -394,6 +496,7 @@ export default function EditPatientRecord({
                       Quận
                     </Label>
                     <Select
+                      {...register("district")}
                       onValueChange={handleDistrictChange}
                       value={formData.district}
                       disabled={isLoadingDistricts}
@@ -417,6 +520,9 @@ export default function EditPatientRecord({
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.district && (
+                      <p className="text-red-500">{errors.district.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -424,6 +530,7 @@ export default function EditPatientRecord({
                       Phường
                     </Label>
                     <Select
+                      {...register("ward")}
                       onValueChange={handleWardChange}
                       value={formData.ward}
                       disabled={!formData.district || isLoadingWards}
@@ -447,6 +554,9 @@ export default function EditPatientRecord({
                         ))}
                       </SelectContent>
                     </Select>
+                    {errors.ward && (
+                      <p className="text-red-500">{errors.ward.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -455,6 +565,7 @@ export default function EditPatientRecord({
                     </Label>
                     <Input
                       id="city"
+                      {...register("city")}
                       value={formData.city}
                       className="h-12"
                       disabled
@@ -468,11 +579,17 @@ export default function EditPatientRecord({
                   </Label>
                   <Textarea
                     id="medical_description"
+                    {...register("desc-pathology")}
                     value={formData.medical_description}
                     onChange={handleInputChange}
                     placeholder="Nhập mô tả bệnh lý"
                     className="min-h-[120px] text-xl"
                   />
+                  {errors["desc-pathology"] && (
+                    <p className="text-red-500">
+                      {errors["desc-pathology"].message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -481,11 +598,17 @@ export default function EditPatientRecord({
                   </Label>
                   <Textarea
                     id="note_for_nurses"
+                    {...register("note-for-nurse")}
                     value={formData.note_for_nurses}
                     onChange={handleInputChange}
                     placeholder="Nhập lưu ý với điều dưỡng"
                     className="min-h-[120px] text-xl"
                   />
+                  {errors["note-for-nurse"] && (
+                    <p className="text-red-500">
+                      {errors["note-for-nurse"].message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

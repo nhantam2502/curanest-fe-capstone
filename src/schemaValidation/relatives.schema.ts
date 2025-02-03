@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 export const CreatePatientSchema = z.object({
+  id: z.string(),
+
   "full-name": z
     .string()
     .min(1, { message: "Họ và tên không được để trống" })
@@ -81,3 +83,4 @@ export const CreatePatientSchema = z.object({
 });
 
 export type CreatePatientInput = z.infer<typeof CreatePatientSchema>;
+export type UpdatePatientInput = z.infer<typeof CreatePatientSchema>;

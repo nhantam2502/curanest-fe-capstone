@@ -8,7 +8,7 @@ import { Loader2 } from "lucide-react";
 
 export default function EditPatientPage() {
   const { id } = useParams();
-  const [profile, setProfile] = useState<PatientRecord | null>(null); // Type the state
+  const [profile, setProfile] = useState<PatientRecord | null>(null); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

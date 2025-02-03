@@ -372,6 +372,7 @@ export default function CreatePatientRecord() {
                         <p className="text-red-500">{errors.gender.message}</p>
                       )}
                     </div>
+                    
                     <div className="space-y-2">
                       <Label className="text-xl" htmlFor="phone-number">
                         Số điện thoại
