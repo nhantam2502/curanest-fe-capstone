@@ -40,7 +40,7 @@ const InfoRelatives = () => {
     // console.log("User from context:", user);
     const fetchUserData = async () => {
       try {
-        const response: ApiResponse = await patientApiRequest.infoRelatives();
+        const response: ApiResponse = await patientApiRequest.getInfoRelatives();
         if (response.status === 200 && response.payload) {
           setUserData(response.payload);
           setUser(response.payload.data);
@@ -75,7 +75,7 @@ const InfoRelatives = () => {
   }
 
   if (error) {
-    return <div className="text-red-500 text-center p-4">{error}</div>;
+    return <div className="text-red-500 text-2xl text-center p-4">{error}</div>;
   }
 
   if (!userData) {

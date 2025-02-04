@@ -267,7 +267,7 @@ const PatientRecords: React.FC = () => {
 
   if (error) {
     return (
-      <div className="text-center text-2xl text-red-500 mt-10">{error}</div>
+      <div className="text-center text-2xl text-red-500">{error}</div>
     );
   }
 

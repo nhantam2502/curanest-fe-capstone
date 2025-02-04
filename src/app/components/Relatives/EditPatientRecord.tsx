@@ -39,7 +39,7 @@ import { useParams, useRouter } from "next/navigation";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import {
   CreatePatientSchema,
-  UpdatePatientInput,
+  UpdatePatientRecord,
 } from "@/schemaValidation/relatives.schema";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -71,7 +71,7 @@ export default function EditPatientRecord({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<UpdatePatientInput>({
+  } = useForm<UpdatePatientRecord>({
     resolver: zodResolver(CreatePatientSchema),
     defaultValues: {
       id: profile?.id || "",
@@ -276,7 +276,7 @@ export default function EditPatientRecord({
     }));
   };
 
-  const onSubmit = async (data: UpdatePatientInput) => {
+  const onSubmit = async (data: UpdatePatientRecord) => {
     try {
       // Map district and ward codes back to names
       const districtName =

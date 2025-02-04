@@ -8,7 +8,6 @@ import {
   ArrowDownCircle,
   Pencil,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 import dummyTransactions from "@/dummy_data/dummy_transaction.json";
 import DepositDialog from "@/app/components/Relatives/DepositDialog";
 import ProfileContent from "@/app/components/Relatives/ProfileContent";
