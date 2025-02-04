@@ -1,0 +1,27 @@
+[
+    {
+      "id": 1,
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@example.com",
+      "phone": "123-456-7890",
+      "position": "Software Engineer",
+      "status": "pending",
+      "appliedDate": "2023-11-25T00:00:00.000Z",
+      "profileSummary": "Experienced software engineer with a passion for building scalable web applications.",
+      "fullProfile": "<h2>John Doe</h2>\n<p>Experienced software engineer with 5+ years of experience...</p>\n<h3>Skills</h3>\n<ul>\n  <li>JavaScript</li>\n  <li>React</li>\n  <li>Node.js</li>\n</ul>\n<!-- ... more details ... -->"
+    },
+    {
+      "id": 2,
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "jane.smith@example.com",
+      "phone": "987-654-3210",
+      "position": "Frontend Developer",
+      "status": "pending",
+      "appliedDate": "2023-11-28T00:00:00.000Z",
+      "profileSummary": "Creative frontend developer skilled in React and UI/UX design.",
+      "fullProfile": "<h2>Jane Smith</h2>\n<p>Frontend developer with a strong focus on user experience...</p>\n<h3>Skills</h3>\n<ul>\n  <li>HTML</li>\n  <li>CSS</li>\n  <li>JavaScript</li>\n  <li>React</li>\n</ul>\n<!-- ... more details ... -->"
+    }
+  ]
+  

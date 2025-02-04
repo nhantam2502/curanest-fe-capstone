@@ -91,41 +91,29 @@ const options = {
 };
 
 export default function DashboardChart() {
-  const [chartType, setChartType] = useState<"bar" | "line">("bar");
-
-  const handleChartTypeChange = (type: "bar" | "line") => {
-    setChartType(type);
-  };
-
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Monthly Sales</CardTitle>
-        <CardDescription>Overview of monthly sales</CardDescription>
-        {/* Toggle Buttons */}
-        <div className="mt-2 space-x-2">
-          <Button
-            variant={chartType === "bar" ? "default" : "outline"}
-            onClick={() => handleChartTypeChange("bar")}
-          >
-            Bar Chart
-          </Button>
-          <Button
-            variant={chartType === "line" ? "default" : "outline"}
-            onClick={() => handleChartTypeChange("line")}
-          >
-            Line Chart
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="h-[350px] p-4">
-        {/* Conditional Rendering */}
-        {chartType === "bar" ? (
-          <Bar data={barData} options={options} />
-        ) : (
-          <Line data={lineData} options={options} />
-        )}
-      </CardContent>
-    </Card>
+    <>
+      <div className="flex  space-x-2">
+        <Card className="w-1/2">
+          <CardHeader>
+            <CardTitle>Monthly Sales</CardTitle>
+            <CardDescription>Overview of monthly sales</CardDescription>
+          </CardHeader>
+          <CardContent className="h-auto p-4">
+            <Bar data={barData} options={options} />
+          </CardContent>
+        </Card>
+
+        <Card className="w-1/2">
+          <CardHeader>
+            <CardTitle>Monthly Sales</CardTitle>
+            <CardDescription>Overview of monthly sales</CardDescription>
+          </CardHeader>
+          <CardContent className="h-auto p-4">
+            <Line data={lineData} options={options} />
+          </CardContent>
+        </Card>
+      </div>
+    </>
   );
 }

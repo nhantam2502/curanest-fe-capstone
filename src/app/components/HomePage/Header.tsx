@@ -44,18 +44,20 @@ const Header = () => {
     window.addEventListener("scroll", handleStickyHeader);
     return () => window.removeEventListener("scroll", handleStickyHeader);
   }, []);
-
+  
   useEffect(() => {
     if (isMenuOpen) {
-      document.body.classList.add("overflow-hidden");
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove("overflow-hidden");
+      document.body.style.overflow = 'unset';
     }
 
+    // Cleanup function to reset overflow when component unmounts
     return () => {
-      document.body.classList.remove("overflow-hidden");
+      document.body.style.overflow = 'unset';
     };
   }, [isMenuOpen]);
+
 
   const Menu = [
     { id: 1, name: "Trang chủ", path: "/" },

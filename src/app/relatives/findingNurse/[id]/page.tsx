@@ -14,7 +14,7 @@ import { Nurse } from "@/types/nurse";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import PatientProfileSelection from "@/app/components/Relatives/PatientProfileSelection";
+import PatientProfileSelection from "@/app/components/Relatives/PatientRecordSelection";
 import dummyProfiles from "@/dummy_data/dummy_profile.json";
 import dummyNursing from "@/dummy_data/dummy_nurse.json";
 

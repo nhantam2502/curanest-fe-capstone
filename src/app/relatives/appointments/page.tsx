@@ -7,12 +7,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import nurseData from "@/dummy_data/dummy_nurse.json";
+
 const dummyData = [
   {
     id: 1,
     nurse_name: "Nguyễn Văn A",
     avatar: "https://github.com/shadcn.png",
-    status: "completed",
+    status: "pending",
     phone_number: "0987654321",
     techniques: "Kỹ thuật A- Kỹ thuật B-Kỹ thuật C - Kỹ thuật G",
     total_fee: 500000,
@@ -91,7 +92,8 @@ const Appointment = () => {
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
-    return `${day}/${month}`;
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   const formatDateForApi = (date: Date) => {
@@ -184,7 +186,7 @@ const Appointment = () => {
                     index + 1
                   }`}</AvatarFallback>
                 </Avatar>
-                <span className="text-lg font-medium">
+                <span className="text-lg font-semibold">
                   Bệnh nhân {index + 1}
                 </span>
               </Button>
@@ -305,7 +307,7 @@ const Appointment = () => {
                               .map((technique, index) => (
                                 <Badge
                                   key={index}
-                                  className="bg-[#71DDD7] hover:bg-[#71DDD7] text-white text-base cursor-pointer"
+                                  className="text-white text-base cursor-pointer"
                                 >
                                   {technique.trim()}
                                 </Badge>

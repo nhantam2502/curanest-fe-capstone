@@ -31,15 +31,32 @@ const RelativesNavbar = () => {
 
   useEffect(() => {
     if (isMenuOpen) {
-      document.body.classList.add("overflow-hidden");
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.classList.remove("overflow-hidden");
+      document.body.style.overflow = "unset";
     }
 
+    // Cleanup function to reset overflow when component unmounts
     return () => {
-      document.body.classList.remove("overflow-hidden");
+      document.body.style.overflow = "unset";
     };
   }, [isMenuOpen]);
+
+  // useEffect(() => {
+  //   const handleStickyHeader = () => {
+  //     if (
+  //       document.body.scrollTop > 80 ||
+  //       document.documentElement.scrollTop > 80
+  //     ) {
+  //       headerRef.current?.classList.add("sticky_header");
+  //     } else {
+  //       headerRef.current?.classList.remove("sticky_header");
+  //     }
+  //   };
+
+  //   window.addEventListener("scroll", handleStickyHeader);
+  //   return () => window.removeEventListener("scroll", handleStickyHeader);
+  // }, []);
 
   const Menu = [
     { id: 1, name: "Hồ sơ bệnh nhân", path: "/relatives/booking" },
@@ -48,8 +65,8 @@ const RelativesNavbar = () => {
       name: "Tìm kiếm điều dưỡng",
       path: "/relatives/findingNurse",
     },
-    { id: 3, name: "Lịch hẹn sắp tới", path: "/relatives/appoinments" },
-    { id: 4, name: "Lịch sử giao dịch", path: "" },
+    { id: 3, name: "Lịch hẹn sắp tới", path: "/relatives/appointments" },
+    { id: 4, name: "Lịch sử cuộc hẹn", path: "/relatives/appointmentHistory" },
   ];
 
   const handleClick = () => {
@@ -102,13 +119,22 @@ const RelativesNavbar = () => {
                 </DropdownMenuTrigger>
 
                 <DropdownMenuContent className="w-full p-4">
-                  <DropdownMenuItem className="text-xl" onClick={handleNavigate}>
+                  <DropdownMenuItem
+                    className="text-xl"
+                    onClick={handleNavigate}
+                  >
                     <User className="mr-4 h-7 w-7" /> Thông tin người dùng
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-xl" onClick={handleNavigate}>
+                  <DropdownMenuItem
+                    className="text-xl"
+                    onClick={handleNavigate}
+                  >
                     <Wallet className="mr-4 h-7 w-7" /> Ví tiền
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="text-xl" onClick={handleNavigate}>
+                  <DropdownMenuItem
+                    className="text-xl"
+                    onClick={handleNavigate}
+                  >
                     <Key className="mr-4 h-7 w-7" /> Thay đổi mật khẩu
                   </DropdownMenuItem>
 
