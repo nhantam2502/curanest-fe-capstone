@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PostEditor from "@/app/admin/post/create-post/PostEditor"; // Import your PostEditor component
 import { Post } from "../page"; // Import the Post interface

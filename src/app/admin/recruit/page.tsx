@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import JobPostingsTable from "./JobPostingsTable";
-import CandidatesTable from "./CandidatesTable";
 import NurseProfilesTable from "./NurseProfilesTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -24,15 +23,6 @@ interface JobPostingData {
   datePosted: Date;
 }
 
-interface CandidateData {
-  id: number;
-  jobPostingId: number;
-  name: string;
-  email: string;
-  resume: string;
-  status: string;
-  appliedDate: Date;
-}
 
 interface NurseProfile {
   id: number;
@@ -61,27 +51,6 @@ const initialJobPostings: JobPostingData[] = [
     description: "...",
     status: "Closed",
     datePosted: new Date(),
-  },
-];
-
-const initialCandidates: CandidateData[] = [
-  {
-    id: 1,
-    jobPostingId: 1,
-    name: "Alice Smith",
-    email: "alice.smith@example.com",
-    resume: "...",
-    status: "Applied",
-    appliedDate: new Date(),
-  },
-  {
-    id: 2,
-    jobPostingId: 1,
-    name: "Bob Johnson",
-    email: "bob.johnson@example.com",
-    resume: "...",
-    status: "Interviewing",
-    appliedDate: new Date(),
   },
 ];
 

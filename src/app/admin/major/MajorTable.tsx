@@ -11,14 +11,7 @@ import { MajorData } from "./MajorForm";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Search, XCircle } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { XCircle } from "lucide-react";
 
 interface MajorTableProps {
   majors: MajorData[];
@@ -29,12 +22,10 @@ interface MajorTableProps {
 export default function MajorTable({
   majors,
   onEdit,
-  onDelete,
 }: MajorTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState(""); // "" for all, "active", or "inactive"
-
-  const filteredMajors = majors.filter((major) => {
+  const [, setSelectedStatus] = useState("");
+    const filteredMajors = majors.filter((major) => {
     const nameMatch = major.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -91,3 +82,4 @@ export default function MajorTable({
     </div>
   );
 }
+

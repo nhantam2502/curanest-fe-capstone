@@ -12,7 +12,6 @@ import {
   CircleDollarSign,
   BookUser,
   BriefcaseBusiness,
-  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
@@ -78,7 +77,6 @@ interface AdminNavbarProps {
 
 const AdminNavbar: React.FC<AdminNavbarProps> = ({
   isCollapsed,
-  onToggleSidebar,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -123,7 +121,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full flex items-center justify-between"
+                className="w-full flex items-center justify-between p-2"
               >
                 <div className="flex items-center space-x-4">
                 <Avatar className="w-8 h-8">

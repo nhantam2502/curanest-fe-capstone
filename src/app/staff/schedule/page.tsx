@@ -4,21 +4,10 @@ import { useToast } from "@/hooks/use-toast";
 import {
   CheckIcon,
   SearchIcon,
-  UserIcon,
-  ChevronDownIcon,
 } from "lucide-react";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface WorkingHour {
   day: string;

@@ -3,7 +3,7 @@ import "./globals.css";
 import AuthProvider from "./context/AuthProvider";
 import { Suspense } from "react";
 import LoadingPage from "./loading";
-import { ToastContainer } from "react-toastify";
+// import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "Curanest",

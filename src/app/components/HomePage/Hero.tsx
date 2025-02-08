@@ -2,12 +2,10 @@
 import { ArrowRight, Video } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import About from "./About";
 import ServiceList from "../Service/ServiceList";
 import NursingList from "../Nursing/NursingList";
 import FaqList from "../FAQ/FaqList";
 import Feedbacks from "./Feedbacks";
-import News from "@/app/guest/news/page";
 import NewsSection from "../News/NewsSection";
 import DownloadAppSection from "./DowloadSection";
 import { useRouter } from "next/navigation";

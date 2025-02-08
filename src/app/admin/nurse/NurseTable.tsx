@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
-import { Pencil, Trash } from "lucide-react";
+import { useState } from "react";
+import { Pencil } from "lucide-react";
 import EditNurseForm from "./EditNurseForm";
 import { NurseForStaff } from "@/types/nurse";
 import NurseFilter from "./NurseFilter";
@@ -46,9 +46,9 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteNurse = (nurseId: number) => {
-    setNurses(nurses.filter((n) => n.id !== nurseId));
-  };
+  // const handleDeleteNurse = (nurseId: number) => {
+  //   setNurses(nurses.filter((n) => n.id !== nurseId));
+  // };
 
   const detailFields: { label: string; value: string | undefined }[] = [
     { label: "Tên", value: selectedNurse?.name },

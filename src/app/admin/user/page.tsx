@@ -1,23 +1,36 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UserTable from "./UserTable";
-import users from "@/dummy_data/dummy_user_list.json";
 import UserFilter from "./UserFilter";
-import { User } from "@/types/user";
-
-const initialUsers: User[] = users;
+import { RelativesFilter } from "@/types/relatives";
+import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
 
 function Page() {
-  const [users, setUsers] = useState<User[]>(initialUsers);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(initialUsers);
+  const [, setUsers] = useState<RelativesFilter[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<RelativesFilter[]>([]);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await relativesApiRequest.getRelativesFilter({
+          filter: {},
+          paging: { page: 1, size: 10, total: 0 },
+        });
+        setUsers(response.payload.data || []);
+        setFilteredUsers(response.payload || []); // Default state
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   return (
-    <main className=" p-4 bg-white rounded-md">
+    <main className="p-4 bg-white rounded-md">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Thống kê người dùng</h1>
       </div>
-      <UserFilter users={users} setFilteredUsers={setFilteredUsers} />
-      <UserTable users={filteredUsers} setUsers={setUsers} />
+      <UserFilter setFilteredUsers={setFilteredUsers} />
+      <UserTable users={filteredUsers} />
     </main>
   );
 }
