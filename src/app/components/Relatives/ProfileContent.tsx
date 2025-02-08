@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/select";
 import { infoRelatives } from "@/types/patient";
 import { District, Ward } from "./EditPatientRecord";
+import { useRouter } from "next/navigation";
 
 const ProfileContent = () => {
+  const router = useRouter();
   const [relativeInfo, setRelativeInfo] = useState<infoRelatives | null>(null);
   const [avatar, setAvatar] = useState("");
   const [gender, setGender] = useState<string>(""); // State for gender
@@ -65,19 +67,6 @@ const ProfileContent = () => {
     fetchDistricts();
   }, []);
 
-  useEffect(() => {
-    if (!isLoadingDistricts && districts.length > 0 && relativeInfo?.district) {
-      const districtCode = findDistrictByName(districts, relativeInfo.district);
-      if (districtCode) {
-        setFormData((prev) => ({
-          ...prev,
-          district: districtCode,
-        }));
-        setSelectedDistrict(districtCode);
-      }
-    }
-  }, [isLoadingDistricts, districts, relativeInfo?.district]);
-
   // Fetch wards when district changes
   useEffect(() => {
     const fetchWards = async () => {
@@ -104,16 +93,34 @@ const ProfileContent = () => {
   }, [selectedDistrict]);
 
   useEffect(() => {
-    if (wards.length > 0 && relativeInfo?.ward) {
-      const wardCode = findWardByName(wards, relativeInfo.ward);
-      if (wardCode) {
-        setFormData((prev) => ({
-          ...prev,
-          ward: wardCode,
-        }));
+    const loadWardData = async () => {
+      if (selectedDistrict && relativeInfo?.ward) {
+        try {
+          const response = await fetch(
+            `https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`
+          );
+          const data = await response.json();
+          setWards(data.wards || []);
+
+          // Sau khi có danh sách phường, tìm và set lại mã phường
+          const wardCode = data.wards
+            .find((w: Ward) => w.name === relativeInfo.ward)
+            ?.code.toString();
+
+          if (wardCode) {
+            setFormData((prev) => ({
+              ...prev,
+              ward: wardCode,
+            }));
+          }
+        } catch (error) {
+          console.error("Error fetching wards:", error);
+        }
       }
-    }
-  }, [wards, relativeInfo?.ward]);
+    };
+
+    loadWardData();
+  }, [selectedDistrict, relativeInfo?.ward]);
 
   // Fetch relative info from the API
   useEffect(() => {
@@ -148,6 +155,19 @@ const ProfileContent = () => {
       });
     }
   }, [relativeInfo]);
+
+  useEffect(() => {
+    if (relativeInfo && districts.length > 0) {
+      const districtCode = findDistrictByName(districts, relativeInfo.district);
+      if (districtCode) {
+        setFormData((prev) => ({
+          ...prev,
+          district: districtCode,
+        }));
+        setSelectedDistrict(districtCode);
+      }
+    }
+  }, [relativeInfo, districts]);
 
   // Handle gender change
   const handleGenderChange = (value: string) => {
@@ -184,8 +204,15 @@ const ProfileContent = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Tạo URL từ file được chọn
       const imageUrl = URL.createObjectURL(file);
+      
+      // Cập nhật avatar và formData với URL mới
       setAvatar(imageUrl);
+      setFormData((prev) => ({
+        ...prev,
+        avatar: imageUrl, // Lưu URL dạng string
+      }));
     }
   };
 
@@ -229,11 +256,10 @@ const ProfileContent = () => {
         district: selectedDistrictName || "",
         ward: selectedWardName || "",
         city: formData.city,
-        avatar: formData.avatar
-            });
-  
+        avatar: formData.avatar,
+      });
 
-      // Update local state
+      // Cập nhật local state với cả mã code và tên
       setRelativeInfo((prev) =>
         prev
           ? {
@@ -250,6 +276,17 @@ const ProfileContent = () => {
             }
           : null
       );
+
+      // Giữ nguyên giá trị của formData sau khi submit
+      setFormData((prev) => ({
+        ...prev,
+        district: formData.district,
+        ward: formData.ward,
+      }));
+
+      setSelectedDistrict(formData.district);
+      router.push("/relatives/booking");
+
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {
@@ -306,7 +343,6 @@ const ProfileContent = () => {
                     className="w-full p-4 border rounded-lg text-xl"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    defaultValue={relativeInfo["full-name"]}
                   />
                 </div>
                 <div>
@@ -314,11 +350,11 @@ const ProfileContent = () => {
                     Ngày tháng năm sinh
                   </label>
                   <input
-                    type="text"
+                    type="date"
+                    name="dob"                    
                     className="w-full p-4 border rounded-lg text-xl"
                     value={formData.dob}
                     onChange={handleInputChange}
-                    defaultValue={relativeInfo.dob}
                   />
                 </div>
                 <div>
@@ -327,10 +363,10 @@ const ProfileContent = () => {
                   </label>
                   <input
                     type="email"
+                    name="email"
                     className="w-full p-4 border rounded-lg text-xl"
                     value={formData.email}
                     onChange={handleInputChange}
-                    defaultValue={relativeInfo.email}
                   />
                 </div>
                 <div>
@@ -339,10 +375,10 @@ const ProfileContent = () => {
                   </label>
                   <input
                     type="tel"
+                    name="phoneNumber"
                     className="w-full p-4 border rounded-lg text-xl"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    defaultValue={relativeInfo["phone-number"]}
                   />
                 </div>
 
@@ -381,10 +417,10 @@ const ProfileContent = () => {
                   </label>
                   <input
                     type="text"
+                    name="address"
                     className="w-full p-4 border rounded-lg text-xl"
                     value={formData.address}
                     onChange={handleInputChange}
-                    defaultValue={relativeInfo.address}
                   />
                 </div>
 
@@ -455,8 +491,8 @@ const ProfileContent = () => {
                   <input
                     type="text"
                     className="w-full p-4 border rounded-lg text-xl"
-                    defaultValue={relativeInfo.city}
                     disabled
+                    defaultValue={relativeInfo.city}
                   />
                 </div>
               </div>

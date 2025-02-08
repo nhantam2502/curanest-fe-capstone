@@ -10,7 +10,7 @@ const LoginPage = () => {
 
   const getRoleTitle = () => {
     return role === "business" 
-      ? "Đăng nhập dành cho chuyên gia"
+      ? "Đăng nhập dành cho quản trị viên"
       : "Đăng nhập dành cho khách hàng";
   };
 

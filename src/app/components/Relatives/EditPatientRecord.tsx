@@ -293,7 +293,7 @@ export default function EditPatientRecord({
       };
 
       const response = await patientApiRequest.updatePatientRecord(updatedData);
-      console.log("Updated patient record:", response);
+      // console.log("Updated patient record:", response);
       router.push("/relatives/booking");
     } catch (error) {
       console.error("Error updating patient record:", error);

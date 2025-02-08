@@ -87,7 +87,7 @@ const InfoRelatives = () => {
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row gap-12">
           <div className="flex flex-col items-center gap-6">
-            <Avatar className="w-40 h-60">
+            <Avatar className="w-60 h-60">
               <AvatarImage src={userData.data.avatar} />
               <AvatarFallback className="text-3xl">
                 {userData.data["full-name"]?.[0]?.toUpperCase() || "?"}
