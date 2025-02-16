@@ -32,7 +32,7 @@ const InfoRelatives = () => {
 
       return `${day}/${month}/${year}`;
     } else {
-      throw new Error("Invalid date format");
+      return dob;
     }
   };
 

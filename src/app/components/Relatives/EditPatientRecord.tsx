@@ -34,14 +34,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { format, parse, set } from "date-fns";
+import { format, set } from "date-fns";
 import { useParams, useRouter } from "next/navigation";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import {
-  CreatePatientSchema,
   UpdatePatientRecord,
+  UpdatePatientSchema,
 } from "@/schemaValidation/relatives.schema";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 export interface District {
@@ -72,7 +72,7 @@ export default function EditPatientRecord({
     handleSubmit,
     formState: { errors },
   } = useForm<UpdatePatientRecord>({
-    resolver: zodResolver(CreatePatientSchema),
+    resolver: zodResolver(UpdatePatientSchema),
     defaultValues: {
       id: profile?.id || "",
       "full-name": profile?.["full-name"] || "",
