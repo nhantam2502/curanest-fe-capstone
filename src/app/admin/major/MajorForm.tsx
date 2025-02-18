@@ -6,16 +6,11 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-
-export interface MajorData {
-  id: number;
-  name: string;
-  description: string;
-}
+import { Major } from "@/types/major";
 
 interface MajorFormProps {
-  major: MajorData | null;
-  onSave: (major: MajorData) => void;
+  major: Major | null;
+  onSave: (major: Major) => void;
   onCancel: () => void;
 }
 
@@ -26,7 +21,6 @@ const MajorForm: React.FC<MajorFormProps> = ({ major, onSave, onCancel }) => {
   useEffect(() => {
     if (major) {
       setName(major.name);
-      setDescription(major.description);
     } else {
       setName("");
       setDescription("");
@@ -34,10 +28,9 @@ const MajorForm: React.FC<MajorFormProps> = ({ major, onSave, onCancel }) => {
   }, [major]);
 
   const handleSave = () => {
-    const newMajor: MajorData = {
+    const newMajor: Major = {
       id: major ? major.id : Date.now(), 
       name,
-      description,
     };
     onSave(newMajor);
   };

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,26 +9,34 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import MajorForm, { MajorData } from "./MajorForm";
+import MajorForm from "./MajorForm";
 import MajorTable from "./MajorTable";
-
-const initialMajors: MajorData[] = [
-  { id: 1, name: "Computer Science", description: "Study of computers and computational systems." },
-  { id: 2, name: "Business Administration", description: "Study of business principles and practices." },
-  { id: 3, name: "Psychology", description: "Study of mind and behavior." },
-];
+import majorApiRequest from "@/apiRequest/major/apiMajor";
+import { Major } from "@/types/major";
 
 export default function MajorPage() {
-  const [majors, setMajors] = useState<MajorData[]>(initialMajors);
+  const [majors, setMajors] = useState<Major[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [editingMajor, setEditingMajor] = useState<MajorData | null>(null);
+  const [editingMajor, setEditingMajor] = useState<Major | null>(null);
 
-  const handleAddMajor = (newMajor: MajorData) => {
+  useEffect(() => {
+    const fetchMajor = async () => {
+      try {
+        const response = await majorApiRequest.getMajor();
+        setMajors(response.payload.data || []);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchMajor();
+  }, []);
+
+  const handleAddMajor = (newMajor: Major) => {
     setMajors([...majors, { ...newMajor, id: Date.now() }]);
     setShowForm(false);
   };
 
-  const handleUpdateMajor = (updatedMajor: MajorData) => {
+  const handleUpdateMajor = (updatedMajor: Major) => {
     setMajors(
       majors.map((major) =>
         major.id === updatedMajor.id ? updatedMajor : major
@@ -37,7 +45,7 @@ export default function MajorPage() {
     setShowForm(false);
   };
 
-  const handleEditMajor = (major: MajorData) => {
+  const handleEditMajor = (major: Major) => {
     setEditingMajor(major);
     setShowForm(true);
   };

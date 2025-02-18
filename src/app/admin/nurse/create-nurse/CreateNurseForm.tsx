@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Check } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -9,319 +8,549 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-export interface NurseForStaff {
-  id: number;
+import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
+import { Major } from "@/types/major";
+import majorApiRequest from "@/apiRequest/major/apiMajor";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+interface Geo {
+  code: number | string;
   name: string;
-  status: string;
-  major: string;
-  dob: string;
-  citizen_id: string;
-  address: string;
-  ward: string;
-  district: string;
-  city: string;
-  gender: string;
-  slogan: string;
 }
 
-interface Province {
-  code: string;
-  name: string;
-}
-
-interface District {
-  code: string;
-  name: string;
-  province_code: string;
-}
-
-interface Ward {
-  code: string;
-  name: string;
-  district_code: string;
-}
+const formSchema = z.object({
+  "full-name": z.string().min(1, { message: "Tên đầy đủ là bắt buộc" }),
+  "major-id": z.string().min(1, { message: "Chuyên môn là bắt buộc" }),
+  dob: z.string().min(1, { message: "Ngày sinh là bắt buộc" }),
+  "citizen-id": z.string().min(1, { message: "CCCD là bắt buộc" }),
+  "phone-number": z.string().min(1, { message: "Số điện thoại là bắt buộc" }),
+  email: z
+    .string()
+    .min(1, { message: "Email là bắt buộc" })
+    .email({ message: "Email không hợp lệ" }),
+  password: z.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
+  address: z.string().min(1, { message: "Địa chỉ là bắt buộc" }),
+  city: z.string().min(1, { message: "Tỉnh/Thành phố là bắt buộc" }),
+  district: z.string().min(1, { message: "Quận/Huyện là bắt buộc" }),
+  ward: z.string().min(1, { message: "Phường/Xã là bắt buộc" }),
+  slogan: z.string().default(""),
+  gender: z.boolean().default(true),
+  "google-drive-url": z.string().default(""),
+  certificate: z.string().default(""),
+  "current-work-place": z.string().default(""),
+  experience: z.string().default(""),
+  "education-level": z.string().default(""),
+  "nurse-picture": z.string().default(""),
+});
 
 const NurseForm: React.FC = () => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [selectedCity, setSelectedCity] = useState("79"); // Default city to Ho Chi Minh City (code: 79)
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
-  const [nurseData, setNurseData] = useState<NurseForStaff>({
-    id: 0,
-    name: "",
-    status: "",
-    major: "",
-    dob: "",
-    citizen_id: "",
-    address: "",
-    ward: "",
-    district: "",
-    city: "",
-    gender: "",
-    slogan: "",
+  const { toast } = useToast();
+  const [majors, setMajors] = useState<Major[]>([]);
+  const [districts, setDistricts] = useState<Geo[]>([]);
+  const [wards, setWards] = useState<Geo[]>([]);
+  const cityCode = "79";
+  const [selectedDistrictCode, setSelectedDistrictCode] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [submissionSuccess, setSubmissionSuccess] = useState<boolean>(false);
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      "full-name": "",
+      "major-id": "",
+      dob: "",
+      "citizen-id": "",
+      "phone-number": "",
+      email: "",
+      password: "",
+      address: "",
+      city: "TP. Hồ Chí Minh",
+      district: "",
+      ward: "",
+      slogan: "",
+      gender: true,
+      "google-drive-url": "",
+      certificate: "",
+      "current-work-place": "",
+      experience: "",
+      "education-level": "",
+      "nurse-picture": "",
+    },
+    mode: "onSubmit",
   });
 
   useEffect(() => {
-    fetch("https://provinces.open-api.vn/api/")
-      .then((response) => response.json())
-      .then((data) => setProvinces(data))
-      .catch((error) => console.error("Error fetching provinces:", error));
+    const fetchMajor = async () => {
+      try {
+        const response = await majorApiRequest.getMajor();
+        if (response.status === 200 && response.payload) {
+          setMajors(response.payload.data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching majors:", error);
+      }
+    };
+    fetchMajor();
   }, []);
 
-  // Fetch districts when selectedCity changes
   useEffect(() => {
-    if (selectedCity) {
-      fetch(`https://provinces.open-api.vn/api/p/${selectedCity}?depth=2`)
-        .then((response) => response.json())
-        .then((data) => setDistricts(data.districts))
-        .catch((error) => console.error("Error fetching districts:", error));
-    }
-  }, [selectedCity]);
+    const fetchDistricts = async () => {
+      try {
+        const response = await fetch(
+          `https://provinces.open-api.vn/api/p/${cityCode}?depth=2`
+        );
+        const data = await response.json();
+        setDistricts(data.districts);
+      } catch (error) {
+        console.error("Error fetching districts:", error);
+      }
+    };
+    fetchDistricts();
+  }, []);
 
-  // Fetch wards when selectedDistrict changes
   useEffect(() => {
-    if (selectedDistrict) {
-      fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`)
-        .then((response) => response.json())
-        .then((data) => setWards(data.wards))
-        .catch((error) => console.error("Error fetching wards:", error));
-    }
-  }, [selectedDistrict]);
+    const fetchWards = async () => {
+      if (selectedDistrictCode) {
+        try {
+          const response = await fetch(
+            `https://provinces.open-api.vn/api/d/${selectedDistrictCode}?depth=2`
+          );
+          const data = await response.json();
+          setWards(data.wards);
+          console.log("Fetched wards:", data.wards);
+        } catch (error) {
+          console.error("Error fetching wards:", error);
+        }
+      } else {
+        setWards([]); // clear wards if no district is selected
+      }
+    };
+    fetchWards();
+  }, [selectedDistrictCode]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setNurseData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const steps = [
-    { id: 1, title: "Thông tin cơ bản" },
-    { id: 2, title: "Thông tin chi tiết" },
-    { id: 3, title: "Thông tin khác" },
-  ];
-
-  const handleNextStep = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleCityChange = (value: string) => {
-    setSelectedCity(value);
-    setSelectedDistrict("");
-    setSelectedWard("");
-  };
-
-  const handleDistrictChange = (value: string) => {
-    setSelectedDistrict(value);
-    setSelectedWard("");
-  };
-
-  const handleWardChange = (value: string) => {
-    setSelectedWard(value);
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <input
-              type="text"
-              name="name"
-              value={nurseData.name}
-              onChange={handleInputChange}
-              placeholder="Tên"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="text"
-              name="major"
-              value={nurseData.major}
-              onChange={handleInputChange}
-              placeholder="Chuyên môn"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="date"
-              name="dob"
-              value={nurseData.dob}
-              onChange={handleInputChange}
-              placeholder="Ngày sinh"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
+  const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    setSubmissionSuccess(false);
+    try {
+      const response = await nurseApiRequest.createNurse(data);
+      if (response.status === 201) {
+        setSubmissionSuccess(true);
+        form.reset();
+        setSelectedDistrictCode("");
+      } else {
+        setSubmissionError(
+          response.payload?.data.error?.reason_field 
         );
-      case 2:
-        return (
-          <div className="space-y-4">
-            <input
-              type="text"
-              name="citizen_id"
-              value={nurseData.citizen_id}
-              onChange={handleInputChange}
-              placeholder="CCCD"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="text"
-              name="address"
-              value={nurseData.address}
-              onChange={handleInputChange}
-              placeholder="Địa chỉ"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-              <Select
-                onValueChange={handleCityChange}
-                value={selectedCity}
-                disabled
-              >
-                <SelectTrigger>
-                  <SelectValue>
-                    {provinces.length > 0
-                      ? provinces.find((p) => p.code === selectedCity)?.name ||
-                        "TP. Hồ Chí Minh"
-                      : "Loading..."}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {provinces.map((province) => (
-                    <SelectItem key={province.code} value={province.code}>
-                      {province.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                onValueChange={handleDistrictChange}
-                value={selectedDistrict}
-                disabled={!selectedCity}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn quận" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {districts.map((district) => (
-                    <SelectItem key={district.code} value={district.code}>
-                      {district.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                onValueChange={handleWardChange}
-                value={selectedWard}
-                disabled={!selectedDistrict}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn phường" />
-                </SelectTrigger>
-                <SelectContent className="bg-white">
-                  {wards.map((ward) => (
-                    <SelectItem key={ward.code} value={ward.code}>
-                      {ward.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="space-y-4">
-            <input
-              type="text"
-              name="gender"
-              value={nurseData.gender}
-              onChange={handleInputChange}
-              placeholder="Giới tính"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <input
-              type="text"
-              name="slogan"
-              value={nurseData.slogan}
-              onChange={handleInputChange}
-              placeholder="Slogan"
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-        );
-      default:
-        return null;
+      }
+    } catch (error) {
+      setSubmissionError("Có lỗi xảy ra khi tạo điều dưỡng.");
+      console.error("Error creating nurse:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (submissionError) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: submissionError,
+      })
+    }
+  }, [submissionError]);
+
+  useEffect(() => {
+    if (submissionSuccess) {
+      toast({
+        title: "Success!",
+        description: "Đã tạo điều dưỡng thành công.",
+      });
+    }
+  }, []);
 
   return (
     <>
-      <h1 className="text-2xl font-semibold text-gray-800">Thêm điều dưỡng</h1>
-      <section className="max-w-6xl mx-auto p-6">
-        <div className="flex items-center space-x-6">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.id}>
-              <div className="flex flex-col items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
-                    currentStep >= step.id
-                      ? "border-primary bg-primary text-white"
-                      : "border-gray-300"
-                  }`}
-                >
-                  {currentStep > step.id ? (
-                    <Check className="w-5 h-5" />
-                  ) : (
-                    <span className="text-lg">{step.id}</span>
-                  )}
-                </div>
-                <span
-                  className={`mt-2 text-sm ${
-                    currentStep >= step.id ? "text-primary" : "text-gray-500"
-                  }`}
-                >
-                  {step.title}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-1 ${
-                    currentStep > index + 1 ? "bg-primary" : "bg-gray-300"
-                  }`}
-                />
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="text-2xl font-semibold">Tạo điều dưỡng</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Full Name */}
+            <FormField
+              control={form.control}
+              name="full-name"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Tên đầy đủ</Label>
+                  <FormControl>
+                    <Input size={20} placeholder="Tên đầy đủ" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </React.Fragment>
-          ))}
-        </div>
+            />
 
-        {renderStepContent()}
+            {/* Major */}
+            <FormField
+              control={form.control}
+              name="major-id"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Chuyên môn</Label>
+                  <FormControl>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn chuyên môn" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white">
+                        {majors.map((major) => (
+                          <SelectItem
+                            key={major.id}
+                            value={major.id.toString()}
+                          >
+                            {major.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <div className="flex justify-between mt-6">
-          <button
-            onClick={handlePrevStep}
-            disabled={currentStep === 1}
-            className="bg-gray-300 text-white px-6 py-2 rounded-md disabled:bg-gray-500"
-          >
-            Previous
-          </button>
-          <button
-            onClick={handleNextStep}
-            disabled={currentStep === steps.length}
-            className="bg-primary text-white px-6 py-2 rounded-md disabled:bg-gray-500"
-          >
-            Next
-          </button>
-        </div>
-      </section>
+            {/* Date of Birth */}
+            <FormField
+              control={form.control}
+              name="dob"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Ngày sinh</Label>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Gender */}
+            <FormField
+              control={form.control}
+              name="gender"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Giới tính</Label>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "true")}
+                    value={field.value ? "true" : "false"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Giới tính" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-white">
+                      <SelectItem value="true">Nam</SelectItem>
+                      <SelectItem value="false">Nữ</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Citizen ID */}
+            <FormField
+              control={form.control}
+              name="citizen-id"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>CCCD</Label>
+                  <FormControl>
+                    <Input placeholder="CCCD" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Phone Number */}
+            <FormField
+              control={form.control}
+              name="phone-number"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Số điện thoại</Label>
+                  <FormControl>
+                    <Input placeholder="Số điện thoại" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Email</Label>
+                  <FormControl>
+                    <Input type="email" placeholder="Email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Mật khẩu</Label>
+                  <FormControl>
+                    <Input type="password" placeholder="Mật khẩu" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Address */}
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Địa chỉ</Label>
+                  <FormControl>
+                    <Input placeholder="Địa chỉ" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* City */}
+            <FormField
+              control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Tỉnh/Thành phố</Label>
+                  <FormControl>
+                    <Input placeholder="TP. Hồ Chí Minh" {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* District */}
+            <FormField
+              control={form.control}
+              name="district"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Quận/Huyện</Label>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => {
+                        // value is the district name
+                        field.onChange(value);
+                        // Find the district in our list so we can extract its code for fetching wards
+                        const selected = districts.find(
+                          (d) => d.name === value
+                        );
+                        setSelectedDistrictCode(
+                          selected ? selected.code.toString() : ""
+                        );
+                        // Clear ward value when district changes
+                        form.setValue("ward", "");
+                      }}
+                      value={field.value}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn Quận/Huyện" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {districts.map((district) => (
+                          <SelectItem key={district.code} value={district.name}>
+                            {district.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Ward */}
+            <FormField
+              control={form.control}
+              name="ward"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Phường/Xã</Label>
+                  <FormControl>
+                    <Select
+                      onValueChange={(value) => field.onChange(value)}
+                      value={field.value}
+                      disabled={!selectedDistrictCode}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn Phường/Xã" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {wards.map((ward) => (
+                          <SelectItem key={ward.code} value={ward.name}>
+                            {ward.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Current Work Place */}
+            <FormField
+              control={form.control}
+              name="current-work-place"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Nơi làm việc hiện tại</Label>
+                  <FormControl>
+                    <Input placeholder="Nơi làm việc hiện tại" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Experience */}
+            <FormField
+              control={form.control}
+              name="experience"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Kinh nghiệm</Label>
+                  <FormControl>
+                    <Input placeholder="Kinh nghiệm" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Education Level */}
+            <FormField
+              control={form.control}
+              name="education-level"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Trình độ học vấn</Label>
+                  <FormControl>
+                    <Input placeholder="Trình độ học vấn" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Certificate */}
+            <FormField
+              control={form.control}
+              name="certificate"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Chứng chỉ</Label>
+                  <FormControl>
+                    <Input placeholder="Chứng chỉ" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Slogan */}
+            <FormField
+              control={form.control}
+              name="slogan"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Slogan</Label>
+                  <FormControl>
+                    <Input placeholder="Slogan" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Google Drive URL */}
+            <FormField
+              control={form.control}
+              name="google-drive-url"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Google Drive URL</Label>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Nurse Picture URL */}
+            <FormField
+              control={form.control}
+              name="nurse-picture"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Hình ảnh điều dưỡng</Label>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Đang tạo..." : "Tạo điều dưỡng"}
+          </Button>
+        </form>
+      </Form>
     </>
   );
 };

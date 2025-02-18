@@ -8,6 +8,7 @@ import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
 function Page() {
   const [, setUsers] = useState<RelativesFilter[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<RelativesFilter[]>([]);
+  
   useEffect(() => {
     const fetchUsers = async () => {
       try {

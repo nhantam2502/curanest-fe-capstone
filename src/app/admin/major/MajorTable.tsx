@@ -7,16 +7,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { MajorData } from "./MajorForm";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { XCircle } from "lucide-react";
+import { Major } from "@/types/major";
 
 interface MajorTableProps {
-  majors: MajorData[];
-  onEdit: (major: MajorData) => void;
-  onDelete: (majorId: number) => void;
+  majors: Major[];
+  onEdit: (major: Major) => void;
+  onDelete: (id: number) => void;
 }
 
 export default function MajorTable({
