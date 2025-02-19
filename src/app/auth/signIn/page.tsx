@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { RegisterForm } from "@/components/register-form";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const LoginPage = () => {
   const searchParams = useSearchParams();
@@ -40,9 +41,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="w-full min-h-screen flex flex-col lg:flex-row items-center justify-center overflow-y-auto">
+    <div className="w-full h-screen flex flex-col lg:flex-row items-center justify-center overflow-hidden">
       <motion.div
-        className="relative w-full lg:w-1/2 h-[300px] lg:h-screen flex flex-col"
+        className="relative w-full lg:w-1/2 h-[300px] lg:h-full flex flex-col"
         initial={{ x: "-100%" }}
         animate={{ x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -64,62 +65,66 @@ const LoginPage = () => {
       </motion.div>
 
       <motion.div
-        className="relative w-full lg:w-2/4 min-h-[70vh] lg:min-h-screen flex flex-col p-8 sm:p-16 lg:p-24 justify-center items-center"
+        className="relative w-full lg:w-2/4 h-full flex flex-col"
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="w-full flex flex-col max-w-2xl p-6 sm:p-10">
-          <motion.div
-            className="w-full flex flex-col mb-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-              {getRoleTitle()}
-            </h1>
-            <p className="text-base sm:text-xl mb-6">
-              {isLogin
-                ? "Chào mừng bạn quay trở lại"
-                : "Tạo tài khoản mới để tiếp tục"}
-            </p>
-          </motion.div>
+        <ScrollArea className="w-full h-[calc(100vh-300px)] lg:h-screen">
+          <div className="w-full flex flex-col items-center p-8 sm:p-16 lg:p-24">
+            <div className="w-full flex flex-col max-w-2xl p-6 sm:p-10">
+              <motion.div
+                className="w-full flex flex-col mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <h1 className="text-4xl sm:text-5xl font-bold mb-4">
+                  {getRoleTitle()}
+                </h1>
+                <p className="text-base sm:text-xl mb-6">
+                  {isLogin
+                    ? "Chào mừng bạn quay trở lại"
+                    : "Tạo tài khoản mới để tiếp tục"}
+                </p>
+              </motion.div>
 
-          <motion.div
-            key={isLogin ? "login" : "register"}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {isLogin ? (
-              role === "business" ? (
-                <AdminLoginForm />
-              ) : (
-                <LoginForm />
-              )
-            ) : (
-              <RegisterForm />
-            )}
-          </motion.div>
+              <motion.div
+                key={isLogin ? "login" : "register"}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {isLogin ? (
+                  role === "business" ? (
+                    <AdminLoginForm />
+                  ) : (
+                    <LoginForm />
+                  )
+                ) : (
+                  <RegisterForm />
+                )}
+              </motion.div>
 
-          <motion.div
-            className="w-full flex justify-center mt-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-          >
-            <button
-              onClick={toggleForm}
-              className="text-lg font-medium whitespace-nowrap cursor-pointer hover:underline"
-            >
-              {isLogin
-                ? "Chưa có tài khoản? Đăng ký ngay"
-                : "Đã có tài khoản? Đăng nhập"}
-            </button>
-          </motion.div>
-        </div>
+              <motion.div
+                className="w-full flex justify-center mt-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                <button
+                  onClick={toggleForm}
+                  className="text-lg font-medium whitespace-nowrap cursor-pointer hover:underline"
+                >
+                  {isLogin
+                    ? "Chưa có tài khoản? Đăng ký ngay"
+                    : "Đã có tài khoản? Đăng nhập"}
+                </button>
+              </motion.div>
+            </div>
+          </div>
+        </ScrollArea>
       </motion.div>
     </div>
   );

@@ -17,7 +17,6 @@ import { useRouter } from "next/navigation";
 const ProfileContent = () => {
   const router = useRouter();
   const [relativeInfo, setRelativeInfo] = useState<infoRelatives | null>(null);
-  const [avatar, setAvatar] = useState("");
   const [gender, setGender] = useState<string>(""); // State for gender
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
@@ -128,7 +127,6 @@ const ProfileContent = () => {
       try {
         const response = await patientApiRequest.getInfoRelatives();
         setRelativeInfo(response.payload.data);
-        setAvatar(response.payload.data.avatar || "default-avatar-url");
         setGender(response.payload.data.gender || "");
       } catch (error) {
         console.error("Error fetching relative info:", error);
@@ -195,26 +193,6 @@ const ProfileContent = () => {
     }));
   };
 
-  // Handle the avatar click event to trigger file input
-  const handleAvatarClick = () => {
-    document.getElementById("avatar-upload")?.click();
-  };
-
-  // Handle file selection and update avatar
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Tạo URL từ file được chọn
-      const imageUrl = URL.createObjectURL(file);
-      
-      // Cập nhật avatar và formData với URL mới
-      setAvatar(imageUrl);
-      setFormData((prev) => ({
-        ...prev,
-        avatar: imageUrl, // Lưu URL dạng string
-      }));
-    }
-  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -301,32 +279,7 @@ const ProfileContent = () => {
   return (
     <div className="p-12">
       <h2 className="text-4xl font-semibold mb-12">Thông tin người dùng</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="flex gap-12">
-          {/* Avatar section */}
-          <div className="w-80 flex flex-col items-center space-y-6">
-            <div className="relative group">
-              <img
-                src={avatar}
-                alt="Profile"
-                className="w-64 h-64 rounded-full object-cover border-6 border-violet-100 cursor-pointer"
-              />
-              <div
-                className="absolute bottom-4 right-4 p-2 bg-yellowColor rounded-full cursor-pointer transition-colors group-hover:scale-110"
-                onClick={handleAvatarClick}
-              >
-                <Pencil className="w-6 h-6 text-white" />
-              </div>
-              <input
-                type="file"
-                id="avatar-upload"
-                className="hidden"
-                accept="image/*"
-                onChange={handleFileChange}
-              />
-            </div>
-          </div>
-
+      <form onSubmit={handleSubmit}>          
           {/* Form section */}
           <div className="flex-1 space-y-8">
             {/* Personal Information */}
@@ -506,7 +459,6 @@ const ProfileContent = () => {
               {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
             </button>
           </div>
-        </div>
       </form>
     </div>
   );

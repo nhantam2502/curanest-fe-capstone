@@ -27,7 +27,7 @@ export const RegisterSchema = z
     email: z.string().email({
       message: "Vui lòng nhập đúng định dạng email",
     }),
-    "phone-number": z.string() .regex(/^[0-9]{10}$/, {
+    "phone-number": z.string().regex(/^[0-9]{10}$/, {
       message: "Vui lòng nhập số điện thoại hợp lệ (10 số).",
     }),
     password: z.string().min(6, {
@@ -49,23 +49,6 @@ export const RegisterBody = z.object({
   "full-name": z.string(),
   "phone-number": z.string(),
 });
-
-// export const RegisterRes = z.object({
-//   data: z.object({
-//     id: z.string(),
-//     address: z.string(),
-//     city: z.string(),
-//     district: z.string(),
-//     dob: z.string(),
-//     email: z.string(),
-//     "full-name": z.string(),
-//     password: z.string(),
-//     "phone-number": z.string(),
-//     ward: z.string(),
-//   }),
-//   message: z.string(),
-//   status: z.number(),
-// });
 
 export const LoginRes = z.object({
   data: z.object({

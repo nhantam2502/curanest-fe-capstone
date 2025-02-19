@@ -30,7 +30,7 @@ const NewsList = () => {
               </h2>
 
               <h2 className="text-gray-400 text-2xl mb-8">
-                Search for News and Articles
+                Cập nhật những tin tức liên quan đến sức khoe và y tế mới nhất
               </h2>
 
               <div className="flex w-full mt-6 max-w-xl items-center space-x-4">
@@ -43,7 +43,7 @@ const NewsList = () => {
                   className="bg-[#71DDD7] py-3 px-8 text-white text-lg font-semibold h-14 flex items-center justify-center rounded-[50px] hover:bg-[#71DDD7]"
                   type="submit"
                 >
-                  <Search className="h-5 w-5 mr-3" /> Tìm kiếm
+                  <Search /> Tìm kiếm
                 </Button>
               </div>
             </div>
