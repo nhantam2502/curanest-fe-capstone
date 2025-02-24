@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -29,9 +29,6 @@ const ServicesPage = () => {
         "Phục hồi chức năng",
         "Dinh dưỡng",
         "Đo sinh hiệu",
-        "Đo sinh hiệu",
-        "Đo sinh hiệu",
-        "Đo sinh hiệu"
       ],
     },
     {
@@ -62,20 +59,20 @@ const ServicesPage = () => {
   ];
 
   const handleServiceClick = (category: string, service: string) => {
-    // Encode the parameters to handle special characters
-    const encodedCategory = encodeURIComponent(category);
-    const encodedService = encodeURIComponent(service);
-    
-    // Navigate to nurse list with query parameters
-    router.push(`/nurseList?category=${encodedCategory}&service=${encodedService}`);
+    router.push(`/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}`);
   };
 
-  const filteredCategories = categories.filter(category => {
-    const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      category.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = !selectedCategory || category.name === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredCategories = useMemo(() => {
+    return categories.filter(category => {
+      const matchesSearch =
+        category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.services.some(service =>
+          service.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      const matchesCategory = !selectedCategory || category.name === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchTerm, selectedCategory, categories]);
 
   return (
     <section className="hero_section">

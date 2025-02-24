@@ -79,7 +79,6 @@ const Hero = () => {
               Cung cấp dịch vụ y tế tại nhà tốt nhất
             </h2>
             <p className="text_para text-center">
-              {" "}
               Chăm sóc chất lượng cao ngay tại nhà. Hệ thống chăm sóc sức khỏe
               của chúng tôi cung cấp dịch vụ điều dưỡng chuyên nghiệp, tận tâm
               và phù hợp với nhu cầu của bạn.

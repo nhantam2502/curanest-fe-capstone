@@ -48,7 +48,7 @@ const TimeTableNurse = ({ id }: TimetableProps) => {
   }
 
   const availability: Availability = {
-    "28/12/2024": {
+    "24/02/2025": {
       Sáng: "available",
       Chiều: "booked",
       Tối: "unavailable",

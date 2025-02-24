@@ -9,45 +9,80 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import NursingCard from "@/app/components/Nursing/NursingCard";
 import nursing from "@/dummy_data/dummy_nurse.json";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 
 const NurseList = () => {
+  const params = useParams();
+const serviceIdRaw = params.serviceId;
+const serviceId = typeof serviceIdRaw === "string" ? serviceIdRaw : serviceIdRaw ? serviceIdRaw[0] : "";
+const [searchTerm, setSearchTerm] = useState(
+  serviceId ? decodeURIComponent(serviceId) : ""
+);
+console.log("serviceId:", serviceId);
+console.log("searchTerm:", searchTerm);
+
+  // Lấy thêm các query parameter khác nếu có
   const searchParams = useSearchParams();
-  const category = searchParams.get('category');
-  const service = searchParams.get('service');
-  const [searchTerm, setSearchTerm] = useState(service || "");
-  const [selectedSpecialization, setSelectedSpecialization] = useState(category || "");
+  const category = searchParams.get("category") || "";
+  const [selectedSpecialization, setSelectedSpecialization] = useState(category);
   const [minRating, setMinRating] = useState(0);
   const [address, setAddress] = useState("");
   const [district, setDistrict] = useState("");
   const [ward, setWard] = useState("");
 
-  
   const specializations = Array.from(
     new Set(nursing.map((nurse) => nurse.specialization))
   );
 
   const filteredNurses = useMemo(() => {
     return nursing.filter((nurse) => {
-      const matchesSearch =
-        nurse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        nurse.hospital.toLowerCase().includes(searchTerm.toLowerCase());
+      // Bỏ điều kiện matchesSearch tạm thời
       const matchesSpecialization =
         !selectedSpecialization ||
-        nurse.specialization === selectedSpecialization;
+        nurse.specialization === selectedSpecialization ||
+        Object.keys(nurse.services).includes(searchTerm);
       const matchesRating = nurse.avgRating >= minRating;
-
-      return matchesSearch && matchesSpecialization && matchesRating;
+      return matchesSpecialization && matchesRating;
     });
-  }, [searchTerm, selectedSpecialization, minRating, nursing]);
+  }, [searchTerm, selectedSpecialization, minRating]);
+  
 
   return (
-    <section className="hero_section">
+    <div className="hero_section">
+      <Breadcrumb className="px-10 py-10">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/guest/nurseList" className="text-xl">
+              Dịch vụ điều dưỡng
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="text-gray-400" />
+          <BreadcrumbItem>
+            <BreadcrumbLink className="text-xl text-gray-500">
+              Chuyên khoa: {selectedSpecialization || "Tất cả"}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator className="text-gray-400" />
+          <BreadcrumbItem>
+            <BreadcrumbLink className="text-xl text-gray-500">
+              Dịch vụ: {searchTerm || "Tất cả"}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
       <div className="xl:w-[650px] mx-auto">
         <h2 className="heading text-center">
           Đội ngũ điều dưỡng chuyên nghiệp
@@ -89,139 +124,8 @@ const NurseList = () => {
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Specialization Filter */}
-                <AccordionItem value="specialization" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    Chuyên môn
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="flex flex-wrap gap-3">
-                      <Badge
-                        variant="outline"
-                        className={`cursor-pointer text-[18px] px-4 py-2 ${
-                          selectedSpecialization === ""
-                            ? "bg-[#e5ab47] text-white border-[#e5ab47]"
-                            : ""
-                        }`}
-                        onClick={() => setSelectedSpecialization("")}
-                      >
-                        All
-                      </Badge>
-                      {specializations.map((spec) => (
-                        <Badge
-                          key={spec}
-                          variant="outline"
-                          className={`cursor-pointer text-[18px] px-4 py-2 ${
-                            selectedSpecialization === spec
-                              ? "bg-[#e5ab47] text-white border-[#e5ab47]"
-                              : ""
-                          }`}
-                          onClick={() => setSelectedSpecialization(spec)}
-                        >
-                          {spec}
-                        </Badge>
-                      ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* Rating Filter */}
-                <AccordionItem value="rating" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    <div className="flex items-center gap-2">
-                      Xếp hạng đánh giá
-                      <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />
-                    </div>
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="space-y-6">
-                      <Slider
-                        value={[minRating]}
-                        onValueChange={([value]) => setMinRating(value)}
-                        max={5}
-                        step={0.1}
-                        className="w-full"
-                      />
-                      <div className="text-lg text-muted-foreground flex gap-2">
-                        Tối thiểu: {minRating} / 5
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="nearby" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    Xung quanh bạn
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="space-y-4">
-                      {/* Địa chỉ */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Địa chỉ
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập địa chỉ..."
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Quận/Huyện */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Quận/Huyện
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập quận/huyện..."
-                          value={district}
-                          onChange={(e) => setDistrict(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Phường */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Phường
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập phường..."
-                          value={ward}
-                          onChange={(e) => setWard(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Thành phố */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Thành phố
-                        </label>
-                        <Input value={"Hồ Chí Minh"} className="py-4 text-lg" />
-                      </div>
-
-                      {/* Nút Lọc */}
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4 text-lg"
-                        disabled={!address || !district || !ward}
-                      >
-                        Lọc xung quanh
-                      </Button>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
+                {/* Các bộ lọc khác ... */}
               </Accordion>
-
-              {/* Reset Button */}
               <Button
                 variant="outline"
                 className="w-full mt-6 py-6 text-lg"
@@ -249,7 +153,7 @@ const NurseList = () => {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
