@@ -2,13 +2,18 @@
 import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, StarIcon } from "lucide-react";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  ArrowLeft,
+  CheckCircle,
+  Clipboard,
+  FileText,
+  Info,
+  RefreshCw,
+  Search,
+  StarIcon,
+  Stethoscope,
+} from "lucide-react";
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,7 +22,6 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import NursingCard from "@/app/components/Nursing/NursingCard";
 import nursing from "@/dummy_data/dummy_nurse.json";
@@ -25,26 +29,24 @@ import { useParams, useSearchParams } from "next/navigation";
 
 const NurseList = () => {
   const params = useParams();
-const serviceIdRaw = params.serviceId;
-const serviceId = typeof serviceIdRaw === "string" ? serviceIdRaw : serviceIdRaw ? serviceIdRaw[0] : "";
-const [searchTerm, setSearchTerm] = useState(
-  serviceId ? decodeURIComponent(serviceId) : ""
-);
-console.log("serviceId:", serviceId);
-console.log("searchTerm:", searchTerm);
+  const serviceIdRaw = params.serviceId;
+  const serviceId =
+    typeof serviceIdRaw === "string"
+      ? serviceIdRaw
+      : serviceIdRaw
+      ? serviceIdRaw[0]
+      : "";
+  const [searchTerm, setSearchTerm] = useState(
+    serviceId ? decodeURIComponent(serviceId) : ""
+  );
+  console.log("serviceId:", serviceId);
+  console.log("searchTerm:", searchTerm);
 
   // Lấy thêm các query parameter khác nếu có
   const searchParams = useSearchParams();
   const category = searchParams.get("category") || "";
-  const [selectedSpecialization, setSelectedSpecialization] = useState(category);
-  const [minRating, setMinRating] = useState(0);
-  const [address, setAddress] = useState("");
-  const [district, setDistrict] = useState("");
-  const [ward, setWard] = useState("");
-
-  const specializations = Array.from(
-    new Set(nursing.map((nurse) => nurse.specialization))
-  );
+  const [selectedSpecialization, setSelectedSpecialization] =
+    useState(category);
 
   const filteredNurses = useMemo(() => {
     return nursing.filter((nurse) => {
@@ -53,11 +55,9 @@ console.log("searchTerm:", searchTerm);
         !selectedSpecialization ||
         nurse.specialization === selectedSpecialization ||
         Object.keys(nurse.services).includes(searchTerm);
-      const matchesRating = nurse.avgRating >= minRating;
-      return matchesSpecialization && matchesRating;
+      return matchesSpecialization ;
     });
-  }, [searchTerm, selectedSpecialization, minRating]);
-  
+  }, [searchTerm, selectedSpecialization]);
 
   return (
     <div className="hero_section">
@@ -69,17 +69,13 @@ console.log("searchTerm:", searchTerm);
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-gray-400" />
+
           <BreadcrumbItem>
-            <BreadcrumbLink className="text-xl text-gray-500">
-              Chuyên khoa: {selectedSpecialization || "Tất cả"}
+            <BreadcrumbLink href={`/guest/nurseList/${encodeURIComponent(searchTerm)}?category=${encodeURIComponent(category)}`} className="text-xl">
+              Danh sách điều dưỡng thuộc dịch vụ: {searchTerm}
             </BreadcrumbLink>
           </BreadcrumbItem>
-          <BreadcrumbSeparator className="text-gray-400" />
-          <BreadcrumbItem>
-            <BreadcrumbLink className="text-xl text-gray-500">
-              Dịch vụ: {searchTerm || "Tất cả"}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
+         
         </BreadcrumbList>
       </Breadcrumb>
 
@@ -95,51 +91,70 @@ console.log("searchTerm:", searchTerm);
 
       <div className="mx-auto max-w-[1900px] px-8 lg:px-12 py-10">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Filter Sidebar */}
-          <Card className="md:w-1/3 lg:w-1/4 h-fit">
-            <CardHeader className="p-6">
-              <CardTitle className="text-2xl font-bold">
-                Bộ lọc tìm kiếm
+          {/* Selected Info Card - thay thế Filter Sidebar */}
+          <Card className="md:w-1/3 lg:w-1/4 h-fit shadow-lg border-t-4 border-t-irisBlueColor rounded-lg overflow-hidden">
+            <CardHeader className="p-6 bg-gradient-to-r from-irisBlueColor/10 to-transparent">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-irisBlueColor">
+                <FileText className="h-6 w-6" />
+                Thông tin đã chọn
               </CardTitle>
             </CardHeader>
 
             <CardContent className="p-6">
-              <Accordion type="single" collapsible className="w-full space-y-4">
-                {/* Search Filter */}
-                <AccordionItem value="search" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    Tìm kiếm theo tên
-                  </AccordionTrigger>
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="relative">
-                      <Input
-                        type="text"
-                        placeholder="Nhập tên điều dưỡng..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-12 py-6 text-lg"
-                      />
-                      <Search className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
+              {/* Chuyên khoa đã chọn */}
+              <div className="mb-8">
+                <p className="text-xl font-medium mb-4 flex items-center text-gray-800">
+                  <Stethoscope className="h-6 w-6 mr-3 text-irisBlueColor" />
+                  Chuyên khoa
+                </p>
+                {selectedSpecialization ? (
+                  <div className="animate-fadeIn">
+                    <Badge className="px-3 py-1.5 text-[18px] bg-[#e5ab47] hover:bg-[#e5ab47] text-white border-[#e5ab47] gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                      {selectedSpecialization}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-gray-500 italic pl-2 border-l-2 border-gray-300">
+                    <Info className="h-5 w-5 text-gray-400" />
+                    <p>Chưa chọn chuyên khoa</p>
+                  </div>
+                )}
+              </div>
 
-                {/* Các bộ lọc khác ... */}
-              </Accordion>
-              <Button
-                variant="outline"
-                className="w-full mt-6 py-6 text-lg"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedSpecialization("");
-                  setMinRating(0);
-                  setAddress("");
-                  setDistrict("");
-                  setWard("");
-                }}
-              >
-                Đặt lại bộ lọc
-              </Button>
+              {/* Dịch vụ đã chọn */}
+              <div className="mb-6">
+                <p className="text-xl font-medium mb-4 flex items-center text-gray-800">
+                  <Clipboard className="h-6 w-6 mr-3 text-irisBlueColor" />
+                  Dịch vụ
+                </p>
+                {searchTerm ? (
+                  <div className="animate-fadeIn">
+                    <Badge className="px-3 py-1.5 text-[18px] bg-[#e5ab47] hover:bg-[#e5ab47] text-white border-[#e5ab47] gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      {searchTerm}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-gray-500 italic pl-2 border-l-2 border-gray-300">
+                    <Info className="h-5 w-5 text-gray-400" />
+                    <p>Chưa chọn dịch vụ</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Nút Quay lại và Reset */}
+                <Button
+                  variant="outline"
+                  className="w-full mt-6 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
+                  onClick={() => {
+                    window.history.back();
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Quay lại
+                </Button>
+               
             </CardContent>
           </Card>
 
@@ -147,7 +162,7 @@ console.log("searchTerm:", searchTerm);
           <div className="md:w-2/3 lg:w-3/4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {filteredNurses.map((nurse) => (
-                <NursingCard key={nurse.id} nurse={nurse} />
+                <NursingCard key={nurse.id} nurse={nurse} service={searchTerm} />
               ))}
             </div>
           </div>
