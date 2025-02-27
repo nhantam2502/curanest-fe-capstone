@@ -3,7 +3,7 @@ export interface Appointment {
   id: number;
   nurse_name: string;
   avatar: string;
-  status: "completed" | "pending" | "canceled";
+  status: string;
   phone_number: string;
   techniques: string;
   total_fee: number;
@@ -16,9 +16,9 @@ export type ScheduleEvent = {
   title: string;
   startTime: string;
   endTime: string;
-  type: "normal" | "makeup" | "substitute";
+  status: string;
   participants: number;
-  classType: "writing" | "speaking" | "listening";
+  classType: string;
   appointment_date: string;
 };
 

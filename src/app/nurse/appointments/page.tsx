@@ -26,45 +26,45 @@ const NurseScheduleCalendar = () => {
       avatar: "/avatar1.jpg",
       status: "completed",
       phone_number: "0123456789",
-      techniques: "Kỹ thuật 1",
-      total_fee: 1000000,
-      appointment_date: "2025-01-25",
+      techniques: "Chăm sóc bệnh nhân",
+      total_fee: 500000,
+      appointment_date: "2025-01-24",
       time_from_to: "8:00-10:00",
     },
-    // Thêm các appointment khác nếu cần
+    {
+      id: 2,
+      nurse_name: "Trần Thị B",
+      avatar: "/avatar2.jpg",
+      status: "upcoming",
+      phone_number: "0987654321",
+      techniques: "Tiêm thuốc",
+      total_fee: 300000,
+      appointment_date: "2025-01-26",
+      time_from_to: "10:00-10:30",
+    },
   ];
 
   // Dữ liệu mẫu cho schedule events
   const scheduleData: ScheduleEvent[] = [
     {
       id: "1",
-      title: "Viết Nâng Cao - Sáng tạo",
+      title: "Thay băng vết thương",
       startTime: "8:00",
-      endTime: "10:00",
-      type: "normal",
-      participants: 3,
-      classType: "writing",
-      appointment_date: "2025-01-25",
+      endTime: "9:00",
+      status: "completed",
+      participants: 1,
+      classType: "wound-care",
+      appointment_date: "2025-01-24",
     },
     {
       id: "2",
-      title: "Nói Nâng Cao",
-      startTime: "14:00",
-      endTime: "15:00",
-      type: "normal",
-      participants: 3,
-      classType: "speaking",
-      appointment_date: "2025-01-26", // Ngày hẹn khác
-    },
-    {
-      id: "3",
-      title: "Nghe Nâng Cao",
-      startTime: "16:30",
-      endTime: "18:00", // Sửa thời gian kết thúc hợp lý
-      type: "makeup",
-      participants: 3,
-      classType: "listening",
-      appointment_date: "2025-01-27", // Ngày hẹn khác
+      title: "Tiêm thuốc",
+      startTime: "10:00",
+      endTime: "10:30",
+      status: "upcoming",
+      participants: 1,
+      classType: "injection",
+      appointment_date: "2025-01-26",
     },
   ];
 
@@ -74,27 +74,28 @@ const NurseScheduleCalendar = () => {
   };
 
   const getEventColor = (
-    type: ScheduleEvent["type"],
+    type: ScheduleEvent["status"],
     classType: ScheduleEvent["classType"]
   ) => {
     if (type === "substitute") return "bg-red-50 border-red-100";
+    if (type === "completed") return "bg-green-50 border-green-100";
+    if (type === "upcoming") return "bg-yellow-50 border-yellow-100";
     switch (classType) {
-      case "writing":
-        return "bg-orange-50 border-orange-100";
-      case "speaking":
+      case "wound-care":
+        return "bg-green-50 border-green-100";
+      case "injection":
         return "bg-blue-50 border-blue-100";
-      case "listening":
-        return "bg-yellow-50 border-yellow-100";
       default:
         return "bg-gray-50";
     }
   };
 
-  const timeSlots = Array.from({ length: 26 }, (_, i) => {
+  const timeSlots = Array.from({ length: 19 }, (_, i) => {
     const hour = Math.floor(i / 2) + 8;
     const minutes = i % 2 === 0 ? "00" : "30";
     return `${hour}:${minutes}`;
   });
+
 
   const getStartOfWeek = (date: Date): Date => {
     const start = new Date(date);
@@ -104,12 +105,12 @@ const NurseScheduleCalendar = () => {
     return start;
   };
 
-  const getEndOfWeek = (date: Date): Date => {
-    const startOfWeek = getStartOfWeek(date);
-    const end = new Date(startOfWeek);
-    end.setDate(startOfWeek.getDate() + 6);
-    return end;
-  };
+  // const getEndOfWeek = (date: Date): Date => {
+  //   const startOfWeek = getStartOfWeek(date);
+  //   const end = new Date(startOfWeek);
+  //   end.setDate(startOfWeek.getDate() + 6);
+  //   return end;
+  // };
 
   const shouldShowEvent = (
     event: ScheduleEvent,
@@ -134,15 +135,16 @@ const NurseScheduleCalendar = () => {
     return slotTime === startTime;
   };
 
-  const getEventDuration = (event: ScheduleEvent) => {
-    const [startHour, startMinutes] = event.startTime.split(":").map(Number);
-    const [endHour, endMinutes] = event.endTime.split(":").map(Number);
+ const getEventDuration = (event: ScheduleEvent) => {
+    const [startHour, startMinutes] = event.startTime.split(":" ).map(Number);
+    const [endHour, endMinutes] = event.endTime.split(":" ).map(Number);
 
     const startTime = startHour * 60 + startMinutes;
     const endTime = endHour * 60 + endMinutes;
 
-    return (endTime - startTime) / 30;
+    return (endTime - startTime) / 30 ;
   };
+
 
   return (
     <div className="w-full h-full bg-gray-100 p-4">
@@ -288,7 +290,7 @@ const NurseScheduleCalendar = () => {
                               key={event.id}
                               className={cn(
                                 "absolute left-1 right-1 p-2 rounded-lg border transition-colors",
-                                getEventColor(event.type, event.classType)
+                                getEventColor(event.status, event.classType)
                               )}
                               style={{
                                 top: "4px",
