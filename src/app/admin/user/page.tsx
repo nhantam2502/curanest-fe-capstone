@@ -6,7 +6,7 @@ import { RelativesFilter } from "@/types/relatives";
 import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
 
 function Page() {
-  const [, setUsers] = useState<RelativesFilter[]>([]);
+  const [users, setUsers] = useState<RelativesFilter[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<RelativesFilter[]>([]);
   
   useEffect(() => {
@@ -17,7 +17,7 @@ function Page() {
           paging: { page: 1, size: 10, total: 0 },
         });
         setUsers(response.payload.data || []);
-        setFilteredUsers(response.payload || []); // Default state
+        setFilteredUsers(response.payload.data || []); // Default state
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -25,12 +25,19 @@ function Page() {
     fetchUsers();
   }, []);
 
+  const resetUsers = () => {
+    setFilteredUsers(users); 
+  };
+
   return (
     <main className="p-4 bg-white rounded-md">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Thống kê người dùng</h1>
       </div>
-      <UserFilter setFilteredUsers={setFilteredUsers} />
+      <UserFilter 
+        setFilteredUsers={setFilteredUsers} 
+        resetUsers={resetUsers}
+      />
       <UserTable users={filteredUsers} />
     </main>
   );

@@ -68,6 +68,7 @@ export interface CreateNurse {
 export type CreateRes = {
   status: number;
   message: string;
+  error?: string;
 };
 
 export interface NurseService {

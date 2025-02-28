@@ -11,12 +11,11 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useRouter } from "next/navigation";
 import { RelativesFilter } from "@/types/relatives";
 import Image from "next/image";
 
 interface UserTableProps {
-  users: RelativesFilter[] | undefined; // Ensure users can be undefined
+  users: RelativesFilter[] | undefined;
 }
 
 const ITEMS_PER_PAGE = 5;
@@ -24,10 +23,9 @@ const ITEMS_PER_PAGE = 5;
 export default function UserTable({ users }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedUsers, setPaginatedUsers] = useState<RelativesFilter[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
-    if (!Array.isArray(users)) return; // Prevent errors if users is undefined
+    if (!Array.isArray(users)) return;
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     setPaginatedUsers(users.slice(startIndex, endIndex));
@@ -40,11 +38,6 @@ export default function UserTable({ users }: UserTableProps) {
       setCurrentPage(page);
     }
   };
-
-  const handleViewDetails = (id: number | undefined) => {
-    router.push(`/admin/user/${id}`);
-  };
-
   return (
     <div className="w-full">
       <Table className="w-full border border-gray-200">
@@ -54,7 +47,7 @@ export default function UserTable({ users }: UserTableProps) {
             <TableHead className="px-4 py-2">Email</TableHead>
             <TableHead className="px-4 py-2">SĐT</TableHead>
             <TableHead className="px-4 py-2">Avatar</TableHead>
-            <TableHead className="px-4 py-2">Action</TableHead>
+            <TableHead className="px-4 py-2">Trạng thái</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -65,21 +58,14 @@ export default function UserTable({ users }: UserTableProps) {
               <TableCell className="px-4 py-2">{user["phone-number"]}</TableCell>
               <TableCell className="px-4 py-2 ">
                 <Image
-                  width={48}
-                  height={48}
-                  src={user.avatar || "/default-avatar.png"} // Default avatar if none provided
+                  width={45}
+                  height={45}
+                  src={user.avatar || "/default-avatar.png"} 
                   alt="Avatar"
                   className="rounded-full object-cover border"
                 />
               </TableCell>
-              <TableCell className="py-2 px-4 space-x-2 flex items-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleViewDetails(user.id)}
-                >
-                  Chi tiết
-                </Button>
+              <TableCell className="py-4 px-4 space-x-2 flex items-center">
                 <Switch />
               </TableCell>
             </TableRow>

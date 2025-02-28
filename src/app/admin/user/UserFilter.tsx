@@ -1,46 +1,45 @@
 "use client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
 import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
 import { RelativesFilter } from "@/types/relatives";
 
 interface UserFilterProps {
   setFilteredUsers: (users: RelativesFilter[]) => void;
+  resetUsers: () => void;
 }
 
-export default function UserFilter({ setFilteredUsers }: UserFilterProps) {
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+export default function UserFilter({ setFilteredUsers, resetUsers }: UserFilterProps) {
+  const [filters, setFilters] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+  });
 
   const handleSearch = async () => {
     try {
       const response = await relativesApiRequest.getRelativesFilter({
         filter: {
-          ...(fullName.trim() && { "full-name": fullName }),
-          ...(email.trim() && { email }),
-          ...(phoneNumber.trim() && { "phone-number": phoneNumber }),
+          ...(filters.fullName.trim() && { "full-name": filters.fullName }),
+          ...(filters.email.trim() && { email: filters.email }),
+          ...(filters.phoneNumber.trim() && {
+            "phone-number": filters.phoneNumber,
+          }),
         },
         paging: { page: 1, size: 10, total: 0 },
       });
 
-      console.log("Filtered users:", response);
       setFilteredUsers(response.payload.data || []);
     } catch (error) {
       console.error("Error fetching filtered users:", error);
     }
   };
 
-  useEffect(() => {
-    handleSearch();
-  }, [fullName, email, phoneNumber]);
-
   const clearFilters = () => {
-    setFullName("");
-    setEmail("");
-    setPhoneNumber("");
+    setFilters({ fullName: "", email: "", phoneNumber: "" });
+    resetUsers(); 
   };
 
   return (
@@ -49,23 +48,26 @@ export default function UserFilter({ setFilteredUsers }: UserFilterProps) {
         <Input
           type="text"
           placeholder="Tìm theo tên"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          className="w-full"
+          value={filters.fullName}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, fullName: e.target.value }))
+          }
         />
         <Input
           type="text"
           placeholder="Tìm theo email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full"
+          value={filters.email}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, email: e.target.value }))
+          }
         />
         <Input
           type="text"
           placeholder="Tìm theo số điện thoại"
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value)}
-          className="w-full"
+          value={filters.phoneNumber}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, phoneNumber: e.target.value }))
+          }
         />
         <Button onClick={handleSearch}>
           <Search className="h-4 w-4 mr-2" />

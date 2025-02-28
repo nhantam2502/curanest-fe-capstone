@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from 'next/navigation';
 interface Geo {
   code: number | string;
   name: string;
@@ -57,6 +58,7 @@ const formSchema = z.object({
 });
 
 const NurseForm: React.FC = () => {
+  const router = useRouter();
   const { toast } = useToast();
   const [majors, setMajors] = useState<Major[]>([]);
   const [districts, setDistricts] = useState<Geo[]>([]);
@@ -154,7 +156,7 @@ const NurseForm: React.FC = () => {
         setSelectedDistrictCode("");
       } else {
         setSubmissionError(
-          response.payload?.data.error?.reason_field 
+          response.payload?.error?.reason_field 
         );
       }
     } catch (error) {
@@ -169,24 +171,20 @@ const NurseForm: React.FC = () => {
     if (submissionError) {
       toast({
         variant: "destructive",
-        title: "Uh oh! Something went wrong.",
+        title: "Đã có lỗi xảy ra.",
         description: submissionError,
       })
     }
-  }, [submissionError]);
-
-  useEffect(() => {
     if (submissionSuccess) {
       toast({
         title: "Success!",
         description: "Đã tạo điều dưỡng thành công.",
       });
     }
-  }, []);
+  }, [submissionError, submissionSuccess, toast]);
 
   return (
     <>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="text-2xl font-semibold">Tạo điều dưỡng</div>
@@ -546,9 +544,28 @@ const NurseForm: React.FC = () => {
             />
           </div>
 
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Đang tạo..." : "Tạo điều dưỡng"}
-          </Button>
+            <div className="flex justify-end">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Đang tạo..." : "Tạo điều dưỡng"}
+            </Button>
+            <Button
+              variant="secondary" // Or any style you prefer
+              onClick={() => {
+                if (submissionSuccess) {
+                  router.push('/admin/nurse/map-nurse');
+                } else {
+                  toast({
+                    title: "Thông báo",
+                    description: "Vui lòng tạo điều dưỡng thành công trước khi gán danh mục.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={!submissionSuccess} 
+            >
+              Gán danh mục
+            </Button>
+            </div>
         </form>
       </Form>
     </>
