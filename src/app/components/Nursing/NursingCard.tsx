@@ -57,7 +57,7 @@ const NursingCard = ({ nurse, service }: { nurse: Nurse; service: string }) => {
         </div>
 
         <Link
-          href={`/guest/nurseList/${encodeURIComponent(service)}/${nurse.id}`}
+          href={`/relatives/findingNurse/${encodeURIComponent(service)}/${nurse.id}`}
           className="w-[44px] h-[44px] rounded-full border border-solid border-[#181A1E] flex items-center justify-center group hover:bg-[#FEF0D7] hover:border-none"
         >
           <ArrowRight className="group-hover:text-[#181A1E] w-6 h-5" />

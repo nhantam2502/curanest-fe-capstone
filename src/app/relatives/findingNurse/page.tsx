@@ -29,17 +29,14 @@ const NurseList = () => {
 
   const filteredNurses = useMemo(() => {
     return nursing.filter((nurse) => {
-      const matchesSearch =
-        nurse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        nurse.hospital.toLowerCase().includes(searchTerm.toLowerCase());
+      // Bỏ điều kiện matchesSearch tạm thời
       const matchesSpecialization =
         !selectedSpecialization ||
-        nurse.specialization === selectedSpecialization;
-      const matchesRating = nurse.avgRating >= minRating;
-
-      return matchesSearch && matchesSpecialization && matchesRating;
+        nurse.specialization === selectedSpecialization ||
+        Object.keys(nurse.services).includes(searchTerm);
+      return matchesSpecialization ;
     });
-  }, [searchTerm, selectedSpecialization, minRating, nursing]);
+  }, [searchTerm, selectedSpecialization]);
 
   return (
     <section className="hero_section">
@@ -238,8 +235,8 @@ const NurseList = () => {
           <div className="md:w-2/3 lg:w-3/4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {filteredNurses.map((nurse) => (
-                <NursingCard key={nurse.id} nurse={nurse} />
-              ))}
+                <NursingCard key={nurse.id} nurse={nurse} service={searchTerm} />
+            ))}
             </div>
           </div>
         </div>

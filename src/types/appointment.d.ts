@@ -17,7 +17,7 @@ export type ScheduleEvent = {
   startTime: string;
   endTime: string;
   status: string;
-  participants: number;
+  name: string;
   classType: string;
   appointment_date: string;
 };
