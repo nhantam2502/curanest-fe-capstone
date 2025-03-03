@@ -8,260 +8,87 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
+import { Switch } from "@/components/ui/switch";
+import { RelativesFilter } from "@/types/relatives";
+import Image from "next/image";
 
 interface UserTableProps {
-  users: User[];
-  setUsers: (users: User[]) => void;
+  users: RelativesFilter[] | undefined;
 }
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 5;
 
-export default function UserTable({ users, setUsers }: UserTableProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+export default function UserTable({ users }: UserTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [editUser, setEditUser] = useState<User | null>(null);
+  const [paginatedUsers, setPaginatedUsers] = useState<RelativesFilter[]>([]);
 
-  const handleRowClick = (user: User) => {
-    setSelectedUser(user);
-    setDialogOpen(true);
-  };
+  useEffect(() => {
+    if (!Array.isArray(users)) return;
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    setPaginatedUsers(users.slice(startIndex, endIndex));
+  }, [users, currentPage]);
 
-  const handleCloseDialog = () => {
-    setSelectedUser(null);
-    setDialogOpen(false);
-  };
-
-  const handleDeleteUser = (userId: number) => {
-    setUsers(users.filter((user) => user.id !== userId));
-  };
-
-  const handleEditClick = (user: User) => {
-    setEditUser(user);
-    setEditDialogOpen(true);
-  };
-
-  const handleUpdateUser = (updatedUser: User) => {
-    setUsers(
-      users.map((user) => (user.id === updatedUser.id ? updatedUser : user))
-    );
-    setEditDialogOpen(false);
-  };
-
-  const handleCloseEditDialog = () => {
-    setEditDialogOpen(false);
-  };
-
-  const totalPages = Math.ceil(users.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentUsers = users.slice(startIndex, endIndex);
+  const totalPages = Array.isArray(users) ? Math.ceil(users.length / ITEMS_PER_PAGE) : 1;
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
-
   return (
     <div className="w-full">
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <Table className="w-full border border-gray-200">
-          <TableHeader>
-            <TableRow className="hover:bg-gray-50">
-              <TableHead className="w-[80px] px-4 py-2">ID</TableHead>
-              <TableHead className="px-4 py-2">Name</TableHead>
-              <TableHead className="px-4 py-2">Email</TableHead>
-              <TableHead className="w-[150px] px-4 py-2">Role</TableHead>
-              <TableHead className="text-right w-[250px] px-4 py-2">
-                Actions
-              </TableHead>
+      <Table className="w-full border border-gray-200">
+        <TableHeader>
+          <TableRow className="bg-gray-100">
+            <TableHead className="px-4 py-2">Tên</TableHead>
+            <TableHead className="px-4 py-2">Email</TableHead>
+            <TableHead className="px-4 py-2">SĐT</TableHead>
+            <TableHead className="px-4 py-2">Avatar</TableHead>
+            <TableHead className="px-4 py-2">Trạng thái</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {paginatedUsers.map((user) => (
+            <TableRow key={user.id} className="hover:bg-gray-50">
+              <TableCell className="px-4 py-2">{user["full-name"]}</TableCell>
+              <TableCell className="px-4 py-2">{user.email}</TableCell>
+              <TableCell className="px-4 py-2">{user["phone-number"]}</TableCell>
+              <TableCell className="px-4 py-2 ">
+                <Image
+                  width={45}
+                  height={45}
+                  src={user.avatar || "/default-avatar.png"} 
+                  alt="Avatar"
+                  className="rounded-full object-cover border"
+                />
+              </TableCell>
+              <TableCell className="py-4 px-4 space-x-2 flex items-center">
+                <Switch />
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentUsers.map((user) => (
-              <TableRow
-                key={user.id}
-                className="hover:bg-gray-50 cursor-pointer"
-              >
-                <TableCell className="font-medium px-4 py-2">
-                  {user.id}
-                </TableCell>
-                <TableCell className="px-4 py-2">{user.name}</TableCell>
-                <TableCell className="px-4 py-2">{user.email}</TableCell>
-                <TableCell className="px-4 py-2">{user.role}</TableCell>
-                <TableCell className="text-right px-4 py-2 space-x-2 flex">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRowClick(user)}
-                  >
-                    Details
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditClick(user)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    Inactivate
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-
-        {/* Dialog Content for User Details */}
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-            <DialogDescription>
-              Detailed information about {selectedUser?.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            {selectedUser && (
-              <>
-                <div>
-                  <span className="font-medium">Name: </span>
-                  {selectedUser.name}
-                </div>
-                <div>
-                  <span className="font-medium">Email: </span>
-                  {selectedUser.email}
-                </div>
-                <div>
-                  <span className="font-medium">Role: </span>
-                  {selectedUser.role}
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCloseDialog}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Edit information for {editUser?.name}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            {editUser && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    defaultValue={editUser.name}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, name: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    defaultValue={editUser.email}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, email: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Input
-                    id="role"
-                    defaultValue={editUser.role}
-                    onChange={(e) =>
-                      setEditUser({ ...editUser, role: e.target.value })
-                    }
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCloseEditDialog}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (editUser) {
-                  handleUpdateUser(editUser);
-                }
-              }}
-            >
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          ))}
+        </TableBody>
+      </Table>
 
       {/* Pagination */}
-      <div className="flex justify-end mt-4">
-        <Button
-          variant="outline"
-          className="mr-2"
-          onClick={() => goToPage(currentPage - 1)}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+      <div className="flex justify-end mt-4 space-x-2">
+        <Button variant="outline" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+          <ChevronLeft className="h-4 w-4" />
         </Button>
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
           <Button
             key={page}
             variant={currentPage === page ? "default" : "outline"}
-            className="mx-1"
             onClick={() => goToPage(page)}
           >
             {page}
           </Button>
         ))}
-        <Button
-          variant="outline"
-          className="ml-2"
-          onClick={() => goToPage(currentPage + 1)}
-          disabled={currentPage === totalPages}
-        >
-          Next <ChevronRight className="ml-2 h-4 w-4" />
+        <Button variant="outline" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+          <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
     </div>

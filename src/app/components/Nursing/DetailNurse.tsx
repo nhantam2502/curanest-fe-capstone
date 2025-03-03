@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,13 +25,12 @@ import {
   StarIcon,
   Users,
 } from "lucide-react";
-import services from "@/dummy_data/dummy_service.json";
 import TimeTableNurse from "./TimeTableNurse";
 import Feedback from "./Feedbacks";
 import data_nurses from "@/dummy_data/dummy_nurse.json";
 import Link from "next/link";
 import NursingCard from "./NursingCard";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -41,6 +39,20 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  const params = useParams();
+  const serviceIdRaw = params.serviceId;
+  const serviceId =
+    typeof serviceIdRaw === "string"
+      ? serviceIdRaw
+      : serviceIdRaw
+      ? serviceIdRaw[0]
+      : "";
+  const [searchTerm, setSearchTerm] = useState(
+    serviceId ? decodeURIComponent(serviceId) : ""
+  );
+  // const searchParams = useSearchParams();
+  // const category = searchParams.get("category") || "";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -87,10 +99,6 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
     router.push(`/relatives/findingNurse/${nurse.id}`);
   };
 
-  // Get the services for the nurse's specialization
-  const nurseServices =
-    services[nurse.specialization as keyof typeof services] || [];
-
   return (
     <div className="hero_section">
       {/* Breadcrumb */}
@@ -98,9 +106,22 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink href="/guest/nurseList" className="text-xl">
-              Đội ngũ điều dưỡng
+              Dịch vụ điều dưỡng
             </BreadcrumbLink>
           </BreadcrumbItem>
+          <BreadcrumbSeparator className="text-gray-400" />
+
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              onClick={() => {
+                window.history.back();
+              }}
+              className="text-xl"
+            >
+              Danh sách điều dưỡng thuộc dịch vụ: {searchTerm}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+
           <BreadcrumbSeparator className="text-gray-400" />
           <BreadcrumbItem>
             {isMobile ? (
@@ -124,6 +145,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+
       <div className="max-w-[1700px] mx-auto sm:px-6">
         <div className="flex flex-col lg:flex-row gap-8 mb-8">
           {/* left content */}
@@ -139,10 +161,21 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                   <h1 className="text-3xl font-bold text-center mb-2">
                     {nurse.name}
                   </h1>
-                  <Badge className="rounded-[50px] bg-[#CCF0F3] text-irisBlueColor text-lg mb-4 hover:bg-[#CCF0F3]">
-                    {nurse.specialization}
-                  </Badge>
-                  <div className="flex items-center gap-3 mb-4">
+
+                  <div className="lg:mt-4 flex items-center justify-center">
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {nurse.services.map((service, index) => (
+                        <span
+                          key={index}
+                          className="bg-[#CCF0F3] text-irisBlueColor py-2 px-4 text-sm lg:text-base font-semibold rounded-lg text-center"
+                        >
+                          {service}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-4 mb-4">
                     <StarIcon className="w-6 h-6 fill-yellow-400 text-yellow-200" />
                     <span className="font-semibold text-xl">
                       {nurse.avgRating}
@@ -160,21 +193,21 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                 </div>
 
                 <div className="space-y-4 mt-6">
-                  <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 flex items-center gap-4">
                     <MapPin className="w-8 h-8 text-[#e5ab47]" />
                     <span className="text-xl">{nurse.hospital}</span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 flex items-center gap-4">
                     <GraduationCap className="w-8 h-8 text-[#e5ab47]" />
                     <span className="text-xl">{nurse.education_level}</span>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <BookOpenCheck className="w-9 h-9 text-[#e5ab47]" />
+                  <div className="flex-shrink-0 flex items-center gap-4">
+                    <BookOpenCheck className="w-10 h-10 text-[#e5ab47]" />
                     <span className="text-xl">
                       {nurse.certificate.join(", ")}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex-shrink-0 flex items-center gap-4">
                     <Clock className="w-8 h-8 text-[#e5ab47]" />
                     <span className="text-xl">{nurse.experience}</span>
                   </div>
@@ -225,7 +258,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TimeTableNurse id={nurse.id} />
+                <TimeTableNurse  />
               </CardContent>
             </Card>
 
@@ -238,7 +271,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {nurseServices.map((service, index) => (
+                  {nurse.services?.map((service, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-[#e5ab47]" />
                       <span className="text-xl">{service}</span>
@@ -249,6 +282,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
             </Card>
           </div>
         </div>
+
         {/* Feedback */}
         <Feedback nurse={nurse} />
 
@@ -263,7 +297,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                 href={`/guest/nurseList/${relatedNurse.id}`}
                 key={relatedNurse.id}
               >
-                <NursingCard nurse={relatedNurse} />
+                <NursingCard nurse={relatedNurse} service={searchTerm} />
               </Link>
             ))}
           </div>

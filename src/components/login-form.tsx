@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -8,18 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
-
-const LoginSchema = z.object({
-  phone: z
-    .string()
-    .regex(/^[0-9]{10}$/, { message: "Please enter a valid phone number (10 digits)." })
-    .min(1, { message: "Phone number is required." }),
-  password: z
-    .string()
-    .min(1, { message: "Password is required." }),
-});
+import {
+  PhoneLoginSchema,
+  PhoneLoginInput,
+} from "@/schemaValidation/auth.schema";
+import { signIn } from "next-auth/react";
 
 export function LoginForm({
   className,
@@ -33,53 +26,64 @@ export function LoginForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm({
-    resolver: zodResolver(LoginSchema),
+  } = useForm<PhoneLoginInput>({
+    resolver: zodResolver(PhoneLoginSchema),
     defaultValues: {
-      phone: "",
+      "phone-number": "",
       password: "",
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: PhoneLoginInput) => {
     try {
       setLoading(true);
       setError("");
-
+  
       const result = await signIn("credentials", {
-        identifier: data.phone, 
+        redirect: false, 
+        identifier: data["phone-number"], 
         password: data.password,
-        redirect: false,
       });
-
+  
       if (result?.error) {
-        setError("Invalid phone number or password");
+        setError("Thông tin đăng nhập không chính xác."); 
         return;
       }
+  
+      // Fetch session để lấy thông tin role và điều hướng
+      const session = await fetch("/api/auth/session").then((res) => res.json());
+      // console.log("session: ", session.user)
 
-      const session = await getSession();
-      const role = session?.user?.role;
+      if (session?.user?.access_token) {
+        localStorage.setItem('sessionToken', session.user.access_token);
+      }
 
-      switch (role) {
-        case "nurse":
-          router.push("/nurse");
-          break;
-        case "staff":
-          router.push("/staff");
-          break;
-        case "relatives":
-          router.push("/relatives/booking");
-          break;
-        default:
-          router.push("/guest");
+      if (session?.user?.role) {
+        console.log("User role:", session.user.role);
+        switch (session.user.role) {
+          case "nurse":
+            router.push("/nurse");
+            break;
+          case "staff":
+            router.push("/staff");
+            break;
+          case "relatives":
+            router.push("/relatives/booking");
+            break;
+          default:
+            router.push("/");
+        }
+      } else {
+        setError("Không thể xác định vai trò của người dùng.");
       }
     } catch (error) {
-      setError("An error occurred during login");
+      console.error("Đăng nhập thất bại:", error);
+      setError("Có lỗi xảy ra trong quá trình đăng nhập.");
     } finally {
       setLoading(false);
     }
-  };
-
+  };  
+  
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -95,11 +99,11 @@ export function LoginForm({
                 placeholder="Số điện thoại"
                 className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none"
                 disabled={loading}
-                {...register("phone")}
+                {...register("phone-number")}
               />
-              {errors.phone && (
+              {errors["phone-number"] && (
                 <div className="text-red-500 text-lg">
-                  {errors.phone.message as string}
+                  {errors["phone-number"].message as string}
                 </div>
               )}
             </div>
@@ -126,7 +130,10 @@ export function LoginForm({
 
           <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center" />
-            <Link href="" className="text-lg font-medium whitespace-nowrap cursor-pointer">
+            <Link
+              href=""
+              className="hover:underline text-lg font-medium whitespace-nowrap cursor-pointer"
+            >
               Quên mật khẩu ?
             </Link>
           </div>

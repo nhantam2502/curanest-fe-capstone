@@ -10,18 +10,12 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { User } from "@/types/user";
 
 interface AddUserFormProps {
   onSave: (newUser: User) => void;
   onClose: () => void;
   open: boolean;
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
 }
 
 export default function AddUserForm({
@@ -31,29 +25,39 @@ export default function AddUserForm({
 }: AddUserFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState("");
+  const [first_name, setFirstName] = useState("");
+  const [last_name, setLastName] = useState("");
+  const [phone_number, setPhoneNumber] = useState("");
 
   const handleSave = () => {
     const newUser: User = {
-      id: Date.now(), // Replace with your ID generation logic
-      name,
+      id: Date.now(),
       email,
-      role,
+      first_name,
+      last_name,
+      phone_number,
+      address: "",
+      ward: "",
+      district: "",
+      city: "",
+      dob: ""
     };
 
     onSave(newUser);
     setName("");
     setEmail("");
-    setRole("");
+    setFirstName("");
+    setLastName("");
+    setPhoneNumber("");
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add User</DialogTitle>
+          <DialogTitle>Thêm</DialogTitle>
           <DialogDescription>
-            Enter the details for the new user.
+            Tạo 1 người dùng mới bằng cách điền thông tin vào form dưới đây
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2 pb-4">
@@ -89,19 +93,51 @@ export default function AddUserForm({
           </div>
           <div className="space-y-2">
             <label
-              htmlFor="role"
+              htmlFor="first_name"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Role
+              First Name
             </label>
             <Input
               type="text"
-              id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
+              id="first_name"
+              value={first_name}
+              onChange={(e) => setFirstName(e.target.value)}
               className="w-full"
             />
-          </div>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="last_name"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Last Name
+              </label>
+              <Input
+                type="text"
+                id="last_name"
+                value={last_name}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full"
+              />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="phone_number"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Phone Number
+                </label>
+                <Input
+                  type="text"
+                  id="phone_number"
+                  value={phone_number}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full"
+                />
+                </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>

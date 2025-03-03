@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
   darkMode: ["class"],
@@ -10,7 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        "be-vietnam-pro": ['"Be Vietnam Pro"', "sans-serif"],
+        "be-vietnam-pro": ['Be Vietnam Pro', "sans-serif"],
       },
       fontWeight: {
         thin: "100",
@@ -73,6 +74,16 @@ const config: Config = {
         irisBlueColor: "#01B5C5",
         headingColor: "#181A1E",
         textColor: "#4E545F",
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -102,7 +113,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
+    plugins: [tailwindcssAnimate],
   },
-  plugins: [require("tailwindcss-animate")],
 };
 export default config;

@@ -10,12 +10,19 @@ import {
   Menu,
   X,
   CircleDollarSign,
-  BookUser
+  BookUser,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
-import logo from '../../../../public/logo.jpg';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const PRIMARY_COLOR = "text-sky-400";
 const ACTIVE_BG_COLOR = "bg-sky-100";
@@ -28,9 +35,10 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { title: "Thống kê", link: "/dashboard", icon: <LayoutDashboard /> },
-  { title: "Người dùng", link: "/user", icon: <User /> },
-  { title: "Chuyên ngành", link: "/major", icon: <BookUser /> },
+  { title: "Quản lý", link: "/dashboard", icon: <LayoutDashboard /> },
+  { title: "Khách hàng", link: "/user", icon: <User /> },
+  { title: "Điều dưỡng", link: "/nurse", icon: <User /> },
+  { title: "Dịch vụ", link: "/service", icon: <BriefcaseBusiness /> },
   { title: "Bài đăng", link: "/post", icon: <BookA /> },
   { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
   { title: "Tuyển dụng", link: "/recruit", icon: <BookUser /> },
@@ -68,7 +76,6 @@ interface AdminNavbarProps {
 
 const AdminNavbar: React.FC<AdminNavbarProps> = ({
   isCollapsed,
-  onToggleSidebar,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -88,20 +95,10 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         <div className="mb-8 flex items-center justify-center">
           <Link href="/" className="flex flex-col items-center">
             {isCollapsed ? (
-              <Image
-                src={logo}
-                alt="Curanest Logo"
-                width={40}
-                height={40}
-              />
+              <Image src="/logo.png" alt="Curanest Logo" width={40} height={40} />
             ) : (
               <>
-                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>
-                  CURANEST
-                </p>
-                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>
-                  NURSING CARE
-                </p>
+                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>CURANEST</p>
               </>
             )}
           </Link>
@@ -115,17 +112,36 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
               isCollapsed={isCollapsed}
             />
           ))}
-          {/* Log out Button */}
-          <Button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            variant="ghost"
-            className="flex items-center mt-auto text-red-500 hover:bg-red-50"
-            aria-label="Log out"
-          >
-            <LogOut className="mr-3" />
-            {!isCollapsed && "Log out"}
-          </Button>
         </nav>
+
+        {/* Current User Section */}
+        <div className="mt-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full flex items-center justify-between p-2"
+              >
+                <div className="flex items-center space-x-4">
+                <Avatar className="w-8 h-8">
+                    <AvatarImage src="/placeholder.png" alt="User Name" />
+                    <AvatarFallback>UN</AvatarFallback>
+                  </Avatar>
+                  {!isCollapsed && <span>Current User</span>}
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="text-red-500 hover:bg-red-50"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Mobile Navbar */}
@@ -134,11 +150,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
           <p className="font-bold text-xl">CURANEST</p>
         </Link>
         <Button onClick={toggleMobileMenu} variant="ghost" size="icon">
-          {isOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </Button>
       </div>
 

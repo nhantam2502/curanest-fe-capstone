@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
-  Calendar,
   Key,
   LogOut,
   MenuIcon,
@@ -44,24 +43,26 @@ const Header = () => {
     window.addEventListener("scroll", handleStickyHeader);
     return () => window.removeEventListener("scroll", handleStickyHeader);
   }, []);
-
+  
   useEffect(() => {
     if (isMenuOpen) {
-      document.body.classList.add("overflow-hidden");
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove("overflow-hidden");
+      document.body.style.overflow = 'unset';
     }
 
+    // Cleanup function to reset overflow when component unmounts
     return () => {
-      document.body.classList.remove("overflow-hidden");
+      document.body.style.overflow = 'unset';
     };
   }, [isMenuOpen]);
+
 
   const Menu = [
     { id: 1, name: "Trang chủ", path: "/" },
     { id: 2, name: "Giới thiệu", path: "#about" },
     { id: 3, name: "Dịch vụ", path: "#services" },
-    { id: 4, name: "Đội ngũ điều dưỡng", path: "/guest/nurseList" },
+    { id: 4, name: "Dịch vụ điều dưỡng", path: "/guest/nurseList" },
 
     { id: 5, name: "Tin tức", path: "/guest/news" },
   ];
@@ -77,7 +78,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>
-            <img src="/logo.svg" alt="logo" width={200} height={90} />
+            <img src="/logo.png" alt="logo" width={200} height={90} />
           </div>
 
           {/* Desktop Menu */}

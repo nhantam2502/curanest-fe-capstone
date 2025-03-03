@@ -1,6 +1,6 @@
 "use client";
 import { Calendar, Check, Clock, Info } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import dummy_services from "@/dummy_data/dummy_service_booking.json";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,12 +14,12 @@ import { Nurse } from "@/types/nurse";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import PatientProfileSelection from "@/app/components/Relatives/PatientProfileSelection";
-import dummyProfiles from "@/dummy_data/dummy_profile.json";
+import PatientProfileSelection from "@/app/components/Relatives/PatientRecordSelection";
 import dummyNursing from "@/dummy_data/dummy_nurse.json";
 
-import { Profile } from "@/types/profile";
+import { PatientRecord } from "@/types/patient";
 import { Badge } from "@/components/ui/badge";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
 type SelectedTime = {
   timeSlot: TimeSlot;
@@ -46,7 +46,10 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
   >([]);
   const [selectedTime, setSelectedTime] = useState<SelectedTime | null>(null);
   //   const [selectedNurse, setSelectedNurse] = useState<Nurse | null>(null);
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<PatientRecord | null>(null);
+  const [profiles, setProfiles] = useState<PatientRecord[]>([]);
+const [isLoadingProfiles, setIsLoadingProfiles] = useState(true);
+const [errorProfiles, setErrorProfiles] = useState<string | null>(null);
 
   const steps = [
     { id: 1, title: "Hồ sơ bệnh nhân" },
@@ -58,7 +61,7 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
   const selectedNurse = dummyNursing.find(
     (nurse: Nurse) => String(nurse.id) === id
   ); // Compare as strings
-  console.log("selectedNurse: ", selectedNurse);
+  // console.log("selectedNurse: ", selectedNurse);
 
   const handleMajorChange = (newMajor: string) => {
     if (selectedMajor !== newMajor) {
@@ -101,15 +104,43 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
     );
   };
 
+  useEffect(() => {
+    const fetchPatientRecords = async () => {
+      setIsLoadingProfiles(true);
+      try {
+        const response = await patientApiRequest.getPatientRecord();
+        setProfiles(response.payload.data);
+        setErrorProfiles(null);
+
+        console.log("patient records :", response.payload.data);
+      } catch (err) {
+        setErrorProfiles("Không thể tải hồ sơ bệnh nhân");
+        console.error(err);
+      } finally {
+        setIsLoadingProfiles(false);
+      }
+    };
+  
+    fetchPatientRecords();
+  }, []);
+
   const renderStepContent = (step: number) => {
     switch (step) {
       case 1:
         return (
-          <PatientProfileSelection
-            profiles={dummyProfiles}
-            selectedProfile={selectedProfile}
-            onSelectProfile={setSelectedProfile}
-          />
+          <>
+            {isLoadingProfiles ? (
+              <div>Đang tải hồ sơ bệnh nhân...</div>
+            ) : errorProfiles ? (
+              <div className="text-red-500">{errorProfiles}</div>
+            ) : (
+              <PatientProfileSelection
+                profiles={profiles} 
+                selectedProfile={selectedProfile}
+                onSelectProfile={setSelectedProfile}
+              />
+            )}
+          </>
         );
 
       case 2:
@@ -246,7 +277,7 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
                 <div className="mb-4 space-y-2">
                   <h3 className="text-xl font-semibold">Hồ sơ bệnh nhân</h3>
                   <div className="text-gray-700 text-lg">
-                    {selectedProfile.full_name}
+                    {selectedProfile["full-name"]}
                   </div>
                 </div>
               )}
