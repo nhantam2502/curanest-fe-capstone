@@ -43,6 +43,34 @@ export interface NurseForStaff {
   email?: string;
 }
 
+export interface CreateNurse {
+  address: string;
+  certificate: string;
+  "citizen-id": string; 
+  city: string;
+  "current-work-place": string; 
+  district: string;
+  dob: string;
+  "education-level": string; 
+  email: string;
+  experience: string;
+  "full-name": string; 
+  gender: boolean;
+  "google-drive-url": string; 
+  "major-id": string; 
+  "nurse-picture": string; 
+  password?: string; 
+  "phone-number": string; 
+  slogan: string;
+  ward: string;
+}
+
+export type CreateRes = {
+  status: number;
+  message: string;
+  error?: string;
+};
+
 export interface NurseService {
   id: number;
   name: string;

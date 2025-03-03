@@ -1,100 +1,86 @@
 "use client";
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Search } from "lucide-react";
+import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
+import { RelativesFilter } from "@/types/relatives";
 
-interface FilterProps {
-  onFilterChange: (filters: { major?: string; status?: string; gender?: string; search?: string }) => void;
+interface NurseFilterProps {
+  setFilteredUsers: (users: RelativesFilter[]) => void;
+  resetUsers: () => void;
 }
 
-export default function NurseFilter({ onFilterChange }: FilterProps) {
-  const [filters, setFilters] = useState({
-    major: "",
-    status: "",
-    gender: "",
-    search: "",
-  });
 
-  const handleFilterChange = (key: string, value: string) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    onFilterChange(newFilters);
+export default function NurseFilter({ setFilteredUsers, resetUsers }: NurseFilterProps) {
+  const [filters, setFilters] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+  });
+  
+  const role = "nurse";
+
+  const handleSearch = async () => {
+    try {
+      const response = await relativesApiRequest.getRelativesFilter({
+        filter: {
+          ...(filters.fullName.trim() && { "full-name": filters.fullName }),
+          ...(filters.email.trim() && { email: filters.email }),
+          ...(filters.phoneNumber.trim() && {
+            "phone-number": filters.phoneNumber,
+          }),
+          role,
+        },
+        paging: { page: 1, size: 10, total: 0 },
+      });
+
+      setFilteredUsers(response.payload.data || []);
+    } catch (error) {
+      console.error("Error fetching filtered users:", error);
+    }
   };
 
+  const clearFilters = () => {
+    setFilters({ fullName: "", email: "", phoneNumber: "" });
+    resetUsers(); 
+  };
+  
+
   return (
-    <div className="space-y-4 p-4 border rounded-md bg-white">
-      <div className="grid grid-cols-4 gap-4">
-        <div>
-          <Label htmlFor="major">Chuyên môn</Label>
-          <Select
-            onValueChange={(value) => handleFilterChange("major", value)}
-          >
-            <SelectTrigger id="major">
-              <SelectValue placeholder="Chuyên môn" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Cardiology">Cardiology</SelectItem>
-              <SelectItem value="Neurology">Neurology</SelectItem>
-              <SelectItem value="Pediatrics">Pediatrics</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="status">Trạng thái</Label>
-          <Select
-            onValueChange={(value) => handleFilterChange("status", value)}
-          >
-            <SelectTrigger id="status">
-              <SelectValue placeholder="Trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Active">Active</SelectItem>
-              <SelectItem value="Inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="gender">Giới tính</Label>
-          <Select
-            onValueChange={(value) => handleFilterChange("gender", value)}
-          >
-            <SelectTrigger id="gender">
-              <SelectValue placeholder="Giới tính" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Male">Male</SelectItem>
-              <SelectItem value="Female">Female</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="search">Tìm kiếm</Label>
-          <Input
-            id="search"
-            placeholder="Tìm theo tên"
-            value={filters.search}
-            onChange={(e) => handleFilterChange("search", e.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="flex justify-end space-x-4">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setFilters({ major: "", status: "", gender: "", search: "" });
-            onFilterChange({ major: "", status: "", gender: "", search: "" });
-          }}
-        >
-          Xoá
+    <div className="p-4 border rounded-lg shadow-sm mb-6 bg-white">
+      <div className="flex flex-col md:flex-row gap-4">
+        <Input
+          type="text"
+          placeholder="Tìm theo tên"
+          value={filters.fullName}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, fullName: e.target.value }))
+          }
+        />
+        <Input
+          type="text"
+          placeholder="Tìm theo email"
+          value={filters.email}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, email: e.target.value }))
+          }
+        />
+        <Input
+          type="text"
+          placeholder="Tìm theo số điện thoại"
+          value={filters.phoneNumber}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, phoneNumber: e.target.value }))
+          }
+        />
+        <Button onClick={handleSearch}>
+          <Search className="h-4 w-4 mr-2" />
+          Tìm
         </Button>
-        <Button onClick={() => onFilterChange(filters)}>Tìm</Button>
+        <Button variant="outline" onClick={clearFilters}>
+          Xoá bộ lọc
+        </Button>
       </div>
     </div>
   );

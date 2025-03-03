@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -18,7 +17,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useState } from "react";
 import { Bar, Line } from "react-chartjs-2";
 
 ChartJS.register(
@@ -96,8 +94,8 @@ export default function DashboardChart() {
       <div className="flex  space-x-2">
         <Card className="w-1/2">
           <CardHeader>
-            <CardTitle>Monthly Sales</CardTitle>
-            <CardDescription>Overview of monthly sales</CardDescription>
+            <CardTitle>Data 1</CardTitle>
+            <CardDescription>Mô tả 1</CardDescription>
           </CardHeader>
           <CardContent className="h-auto p-4">
             <Bar data={barData} options={options} />
@@ -106,8 +104,8 @@ export default function DashboardChart() {
 
         <Card className="w-1/2">
           <CardHeader>
-            <CardTitle>Monthly Sales</CardTitle>
-            <CardDescription>Overview of monthly sales</CardDescription>
+            <CardTitle>Data 2</CardTitle>
+            <CardDescription>Mô tả 2</CardDescription>
           </CardHeader>
           <CardContent className="h-auto p-4">
             <Line data={lineData} options={options} />

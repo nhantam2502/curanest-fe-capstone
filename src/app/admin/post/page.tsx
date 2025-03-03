@@ -40,9 +40,9 @@ const initialPosts: Post[] = [
 ];
 
 function PostPage() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts,] = useState<Post[]>(initialPosts);
   const router = useRouter(); // Initialize useRouter
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>(initialPosts);
+  const [, setFilteredPosts] = useState<Post[]>(initialPosts);
 
   const handleNewPost = () => {
     router.push("/admin/post/create-post"); // Route to create-post page
@@ -53,10 +53,10 @@ function PostPage() {
     router.push(`/admin/post/edit/${post.id}`);
   };
 
-  const handleDeletePost = (postId: number) => {
-    // Replace with your actual delete logic (e.g., API call)
-    setPosts(posts.filter((post) => post.id !== postId));
-  };
+  // const handleDeletePost = (postId: number) => {
+  //   // Replace with your actual delete logic (e.g., API call)
+  //   setPosts(posts.filter((post) => post.id !== postId));
+  // };
 
   return (
     <div className="p-4">

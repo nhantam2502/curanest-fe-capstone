@@ -2,12 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Card,
   CardContent,
   CardDescription,
   CardHeader,
@@ -43,7 +41,7 @@ import {
 } from "@/schemaValidation/relatives.schema";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { useRouter } from "next/navigation";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 
 interface District {
   name: string;
@@ -61,7 +59,7 @@ interface Ward {
 }
 
 export default function CreatePatientRecord() {
-  const [avatar, setAvatar] = useState<File | null>(null);
+  // const [avatar, setAvatar] = useState<File | null>(null);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
   const [selectedDistrictName, setSelectedDistrictName] = useState<string>("");

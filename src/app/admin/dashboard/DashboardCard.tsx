@@ -2,15 +2,14 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
   } from "@/components/ui/card";
   
   const data = [
-    { title: "Total Users", value: 1250, description: "Active users" },
-    { title: "Revenue", value: "$54,000", description: "This month" },
-    { title: "Orders", value: 320, description: "Pending orders" },
+    { title: "Data 1", value: 1250, description: "Mô tả 1" },
+    { title: "Data 2", value: "$54,000", description: "Mô tả 2" },
+    { title: "Data 3", value: 320, description: "Mô tả 3" },
   ];
   
   export default function DashboardCards() {

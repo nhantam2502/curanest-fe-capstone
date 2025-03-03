@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import SalaryTable from "./SalaryTable";
 import { useState } from "react";
 

@@ -3,19 +3,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  BookA,
-  LayoutDashboard,
   LogOut,
   User,
   Menu,
   X,
-  CircleDollarSign,
-  BookUser,
   Briefcase,
   Calendar,
   Hand,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
@@ -83,7 +77,6 @@ interface StaffNavbarProps {
 
 const StaffNavbar: React.FC<StaffNavbarProps> = ({
   isCollapsed,
-  onToggleSidebar,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
