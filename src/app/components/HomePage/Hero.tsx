@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { ArrowRight, Video } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -297,7 +297,7 @@ const Hero = () => {
       </section>
 
       {/* Our great nursing Section*/}
-      <section>
+      <section id="nursing">
         <div className="mx-auto max-w-[1700px] px-6 sm:px-6 lg:px-10 mt-10">
           <div className="xl:w-[650px] mx-auto">
             <h2 className="heading text-center">
@@ -314,17 +314,15 @@ const Hero = () => {
       </section>
 
       {/* FAQ Section*/}
-      <section>
-        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
+      <section id="faq">
+        <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 mt-20">
           <div className="flex justify-between gap-[50px] lg:gap-0">
             <div className="w-1/2 hidden md:block">
               <img src="./faq-img.png" alt="" />
             </div>
 
             <div className="w-full md:w-1/2">
-              <h2 className="heading">
-                Các câu hỏi thường gặp
-              </h2>
+              <h2 className="heading">Các câu hỏi thường gặp</h2>
               <FaqList />
             </div>
           </div>
@@ -334,12 +332,15 @@ const Hero = () => {
       <DownloadAppSection />
 
       {/* Feedbacks Section*/}
-      <section className="py-16">
-        <div className="xl:w-[700px] mx-auto mb-8">
-          <h2 className="heading text-center">Phản hồi từ khách hàng của chúng tôi</h2>
+      <section id="feedback">
+        <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10 mb-8 mt-20">
+          <h2 className="heading text-center">
+            Phản hồi từ khách hàng của chúng tôi
+          </h2>
           <p className="text_para text-center">
-            World-class care for everyone. Our health System offers unmatched,
-            expert health care
+            Dịch vụ chăm sóc tận tâm, chuyên nghiệp. Hệ thống điều dưỡng tại nhà
+            của chúng tôi mang đến sự chăm sóc sức khỏe tận tình và đáng tin
+            cậy.
           </p>
         </div>
         <Feedbacks />
