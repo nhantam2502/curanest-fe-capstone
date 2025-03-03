@@ -3,14 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DetailNurseProps } from "@/types/nurse";
-import services from "@/dummy_data/dummy_service.json";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import nursesData from "@/dummy_data/dummy_nurse.json";
 
 const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
-  // Generate testimonials based on nurse's specialization
-  const getSpecializationServices = () => {
-    return services[nurse.specialization as keyof typeof services] || [];
+  const getServicesBySpecialization = (specialization: string) => {
+    const nurse = nursesData.find((n) => n.specialization === specialization);
+    return nurse ? nurse.services : [];
   };
+  
+  const services = getServicesBySpecialization(nurse.specialization);
 
   const testimonials = [
     {
@@ -19,9 +21,8 @@ const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
       avatar: "/patient-avatar.jpg",
       rating: 5,
       date: "15 tháng 3, 2024",
-      comment:
-        "Dịch vụ chăm sóc tôi nhận được rất tuyệt vời. Đội ngũ điều dưỡng chuyên nghiệp, chu đáo và luôn quan tâm đến mọi nhu cầu của tôi. Tôi không thể đòi hỏi dịch vụ nào tốt hơn.",
-      service: getSpecializationServices()[0],
+      comment: "Dịch vụ chăm sóc tôi nhận được rất tuyệt vời.",
+      service: services[0] || "Dịch vụ khác",
     },
     {
       id: 2,
@@ -30,8 +31,8 @@ const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
       rating: 4,
       date: "10 tháng 3, 2024",
       comment:
-        "Việc có điều dưỡng chăm sóc người thân của tôi thực sự là một điều tuyệt vời. Trình độ chuyên môn và sự tận tâm thể hiện rất đáng khâm phục.",
-      service: getSpecializationServices()[1],
+        "Việc có điều dưỡng chăm sóc người thân của tôi thực sự là một điều tuyệt vời.",
+      service: services[1] || "Dịch vụ khác",
     },
     {
       id: 3,
@@ -39,12 +40,10 @@ const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
       avatar: "/patient-avatar-2.jpg",
       rating: 3,
       date: "5 tháng 3, 2024",
-      comment:
-        "Dịch vụ chăm sóc mà tôi nhận được rất xuất sắc. Điều dưỡng có kiến thức chuyên môn cao và đảm bảo tôi hiểu rõ hoàn toàn về quá trình điều trị của mình.",
-      service: getSpecializationServices()[2],
+      comment: "Dịch vụ chăm sóc mà tôi nhận được rất xuất sắc.",
+      service: services[2] || "Dịch vụ khác",
     },
   ];
-
   const renderStars = (rating: number) => {
     return Array(5)
       .fill(0)
