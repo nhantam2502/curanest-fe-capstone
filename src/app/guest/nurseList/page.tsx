@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,69 +13,99 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { useRouter } from "next/navigation";
+import { ServiceListResType } from "@/schemaValidation/service.schema"; // Adjust import path as needed
+import serviceApiRequest from "@/apiRequest/services/apiService";
+import {
+  CategoryInfo,
+  ServiceItem,
+  TransformedCategory,
+} from "@/types/service";
 
 const ServicesPage = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [services, setServices] = useState<TransformedCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const categories = [
-    {
-      name: "Chăm sóc người già",
-      icon: <Heart className="w-7 h-7 text-red-500" />,
-      services: [
-        "Chăm sóc tại nhà",
-        "Theo dõi sức khỏe",
-        "Phục hồi chức năng",
-        "Dinh dưỡng",
-        "Đo sinh hiệu",
-      ],
-    },
-    {
-      name: "Chăm sóc sau phẫu thuật",
-      icon: <Stethoscope className="w-7 h-7 text-blue-500" />,
-      services: [
-        "Thay băng",
-        "Theo dõi sinh tồn",
-        "Vật lý trị liệu",
-        "Chăm sóc vết thương",
-      ],
-    },
-    {
-      name: "Chăm sóc mẹ và bé",
-      icon: <Baby className="w-7 h-7 text-pink-500" />,
-      services: [
-        "Chăm sóc sau sinh",
-        "Tư vấn dinh dưỡng",
-        "Theo dõi bé",
-        "Massage",
-      ],
-    },
-    {
-      name: "Dịch vụ khám bệnh",
-      icon: <Users className="w-7 h-7 text-orange-500" />,
-      services: ["Khám tổng quát", "Xét nghiệm", "Tư vấn", "Đo sinh hiệu"],
-    },
-  ];
+  // Category icons mapping
+  const categoryIcons: { [key: string]: React.ReactNode } = {
+    "Chăm sóc người già": <Heart className="w-7 h-7 text-red-500" />,
+    "Chăm sóc sau phẫu thuật": (
+      <Stethoscope className="w-7 h-7 text-blue-500" />
+    ),
+    "Chăm sóc mẹ và bé": <Baby className="w-7 h-7 text-pink-500" />,
+    "Dịch vụ khám bệnh": <Users className="w-7 h-7 text-orange-500" />,
+  };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setIsLoading(true);
+        const response = await serviceApiRequest.getListService(null);
+
+        const transformedServices: TransformedCategory[] =
+          response.payload.data.map(
+            (item: {
+              "category-info": CategoryInfo;
+              "list-services": ServiceItem[];
+            }) => ({
+              name: item["category-info"].name,
+              id: item["category-info"].id,
+              description: item["category-info"].description,
+              services: item["list-services"].map((service: ServiceItem) => ({
+                name: service.name,
+                id: service.id,
+                description: service.description,
+                thumbnail: service.thumbnail,
+              })),
+            })
+          );
+
+        setServices(transformedServices);
+        setIsLoading(false);
+
+        console.log("Fetched services: ", transformedServices);
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const handleServiceClick = (category: string, service: string) => {
-    router.push(`/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}`);
+    router.push(
+      `/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}`
+    );
   };
 
   const filteredCategories = useMemo(() => {
-    return categories.filter(category => {
+    return services.filter((category) => {
       const matchesSearch =
         category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.services.some(service =>
-          service.toLowerCase().includes(searchTerm.toLowerCase())
+        category.services.some((service) =>
+          service.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-      const matchesCategory = !selectedCategory || category.name === selectedCategory;
+      const matchesCategory =
+        !selectedCategory || category.name === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory, categories]);
+  }, [searchTerm, selectedCategory, services]);
+
+  console.log("Filtered categories: ", filteredCategories);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Đang tải dịch vụ...</p>
+      </div>
+    );
+  }
 
   return (
-    <section className="hero_section">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <div className="xl:w-[650px] mx-auto">
         <h2 className="heading text-center">Dịch Vụ Điều Dưỡng</h2>
         <p className="text_para text-center">
@@ -133,9 +163,9 @@ const ServicesPage = () => {
                       >
                         Tất cả
                       </Badge>
-                      {categories.map((category) => (
+                      {services.map((category) => (
                         <Badge
-                          key={category.name}
+                          key={category.id}
                           variant="outline"
                           className={`cursor-pointer text-[18px] px-4 py-2 ${
                             selectedCategory === category.name
@@ -173,21 +203,25 @@ const ServicesPage = () => {
                 <div key={index} className="w-full">
                   <CardHeader className="p-6 ">
                     <CardTitle className="flex items-center gap-3 text-3xl">
-                      {category.icon}
+                      {categoryIcons[category.name] || (
+                        <Users className="w-7 h-7 text-gray-500" />
+                      )}
                       {category.name}
                     </CardTitle>
                   </CardHeader>
-                  
-                <CardContent className="p-6">
+
+                  <CardContent className="p-6">
                     <div className="flex flex-wrap gap-4">
-                      {category.services.map((service, serviceIndex) => (
+                      {category.services.map((service) => (
                         <Button
-                          key={serviceIndex}
+                          key={service.id}
                           variant="outline"
                           className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
-                          onClick={() => handleServiceClick(category.name, service)}
+                          onClick={() =>
+                            handleServiceClick(category.name, service.name)
+                          }
                         >
-                          {service}
+                          {service.name}
                         </Button>
                       ))}
                     </div>
