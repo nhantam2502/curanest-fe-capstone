@@ -37,25 +37,25 @@ function CandidateCard({
   const [openDialog, setOpenDialog] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-  const handleApprove = () => {
-    onUpdateCandidateStatus(candidate.id, "approved");
-    setOpenDialog(false);
-    toast({
-      variant: "default",
-      title: "Candidate Approved",
-      description: `${candidate.firstName} ${candidate.lastName} has been approved.`,
-    });
-  };
+  // const handleApprove = () => {
+  //   onUpdateCandidateStatus(candidate.id, "approved");
+  //   setOpenDialog(false);
+  //   toast({
+  //     variant: "default",
+  //     title: "Candidate Approved",
+  //     description: `${candidate.firstName} ${candidate.lastName} has been approved.`,
+  //   });
+  // };
 
-  const handleReject = () => {
-    onUpdateCandidateStatus(candidate.id, "rejected");
-    setOpenDialog(false);
-    toast({
-      variant: "destructive",
-      title: "Candidate Rejected",
-      description: `${candidate.firstName} ${candidate.lastName} has been rejected.`,
-    });
-  };
+  // const handleReject = () => {
+  //   onUpdateCandidateStatus(candidate.id, "rejected");
+  //   setOpenDialog(false);
+  //   toast({
+  //     variant: "destructive",
+  //     title: "Candidate Rejected",
+  //     description: `${candidate.firstName} ${candidate.lastName} has been rejected.`,
+  //   });
+  // };
 
   return (
     <Card className="mb-4" onClick={() => router.push(`/staff/recruit/${candidate.id}`)}>

@@ -20,7 +20,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import logo from "../../../../public/logo.jpg";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -96,7 +95,7 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({
       >
         <div className="mb-8 flex items-center">
           <Link href="/" className="flex flex-row items-center">
-            <Image src={logo} alt="Curanest Logo" width={40} height={40} />
+            <Image src="/logo.png" alt="Curanest Logo" width={40} height={40} />
 
             {!isCollapsed && (
               <p className={`font-bold text-xl ml-3 ${PRIMARY_COLOR}`}>

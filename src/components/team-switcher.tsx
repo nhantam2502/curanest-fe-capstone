@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { User } from "lucide-react";
 import {
   SidebarMenu,
   SidebarMenuButton,

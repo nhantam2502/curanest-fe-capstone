@@ -5,7 +5,7 @@ interface Appointment {
   id: number;
   nurse_name: string;
   avatar: string;
-  status: "completed" | "pending" | "canceled";
+  status: string
   phone_number: string;
   techniques: string;
   total_fee: number;

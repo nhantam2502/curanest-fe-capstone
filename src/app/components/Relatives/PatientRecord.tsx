@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   MapPin,
   Calendar,
@@ -64,7 +63,6 @@ const formatDOB = (dob: string): string => {
     throw new Error("Invalid date format");
   }
 };
-
 
 const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value }) => (
   <div className="flex items-center space-x-2">
@@ -178,8 +176,10 @@ const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
               {/* Medical Information */}
               <div className="border-t mt-4 pt-4 space-y-4">
                 <div className="flex items-start space-x-3">
-                  <Stethoscope className="w-6 h-6 text-gray-500 mt-1" />
-                  <div className="text-xl">
+                  <div className="flex-shrink-0 mt-1">
+                    <Stethoscope className="w-6 h-6 text-gray-500" />
+                  </div>
+                  <div className="flex-grow text-xl">
                     <span className="font-semibold">Mô tả bệnh lý: </span>
                     <span className="text-gray-600">
                       {profile["desc-pathology"]}
@@ -187,11 +187,11 @@ const ProfileCard: React.FC<{ profile: PatientRecord }> = ({ profile }) => {
                   </div>
                 </div>
                 <div className="flex items-start space-x-3 text-xl">
-                  <AlertCircle className="w-6 h-6 text-gray-500 mt-1" />
-                  <div>
-                    <span className="font-semibold">
-                      Lưu ý với điều dưỡng:{" "}
-                    </span>
+                  <div className="flex-shrink-0 mt-1">
+                    <AlertCircle className="w-6 h-6 text-gray-500" />
+                  </div>
+                  <div className="flex-grow text-xl">
+                    <span className="font-semibold">Lưu ý với điều dưỡng: </span>
                     <span className="text-gray-600">
                       {profile["note-for-nurse"]}
                     </span>
@@ -238,6 +238,7 @@ const PatientRecords: React.FC = () => {
         setIsLoading(false);
       } catch (err) {
         setError("Không thể tải hồ sơ bệnh nhân");
+        console.error("Error fetching patient records: ", err);
         setIsLoading(false);
       }
     };
@@ -266,9 +267,7 @@ const PatientRecords: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className="text-center text-2xl text-red-500 mt-10">{error}</div>
-    );
+    return <div className="text-center text-2xl text-red-500">{error}</div>;
   }
 
   return (

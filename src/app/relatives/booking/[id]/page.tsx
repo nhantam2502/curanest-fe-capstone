@@ -27,7 +27,6 @@ type SelectedTime = {
 };
 
 const DetailBooking = ({ params }: { params: { id: string } }) => {
-  const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);

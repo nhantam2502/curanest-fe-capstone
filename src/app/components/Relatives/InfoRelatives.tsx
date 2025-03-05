@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Loader2 } from "lucide-react";
 import { infoRelativesRes } from "@/types/patient"; // Adjust this import path
@@ -32,7 +32,7 @@ const InfoRelatives = () => {
 
       return `${day}/${month}/${year}`;
     } else {
-      throw new Error("Invalid date format");
+      return dob;
     }
   };
 
@@ -40,7 +40,7 @@ const InfoRelatives = () => {
     // console.log("User from context:", user);
     const fetchUserData = async () => {
       try {
-        const response: ApiResponse = await patientApiRequest.infoRelatives();
+        const response: ApiResponse = await patientApiRequest.getInfoRelatives();
         if (response.status === 200 && response.payload) {
           setUserData(response.payload);
           setUser(response.payload.data);
@@ -49,6 +49,7 @@ const InfoRelatives = () => {
         }
         setIsLoading(false);
       } catch (err) {
+        console.log("Error fetching info relatives data: ", err);
         setError("Không thể tải thông tin. Vui lòng thử lại sau.");
         setIsLoading(false);
       }
@@ -75,7 +76,7 @@ const InfoRelatives = () => {
   }
 
   if (error) {
-    return <div className="text-red-500 text-center p-4">{error}</div>;
+    return <div className="text-red-500 text-2xl text-center p-4">{error}</div>;
   }
 
   if (!userData) {
@@ -87,7 +88,7 @@ const InfoRelatives = () => {
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row gap-12">
           <div className="flex flex-col items-center gap-6">
-            <Avatar className="w-40 h-60">
+            <Avatar className="w-60 h-60">
               <AvatarImage src={userData.data.avatar} />
               <AvatarFallback className="text-3xl">
                 {userData.data["full-name"]?.[0]?.toUpperCase() || "?"}

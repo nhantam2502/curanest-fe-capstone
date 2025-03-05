@@ -20,14 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Service, Services } from "@/types/service"; // Use Service (singular) for individual service type
+import { Services } from "@/types/service"; // Use Service (singular) for individual service type
 import { Trash } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,

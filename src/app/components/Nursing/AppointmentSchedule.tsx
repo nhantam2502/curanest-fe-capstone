@@ -80,10 +80,10 @@ const AppointmentSchedule: React.FC<CalendarProps> = ({ onDateSelect, appointmen
     setCurrentDate(newDate);
   };
 
-  const getDayOfWeek = (day: number) => {
-    const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-    return days[day % 7];
-  };
+  // const getDayOfWeek = (day: number) => {
+  //   const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  //   return days[day % 7];
+  // };
 
   const getMonthYearString = () => {
     const months = [

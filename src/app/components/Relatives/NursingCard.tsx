@@ -5,7 +5,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardFooter,
 } from "@/components/ui/card";
 
 interface NursingCardProps {

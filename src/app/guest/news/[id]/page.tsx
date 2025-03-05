@@ -1,5 +1,3 @@
-import Footer from "@/app/components/HomePage/Footer";
-import Header from "@/app/components/HomePage/Header";
 import DetailNews from "@/app/components/News/DetailNews";
 import blogPosts from "@/dummy_data/dummy_news.json";
 

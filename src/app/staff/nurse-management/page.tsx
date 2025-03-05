@@ -1,7 +1,6 @@
 import NurseTable from "@/app/staff/nurse-management/NurseTable";
 import { Button } from "@/components/ui/button";
 import { NurseForStaff } from "@/types/nurse";
-import { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 const nurses: NurseForStaff[] = [

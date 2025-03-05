@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Clock, Heart } from "lucide-react";
+import { Clock } from "lucide-react";
 
 const NewsCard = ({ post }: { post: any }) => {
   return (

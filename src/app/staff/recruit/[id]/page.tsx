@@ -68,9 +68,9 @@ function CandidateProfilePage() {
   ) => {
     // In a real app, you would make an API call here to update the database
     // For now, we'll just update the status in the dummy data
-    const updatedCandidates = dummyCandidates.map((c) =>
-      c.id === candidateId ? { ...c, status: status } : c
-    );
+    // const updatedCandidates = dummyCandidates.map((c) =>
+    //   c.id === candidateId ? { ...c, status: status } : c
+    // );
 
     // Update the candidate state
     setCandidate((prevCandidate) =>

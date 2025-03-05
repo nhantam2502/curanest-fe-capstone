@@ -25,7 +25,6 @@ const DonutChart: React.FC<DonutChartProps> = ({
   value,
   total,
   label = 'Ca',
-  size = 128,
   centerText,
   mainColor = '#3B82F6',
   backgroundColor = '#E8EDF1',

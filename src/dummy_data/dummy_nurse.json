@@ -2,127 +2,85 @@
   {
     "id": 1,
     "name": "Nguyễn Thị Ánh",
-    "specialization": "Chăm sóc bệnh nhân nội khoa",
+    "specialization": "Chăm sóc người già",
     "avgRating": 4.6,
     "totalRating": 180,
     "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
     "totalPatients": 600,
     "hospital": "Bệnh viện Bạch Mai",
-    "certificate": ["Chứng chỉ Điều dưỡng nội khoa", "Chứng chỉ Cấp cứu cơ bản"],
-    "experience": "10 năm kinh nghiệm chăm sóc bệnh nhân nội khoa",
+    "certificate": [
+      "Chứng chỉ Điều dưỡng người cao tuổi",
+      "Chứng chỉ Phục hồi chức năng"
+    ],
+    "experience": "10 năm kinh nghiệm chăm sóc người cao tuổi",
     "education_level": "Cử nhân Điều dưỡng",
-    "services": {
-      "Chăm sóc bệnh nhân nội khoa": [
-        "Theo dõi và chăm sóc người bệnh",
-        "Dùng thuốc theo y lệnh",
-        "Theo dõi diễn biến bệnh",
-        "Chăm sóc dinh dưỡng"
-      ]
-    }
+    "services": [
+      "Chăm sóc tại nhà",
+      "Theo dõi sức khỏe",
+      "Phục hồi chức năng",
+      "Dinh dưỡng"
+    ]
   },
   {
     "id": 2,
     "name": "Trần Văn Bình",
-    "specialization": "Chăm sóc bệnh nhân ngoại khoa",
+    "specialization": "Chăm sóc sau phẫu thuật",
     "avgRating": 4.7,
     "totalRating": 220,
     "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
     "totalPatients": 750,
     "hospital": "Bệnh viện Chợ Rẫy",
-    "certificate": ["Chứng chỉ Điều dưỡng ngoại khoa", "Chứng chỉ Chăm sóc hậu phẫu"],
-    "experience": "12 năm kinh nghiệm chăm sóc bệnh nhân ngoại khoa",
+    "certificate": ["Chăm sóc hậu phẫu", "Vật lý trị liệu"],
+    "experience": "12 năm kinh nghiệm chăm sóc hậu phẫu",
     "education_level": "Thạc sĩ Điều dưỡng",
-    "services": {
-      "Chăm sóc bệnh nhân ngoại khoa": [
-        "Chăm sóc vết thương",
-        "Hỗ trợ phẫu thuật",
-        "Thay băng vô trùng",
-        "Theo dõi sau phẫu thuật"
-      ]
-    }
+    "services": [
+      "Thay băng",
+      "Theo dõi sinh tồi",
+      "Vật lý trị liệu",
+      "Chăm sóc vết thương"
+    ]
   },
   {
     "id": 3,
     "name": "Lê Thị Cúc",
-    "specialization": "Chăm sóc bệnh nhân nhi",
+    "specialization": "Chăm sóc mẹ và bé",
     "avgRating": 4.9,
     "totalRating": 280,
     "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
     "totalPatients": 900,
-    "hospital": "Bệnh viện Nhi Trung ương",
-    "certificate": ["Chứng chỉ Điều dưỡng nhi", "Chứng chỉ Tư vấn dinh dưỡng trẻ em"],
-    "experience": "8 năm kinh nghiệm chăm sóc trẻ sơ sinh và trẻ em",
-    "education_level": "Cử nhân Điều dưỡng Nhi",
-    "services": {
-      "Chăm sóc bệnh nhân nhi": [
-        "Chăm sóc trẻ sơ sinh",
-        "Theo dõi phát triển",
-        "Tiêm chủng định kỳ",
-        "Tư vấn dinh dưỡng trẻ em"
-      ]
-    }
+    "certificate": [
+      "Chứng chỉ Chăm sóc sau sinh",
+      "Chứng chỉ Tư vấn dinh dưỡng"
+    ],
+    "experience": "8 năm kinh nghiệm chăm sóc mẹ và bé",
+    "education_level": "Cử nhân Điều dưỡng",
+    "services": [
+      "Chăm sóc sau sinh",
+      "Tư vấn dinh dưỡng",
+      "Theo dõi bé",
+      "Dinh dưỡng"
+    ]
   },
   {
     "id": 4,
-    "name": "Phạm Văn Dũng",
-    "specialization": "Chăm sóc bệnh nhân cấp cứu",
-    "avgRating": 4.5,
-    "totalRating": 150,
-    "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
-    "totalPatients": 500,
-    "hospital": "Bệnh viện 108",
-    "certificate": ["Chứng chỉ Điều dưỡng cấp cứu", "Chứng chỉ Sơ cứu nâng cao"],
-    "experience": "15 năm kinh nghiệm trong cấp cứu và chăm sóc bệnh nhân nguy kịch",
-    "education_level": "Thạc sĩ Điều dưỡng",
-    "services": {
-      "Chăm sóc bệnh nhân cấp cứu": [
-        "Sơ cứu khẩn cấp",
-        "Theo dõi sinh hiệu",
-        "Hỗ trợ cấp cứu",
-        "Vận chuyển bệnh nhân"
-      ]
-    }
-  },
-  {
-    "id": 5,
-    "name": "Hoàng Thị Thu",
-    "specialization": "Chăm sóc sức khỏe cộng đồng",
-    "avgRating": 4.8,
-    "totalRating": 250,
-    "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
-    "totalPatients": 800,
-    "hospital": "Trung tâm Y tế Dự phòng Hà Nội",
-    "certificate": ["Chứng chỉ Y tế công cộng", " Chứng chỉ Tư vấn sức khỏe"],
-    "experience": "9 năm kinh nghiệm tư vấn và chăm sóc sức khỏe cộng đồng",
-    "education_level": "Cử nhân Y tế công cộng",
-    "services": {
-      "Chăm sóc sức khỏe cộng đồng": [
-        "Tư vấn sức khỏe",
-        "Giáo dục sức khỏe",
-        "Tiêm chủng cộng đồng",
-        "Khám sức khỏe định kỳ"
-      ]
-    }
-  },
-  {
-    "id": 6,
-    "name": "Nguyễn Xuân Mai",
-    "specialization": "Chăm sóc bệnh nhân nội khoa",
+    "name": "Lê Minh Anh",
+    "specialization": "Chăm sóc người già",
     "avgRating": 4.6,
     "totalRating": 180,
     "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
     "totalPatients": 600,
-    "hospital": "Bệnh viện Vinmec",
-    "certificate": ["Chứng chỉ Điều dưỡng nội khoa", "Chứng chỉ Cấp cứu cơ bản"],
-    "experience": "10 năm kinh nghiệm chăm sóc bệnh nhân nội khoa",
+    "hospital": "Bệnh viện Bạch Mai",
+    "certificate": [
+      "Chứng chỉ Điều dưỡng người cao tuổi",
+      "Chứng chỉ Phục hồi chức năng"
+    ],
+    "experience": "10 năm kinh nghiệm chăm sóc người cao tuổi",
     "education_level": "Cử nhân Điều dưỡng",
-    "services": {
-      "Chăm sóc bệnh nhân nội khoa": [
-        "Theo dõi và chăm sóc người bệnh",
-        "Dùng thuốc theo y lệnh",
-        "Theo dõi diễn biến bệnh",
-        "Chăm sóc dinh dưỡng"
-      ]
-    }
+    "services": [
+      "Chăm sóc tại nhà",
+      "Theo dõi sức khỏe",
+      "Phục hồi chức năng",
+      "Dinh dưỡng"
+    ]
   }
 ]

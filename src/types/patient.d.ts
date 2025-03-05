@@ -31,10 +31,9 @@ export type createPatientRecord = {
 
 export interface PatientRecord {
   id: string;
-  avatar: string;
   "full-name": string;
-  email: string;
   dob: string;
+  gender: boolean;
   "phone-number": string;
   address: string;
   ward: string;
@@ -61,8 +60,12 @@ export type CreateRes = {
   message: string;
 };
 
+
 export interface InfoItemProps {
   icon: LucideIcon;
   label: string;
   value: string;
 }
+
+export type UpdateTermType = z.TypeOf<typeof UpdateTerm>;
+

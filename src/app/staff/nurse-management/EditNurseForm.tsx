@@ -25,7 +25,7 @@ export default function EditNurseForm({
     <DialogContent className="max-w-[900px]"> {/* Increased width for better grid display */}
       <DialogHeader>
         <DialogTitle>Edit Nurse</DialogTitle>
-        <DialogDescription>Edit the nurse's details</DialogDescription>
+        <DialogDescription>Edit the nurse details</DialogDescription>
       </DialogHeader>
       <div className="grid grid-cols-3 gap-4 py-2 pb-4">
         <div className="space-y-2">

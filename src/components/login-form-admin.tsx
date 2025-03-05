@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import Link from "next/link";
 import { EmailLoginSchema } from "@/schemaValidation/auth.schema";
 
@@ -56,6 +55,7 @@ export function AdminLoginForm({
         return;
       }
     } catch (error) {
+      console.error("Error logging in: ", error);
       setError("An error occurred during login");
     } finally {
       setLoading(false);

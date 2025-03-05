@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, X, Send } from 'lucide-react';
+import { Star, Send } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

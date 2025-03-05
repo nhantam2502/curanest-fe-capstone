@@ -14,11 +14,13 @@ export interface Nurse {
   totalRating: number;
   photo: string;
   totalPatients: number;
-  hospital: string;
+  hospital?: string; 
   experience: string;
   education_level: string;
   certificate: string[];
+  services: string[]; 
 }
+
 
 export interface DetailNurseProps {
   nurse: Nurse;

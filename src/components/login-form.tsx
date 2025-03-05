@@ -12,7 +12,6 @@ import {
   PhoneLoginSchema,
   PhoneLoginInput,
 } from "@/schemaValidation/auth.schema";
-import authApiRequest from "@/apiRequest/auth";
 import { signIn } from "next-auth/react";
 
 export function LoginForm({
@@ -133,7 +132,7 @@ export function LoginForm({
             <div className="w-full flex items-center" />
             <Link
               href=""
-              className="text-lg font-medium whitespace-nowrap cursor-pointer"
+              className="hover:underline text-lg font-medium whitespace-nowrap cursor-pointer"
             >
               Quên mật khẩu ?
             </Link>

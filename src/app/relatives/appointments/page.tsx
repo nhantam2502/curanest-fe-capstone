@@ -1,11 +1,10 @@
 "use client"
 import React, { useEffect, useState } from "react";
-import { CalendarDays, ArrowLeft, ArrowRight, Eye, Info } from "lucide-react";
+import { CalendarDays, Eye, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import dynamic from 'next/dynamic';
 import Calendar from "@/app/components/Relatives/Calendar";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import { Appointment } from "@/types/appointment";
@@ -84,11 +83,11 @@ const AppointmentPage: React.FC = () => {
     setSelectedDate(date);
   };
 
-  const handlePatientSelect = (patientId: string) => {
-    setSelectedPatientId(patientId);
-    setSelectedDate(null); // Reset selected date when changing patient
-    setFilteredAppointments(dummyData); // Reset to show all appointments for new patient
-  };
+  // const handlePatientSelect = (patientId: string) => {
+  //   setSelectedPatientId(patientId);
+  //   setSelectedDate(null); // Reset selected date when changing patient
+  //   setFilteredAppointments(dummyData); // Reset to show all appointments for new patient
+  // };
 
   useEffect(() => {
     let filtered = [...dummyData];
