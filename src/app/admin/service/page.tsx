@@ -5,11 +5,9 @@ import CategoryManagement from "./CategoryManagement";
 import ServiceManagement from "./ServiceManagement";
 
 const ServiceManagementPage: React.FC = () => {
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
-    null
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
 
-  const handleCategorySelect = (categoryId: number | null) => {
+  const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
   };
 

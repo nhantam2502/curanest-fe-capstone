@@ -11,7 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        "be-vietnam-pro": ['Be Vietnam Pro"', "sans-serif"],
+        "be-vietnam-pro": ['Be Vietnam Pro', "sans-serif"],
       },
       fontWeight: {
         thin: "100",

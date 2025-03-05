@@ -57,7 +57,6 @@ export interface CreateNurse {
   "full-name": string; 
   gender: boolean;
   "google-drive-url": string; 
-  "major-id": string; 
   "nurse-picture": string; 
   password?: string; 
   "phone-number": string; 

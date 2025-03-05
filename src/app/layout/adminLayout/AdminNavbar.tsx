@@ -9,7 +9,7 @@ import {
   User,
   Menu,
   X,
-  CircleDollarSign,
+  // CircleDollarSign,
   BookUser,
   BriefcaseBusiness,
 } from "lucide-react";
@@ -36,12 +36,12 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { title: "Quản lý", link: "/dashboard", icon: <LayoutDashboard /> },
+  { title: "Thống kê", link: "/dashboard", icon: <LayoutDashboard /> },
   { title: "Khách hàng", link: "/user", icon: <User /> },
   { title: "Điều dưỡng", link: "/nurse", icon: <User /> },
   { title: "Dịch vụ", link: "/service", icon: <BriefcaseBusiness /> },
   { title: "Bài đăng", link: "/post", icon: <BookA /> },
-  { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
+  // { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
   { title: "Tuyển dụng", link: "/recruit", icon: <BookUser /> },
 ];
 

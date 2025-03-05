@@ -1,6 +1,6 @@
 // app/service-management/page.tsx
 "use client";
-import { Major } from "@/types/major";
+import { Major } from "@/types/category";
 import { Nurse, NurseService } from "@/types/nurse";
 import { Services } from "@/types/service";
 import { useState, useEffect } from "react";
