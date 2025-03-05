@@ -1,18 +1,17 @@
 // app/service-management/page.tsx
 "use client";
-<<<<<<< HEAD
-import { Major } from "@/types/category";
-import { Nurse, NurseService } from "@/types/nurse";
-=======
-import { Major } from "@/types/major";
 import { NurseService } from "@/types/nurse";
->>>>>>> 2898f696094fb8f305476291100d6f11668354ac
 import { Services } from "@/types/service";
 import { useState, useEffect } from "react";
 import MajorList from "./MajorList";
 import NurseList from "./NurseList";
 import ServiceList from "./ServiceList";
 import { Separator } from "@/components/ui/separator";
+
+export interface Major {
+  id: number;
+  name: string;
+}
 
 const dummyMajors: Major[] = [{ id: 1, name: "Major 1" }];
 

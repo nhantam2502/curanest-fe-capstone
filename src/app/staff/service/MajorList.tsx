@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Major } from "@/types/category";
 import AddMajorModal from "./AddMajorModal";
+import { Major } from "./page";
 
 interface MajorListProps {
   majors: Major[];

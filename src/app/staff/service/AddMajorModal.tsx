@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Major } from "@/types/category";
+import { Major } from "./page";
 
 interface AddMajorModalProps {
   onAddMajor: (newMajor: Major) => void;
