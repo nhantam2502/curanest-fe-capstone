@@ -1,9 +1,15 @@
-import { Nurse } from "@/types/nurse";
+import { Nurse, NurseItemType } from "@/types/nurse";
 import { ArrowRight, StarIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
-const NursingCard = ({ nurse, service }: { nurse: Nurse; service: string }) => {
+const GuestNursingCard = ({
+  nurse,
+  service,
+}: {
+  nurse: NurseItemType;
+  service: string;
+}) => {
   if (!nurse) {
     return <p>Dữ liệu không tồn tại</p>;
   }
@@ -16,14 +22,18 @@ const NursingCard = ({ nurse, service }: { nurse: Nurse; service: string }) => {
       className="p-3 lg:p-5 bg-white shadow-md rounded-xl"
     >
       <div>
-        <img src={nurse.photo} className="w-full rounded-lg" alt={nurse.name} />
+        <img
+          src={nurse["nurse-picture"]}
+          className="w-full rounded-lg"
+          alt={nurse["nurse-name"]}
+        />
       </div>
 
       <h2 className="text-[18px] leading-[30px] lg:text-[26px] lg:leading-9 text-headingColor font-bold mt-3">
-        {nurse.name}
+        {nurse["nurse-name"]}
       </h2>
 
-      <div className="mt-2 lg:mt-4 flex items-center justify-between">
+      {/* <div className="mt-2 lg:mt-4 flex items-center justify-between">
         <div className="flex flex-wrap gap-2 ">
           {nurse.services.map((service, index) => (
             <span
@@ -34,30 +44,30 @@ const NursingCard = ({ nurse, service }: { nurse: Nurse; service: string }) => {
             </span>
           ))}
         </div>
-      </div>
+      </div> */}
 
       <div className="mt-4 flex items-center gap-4">
         <div className="flex items-center gap-2 text-headingColor font-semibold">
           <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />
-          {nurse.avgRating}
+          {nurse.rate ? nurse.rate.toFixed(1) : "N/A"}
         </div>
-        <span className="text-textColor text-sm lg:text-base">
+        {/* <span className="text-textColor text-sm lg:text-base">
           ({nurse.totalRating} đánh giá)
-        </span>
+        </span> */}
       </div>
 
       <div className="mt-4 flex items-center justify-between">
         <div>
-          <h3 className="text-[16px] lg:text-[18px] font-semibold text-headingColor">
+          {/* <h3 className="text-[16px] lg:text-[18px] font-semibold text-headingColor">
             + {nurse.totalPatients} bệnh nhân
-          </h3>
+          </h3> */}
           <p className="text-[14px] lg:text-[16px] text-textColor">
-            Làm việc tại {nurse.hospital}
+            Làm việc tại {nurse["current-work-place"]}
           </p>
         </div>
 
         <Link
-          href={`/relatives/findingNurse/${encodeURIComponent(service)}/${nurse.id}`}
+          href={`/guest/nurseList/${encodeURIComponent(service)}/${nurse["nurse-id"]}`}
           className="w-[44px] h-[44px] rounded-full border border-solid border-[#181A1E] flex items-center justify-center group hover:bg-[#FEF0D7] hover:border-none"
         >
           <ArrowRight className="group-hover:text-[#181A1E] w-6 h-5" />
@@ -67,4 +77,4 @@ const NursingCard = ({ nurse, service }: { nurse: Nurse; service: string }) => {
   );
 };
 
-export default NursingCard;
+export default GuestNursingCard;

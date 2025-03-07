@@ -8,9 +8,6 @@ import {
   FileText,
   Info,
   Stethoscope,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
 } from "lucide-react";
 
 import {
@@ -33,9 +30,9 @@ import {
 } from "@/components/ui/pagination";
 import nursing from "@/dummy_data/dummy_nurse.json";
 import { useParams, useSearchParams } from "next/navigation";
-import GuestNursingCard from "@/app/components/Nursing/GuestNursingCard";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { NurseItemType } from "@/types/nurse";
+import RelativesNursingCard from "@/app/components/Nursing/RelativesNursingCard";
 
 const NurseList = () => {
   const params = useParams();
@@ -285,7 +282,7 @@ const NurseList = () => {
           <div className="md:w-2/3 lg:w-3/4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {nurses.map((nurse) => (
-                <GuestNursingCard
+                <RelativesNursingCard
                   key={nurse["nurse-id"]}
                   nurse={nurse}
                   service={serviceId}

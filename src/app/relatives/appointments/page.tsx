@@ -99,7 +99,7 @@ const AppointmentPage: React.FC = () => {
   }, [selectedPatientId, selectedDate]);
 
   return (
-    <section className="hero_section h-full">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed h-full">
       <div className="max-w-full w-[1500px] px-4 mx-auto">
         {/* Header and Patient Selection */}
         <div className="mb-8">

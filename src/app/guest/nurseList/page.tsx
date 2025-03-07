@@ -12,8 +12,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useRouter } from "next/navigation";
-import { ServiceListResType } from "@/schemaValidation/service.schema"; // Adjust import path as needed
 import serviceApiRequest from "@/apiRequest/services/apiService";
 import {
   CategoryInfo,
@@ -26,7 +34,10 @@ const ServicesPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [services, setServices] = useState<TransformedCategory[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const servicesPerPage = 5;
 
   // Category icons mapping
   const categoryIcons: { [key: string]: React.ReactNode } = {
@@ -41,7 +52,6 @@ const ServicesPage = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        setIsLoading(true);
         const response = await serviceApiRequest.getListService(null);
 
         const transformedServices: TransformedCategory[] =
@@ -63,21 +73,24 @@ const ServicesPage = () => {
           );
 
         setServices(transformedServices);
-        setIsLoading(false);
 
         console.log("Fetched services: ", transformedServices);
       } catch (error) {
         console.error("Failed to fetch services:", error);
-        setIsLoading(false);
       }
     };
 
     fetchServices();
   }, []);
 
-  const handleServiceClick = (category: string, service: string) => {
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  const handleServiceClick = ( category: string, service: string, id: string ) => {
     router.push(
-      `/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}`
+      `/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(id)}`
     );
   };
 
@@ -94,15 +107,68 @@ const ServicesPage = () => {
     });
   }, [searchTerm, selectedCategory, services]);
 
-  console.log("Filtered categories: ", filteredCategories);
+  // Get current page services
+  const indexOfLastService = currentPage * servicesPerPage;
+  const indexOfFirstService = indexOfLastService - servicesPerPage;
+  const currentServices = filteredCategories.slice(
+    indexOfFirstService,
+    indexOfLastService
+  );
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Đang tải dịch vụ...</p>
-      </div>
-    );
-  }
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredCategories.length / servicesPerPage);
+
+  // Handle page changes
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of services section
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages is less than max pages to show
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show first page, last page, current page, and pages around current page
+      if (currentPage <= 3) {
+        // If current page is near start, show first 4 pages and last page
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(-1); // Ellipsis
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // If current page is near end, show first page and last 4 pages
+        pageNumbers.push(1);
+        pageNumbers.push(-1); // Ellipsis
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // If current page is in middle, show first page, last page, and pages around current page
+        pageNumbers.push(1);
+        pageNumbers.push(-1); // Ellipsis
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(-1); // Ellipsis
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
+  };
+
+  console.log("Filtered categories: ", filteredCategories);
+  console.log("Current page: ", currentPage);
+  console.log("Total pages: ", totalPages);
 
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
@@ -199,36 +265,105 @@ const ServicesPage = () => {
           {/* Services Content */}
           <div className="md:w-2/3 lg:w-3/4">
             <div className="space-y-6">
-              {filteredCategories.map((category, index) => (
-                <div key={index} className="w-full">
-                  <CardHeader className="p-6 ">
-                    <CardTitle className="flex items-center gap-3 text-3xl">
-                      {categoryIcons[category.name] || (
-                        <Users className="w-7 h-7 text-gray-500" />
-                      )}
-                      {category.name}
-                    </CardTitle>
-                  </CardHeader>
+              {currentServices.length > 0 ? (
+                currentServices.map((category, index) => (
+                  <div key={index} className="w-full">
+                    <CardHeader className="p-6 ">
+                      <CardTitle className="flex items-center gap-3 text-3xl">
+                        {categoryIcons[category.name] || (
+                          <Users className="w-7 h-7 text-gray-500" />
+                        )}
+                        {category.name}
+                      </CardTitle>
+                    </CardHeader>
 
-                  <CardContent className="p-6">
-                    <div className="flex flex-wrap gap-4">
-                      {category.services.map((service) => (
-                        <Button
-                          key={service.id}
-                          variant="outline"
-                          className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
-                          onClick={() =>
-                            handleServiceClick(category.name, service.name)
-                          }
-                        >
-                          {service.name}
-                        </Button>
-                      ))}
-                    </div>
-                  </CardContent>
+                    <CardContent className="p-6">
+                      <div className="flex flex-wrap gap-4">
+                        {category.services.map((service) => (
+                          <Button
+                            key={service.id}
+                            variant="outline"
+                            className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
+                            onClick={() =>
+                              handleServiceClick(
+                                category.name,
+                                service.name,
+                                service.id
+                              )
+                            }
+                          >
+                            {service.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full p-8 text-center">
+                  <p className="text-2xl text-gray-500">
+                    Không tìm thấy dịch vụ nào phù hợp
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
+
+            {/* Pagination */}
+            {filteredCategories.length > servicesPerPage && (
+              <div className="mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    {/* Previous Button */}
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          currentPage > 1 && handlePageChange(currentPage - 1)
+                        }
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+
+                    {/* Page Numbers */}
+                    {getPageNumbers().map((page, index) =>
+                      page === -1 ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={page === currentPage}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+
+                    {/* Next Button */}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          currentPage < totalPages &&
+                          handlePageChange(currentPage + 1)
+                        }
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
         </div>
       </div>

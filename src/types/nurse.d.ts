@@ -26,6 +26,39 @@ export interface DetailNurseProps {
   nurse: Nurse;
 }
 
+// --------------------------------------
+export type NurseFilterType = {
+  "service-id": string;
+  "nurse-name"?: string;
+  rate?: number;
+  page?: number;
+  size?: number;
+};
+
+export type NurseItemType = {
+  "nurse-id": string;
+  "nurse-picture": string;
+  "nurse-name": string;
+  gender: boolean;
+  "current-work-place": string;
+  rate: number;
+};
+
+export type NurseListResType = {
+  data: NurseItemType[];
+  filters: {
+    "service-id"?: string;
+    "nurse-name"?: string;
+    rate?: number;
+  };
+  paging: {
+    page: number;
+    size: number;
+    total: number;
+  };
+  success: boolean;
+};
+
 export interface NurseForStaff {
   id: number;
   name: string;

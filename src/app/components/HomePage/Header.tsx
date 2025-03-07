@@ -44,20 +44,19 @@ const Header = () => {
     window.addEventListener("scroll", handleStickyHeader);
     return () => window.removeEventListener("scroll", handleStickyHeader);
   }, []);
-  
+
   useEffect(() => {
     if (isMenuOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
 
     // Cleanup function to reset overflow when component unmounts
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isMenuOpen]);
-
 
   const Menu = [
     { id: 1, name: "Trang chủ", path: "/" },
@@ -68,10 +67,10 @@ const Header = () => {
     { id: 5, name: "Tin tức", path: "/guest/news" },
   ];
 
-  // Thêm "Đặt lịch" nếu role là relatives
-  if (status === "authenticated" && session?.user?.role === "relatives") {
-    Menu.push({ id: 5, name: "Đặt lịch", path: "/relatives/booking" });
-  }
+  // // Thêm "Đặt lịch" nếu role là relatives
+  // if (status === "authenticated" && session?.user?.role === "relatives") {
+  //   Menu.push({ id: 6, name: "Đặt lịch", path: "/relatives/booking" });
+  // }
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
@@ -79,7 +78,7 @@ const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>
-            <img src="/logo.png" alt="logo" width={200} height={90} />
+            <img src="/logo.png" alt="logo" width={230} height={90} />
           </div>
 
           {/* Desktop Menu */}

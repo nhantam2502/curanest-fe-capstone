@@ -1,52 +1,103 @@
 "use client";
-import React, { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useMemo, useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, StarIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import { Heart, Stethoscope, Baby, Users } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import NursingCard from "@/app/components/Nursing/NursingCard";
-import nursing from "@/dummy_data/dummy_nurse.json";
+import { useRouter } from "next/navigation";
+import serviceApiRequest from "@/apiRequest/services/apiService";
+import {
+  CategoryInfo,
+  ServiceItem,
+  TransformedCategory,
+} from "@/types/service";
 
-const NurseList = () => {
+const ServicesPage = () => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialization, setSelectedSpecialization] = useState("");
-  const [minRating, setMinRating] = useState(0);
-  const [address, setAddress] = useState("");
-  const [district, setDistrict] = useState("");
-  const [ward, setWard] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [services, setServices] = useState<TransformedCategory[]>([]);
 
-  const specializations = Array.from(
-    new Set(nursing.map((nurse) => nurse.specialization))
-  );
+  // Category icons mapping
+  const categoryIcons: { [key: string]: React.ReactNode } = {
+    "Chăm sóc người già": <Heart className="w-7 h-7 text-red-500" />,
+    "Chăm sóc sau phẫu thuật": (
+      <Stethoscope className="w-7 h-7 text-blue-500" />
+    ),
+    "Chăm sóc mẹ và bé": <Baby className="w-7 h-7 text-pink-500" />,
+    "Dịch vụ khám bệnh": <Users className="w-7 h-7 text-orange-500" />,
+  };
 
-  const filteredNurses = useMemo(() => {
-    return nursing.filter((nurse) => {
-      // Bỏ điều kiện matchesSearch tạm thời
-      const matchesSpecialization =
-        !selectedSpecialization ||
-        nurse.specialization === selectedSpecialization ||
-        Object.keys(nurse.services).includes(searchTerm);
-      return matchesSpecialization ;
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await serviceApiRequest.getListService(null);
+
+        const transformedServices: TransformedCategory[] =
+          response.payload.data.map(
+            (item: {
+              "category-info": CategoryInfo;
+              "list-services": ServiceItem[];
+            }) => ({
+              name: item["category-info"].name,
+              id: item["category-info"].id,
+              description: item["category-info"].description,
+              services: item["list-services"].map((service: ServiceItem) => ({
+                name: service.name,
+                id: service.id,
+                description: service.description,
+                thumbnail: service.thumbnail,
+              })),
+            })
+          );
+
+        setServices(transformedServices);
+
+        console.log("Fetched services: ", transformedServices);
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  const handleServiceClick = ( category: string, service: string, id: string ) => {
+    router.push(
+      `/relatives/findingNurse/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(id)}`
+    );
+  };
+
+  const filteredCategories = useMemo(() => {
+    return services.filter((category) => {
+      const matchesSearch =
+        category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.services.some((service) =>
+          service.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      const matchesCategory =
+        !selectedCategory || category.name === selectedCategory;
+      return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedSpecialization]);
+  }, [searchTerm, selectedCategory, services]);
+
+  console.log("Filtered categories: ", filteredCategories);
 
   return (
-    <section className="hero_section">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <div className="xl:w-[650px] mx-auto">
-        <h2 className="heading text-center">
-          Đội ngũ điều dưỡng chuyên nghiệp
-        </h2>
+        <h2 className="heading text-center">Dịch Vụ Điều Dưỡng</h2>
         <p className="text_para text-center">
-          Đội ngũ điều dưỡng chuyên nghiệp, được tuyển chọn kỹ càng, cam kết
-          mang đến dịch vụ chăm sóc sức khỏe tận tâm và chất lượng
+          Chúng tôi cung cấp các dịch vụ chăm sóc sức khỏe chuyên nghiệp, tận
+          tâm với đội ngũ điều dưỡng giàu kinh nghiệm.
         </p>
       </div>
 
@@ -65,13 +116,13 @@ const NurseList = () => {
                 {/* Search Filter */}
                 <AccordionItem value="search" className="border-b-2">
                   <AccordionTrigger className="text-xl py-4">
-                    Tìm kiếm theo tên
+                    Tìm kiếm dịch vụ
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 pb-6">
                     <div className="relative">
                       <Input
                         type="text"
-                        placeholder="Nhập tên điều dưỡng..."
+                        placeholder="Tìm kiếm dịch vụ..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-12 py-6 text-lg"
@@ -81,133 +132,38 @@ const NurseList = () => {
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Specialization Filter */}
-                <AccordionItem value="specialization" className="border-b-2">
+                {/* Category Filter */}
+                <AccordionItem value="category" className="border-b-2">
                   <AccordionTrigger className="text-xl py-4">
-                    Chuyên môn
+                    Danh mục dịch vụ
                   </AccordionTrigger>
-
                   <AccordionContent className="pt-4 pb-6">
                     <div className="flex flex-wrap gap-3">
                       <Badge
                         variant="outline"
                         className={`cursor-pointer text-[18px] px-4 py-2 ${
-                          selectedSpecialization === ""
+                          selectedCategory === ""
                             ? "bg-[#e5ab47] text-white border-[#e5ab47]"
                             : ""
                         }`}
-                        onClick={() => setSelectedSpecialization("")}
+                        onClick={() => setSelectedCategory("")}
                       >
-                        All
+                        Tất cả
                       </Badge>
-                      {specializations.map((spec) => (
+                      {services.map((category) => (
                         <Badge
-                          key={spec}
+                          key={category.id}
                           variant="outline"
                           className={`cursor-pointer text-[18px] px-4 py-2 ${
-                            selectedSpecialization === spec
+                            selectedCategory === category.name
                               ? "bg-[#e5ab47] text-white border-[#e5ab47]"
                               : ""
                           }`}
-                          onClick={() => setSelectedSpecialization(spec)}
+                          onClick={() => setSelectedCategory(category.name)}
                         >
-                          {spec}
+                          {category.name}
                         </Badge>
                       ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* Rating Filter */}
-                <AccordionItem value="rating" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    <div className="flex items-center gap-2">
-                      Xếp hạng đánh giá
-                      <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />
-                    </div>
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="space-y-6">
-                      <Slider
-                        value={[minRating]}
-                        onValueChange={([value]) => setMinRating(value)}
-                        max={5}
-                        step={0.1}
-                        className="w-full"
-                      />
-                      <div className="text-lg text-muted-foreground flex gap-2">
-                        Tối thiểu: {minRating} / 5
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="nearby" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    Xung quanh bạn
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="space-y-4">
-                      {/* Địa chỉ */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Địa chỉ
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập địa chỉ..."
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Quận/Huyện */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Quận/Huyện
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập quận/huyện..."
-                          value={district}
-                          onChange={(e) => setDistrict(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Phường */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Phường
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập phường..."
-                          value={ward}
-                          onChange={(e) => setWard(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Thành phố */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Thành phố
-                        </label>
-                        <Input value={"Hồ Chí Minh"} className="py-4 text-lg" />
-                      </div>
-
-                      {/* Nút Lọc */}
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4 text-lg"
-                        disabled={!address || !district || !ward}
-                      >
-                        Lọc xung quanh
-                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -219,11 +175,7 @@ const NurseList = () => {
                 className="w-full mt-6 py-6 text-lg"
                 onClick={() => {
                   setSearchTerm("");
-                  setSelectedSpecialization("");
-                  setMinRating(0);
-                  setAddress("");
-                  setDistrict("");
-                  setWard("");
+                  setSelectedCategory("");
                 }}
               >
                 Đặt lại bộ lọc
@@ -231,12 +183,38 @@ const NurseList = () => {
             </CardContent>
           </Card>
 
-          {/* Main Content */}
+          {/* Services Content */}
           <div className="md:w-2/3 lg:w-3/4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {filteredNurses.map((nurse) => (
-                <NursingCard key={nurse.id} nurse={nurse} service={searchTerm} />
-            ))}
+            <div className="space-y-6">
+              {filteredCategories.map((category, index) => (
+                <div key={index} className="w-full">
+                  <CardHeader className="p-6 ">
+                    <CardTitle className="flex items-center gap-3 text-3xl">
+                      {categoryIcons[category.name] || (
+                        <Users className="w-7 h-7 text-gray-500" />
+                      )}
+                      {category.name}
+                    </CardTitle>
+                  </CardHeader>
+
+                  <CardContent className="p-6">
+                    <div className="flex flex-wrap gap-4">
+                      {category.services.map((service) => (
+                        <Button
+                          key={service.id}
+                          variant="outline"
+                          className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
+                          onClick={() =>
+                            handleServiceClick(category.name, service.name, service.id)
+                          }
+                        >
+                          {service.name}
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -245,4 +223,4 @@ const NurseList = () => {
   );
 };
 
-export default NurseList;
+export default ServicesPage;

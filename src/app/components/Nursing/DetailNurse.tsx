@@ -29,7 +29,7 @@ import TimeTableNurse from "./TimeTableNurse";
 import Feedback from "./Feedbacks";
 import data_nurses from "@/dummy_data/dummy_nurse.json";
 import Link from "next/link";
-import NursingCard from "./NursingCard";
+import NursingCard from "./GuestNursingCard";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,8 +51,6 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
   const [searchTerm, setSearchTerm] = useState(
     serviceId ? decodeURIComponent(serviceId) : ""
   );
-  const searchParams = useSearchParams();
-  // const category = searchParams.get("category") || "";
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -96,11 +94,11 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
       return;
     }
     // Điều hướng tới trang tìm kiếm y tá
-    router.push(`/relatives/findingNurse/${nurse.id}`);
+    router.push(`/relatives/booking/${nurse.id}`);
   };
 
   return (
-    <div className="hero_section">
+    <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       {/* Breadcrumb */}
       <Breadcrumb className="px-10 py-10">
         <BreadcrumbList>

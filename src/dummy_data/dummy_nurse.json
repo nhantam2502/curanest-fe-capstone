@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "Nguyễn Thị Ánh",
-    "specialization": "Chăm sóc người già",
+    "specialization": "cate 1",
     "avgRating": 4.6,
     "totalRating": 180,
     "photo": "https://mit.vn/wp-content/uploads/2023/11/pasted-13.png",
@@ -18,7 +18,8 @@
       "Chăm sóc tại nhà",
       "Theo dõi sức khỏe",
       "Phục hồi chức năng",
-      "Dinh dưỡng"
+      "Dinh dưỡng",
+      "service1"
     ]
   },
   {

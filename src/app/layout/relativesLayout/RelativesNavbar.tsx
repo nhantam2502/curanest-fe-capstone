@@ -69,9 +69,9 @@ const RelativesNavbar = () => {
     { id: 4, name: "Lịch sử cuộc hẹn", path: "/relatives/appointmentHistory" },
   ];
 
-  const handleClick = () => {
-    router.push("/");
-  };
+  // const handleClick = () => {
+  //   router.push("/");
+  // };
 
   const handleNavigate = () => {
     router.push("/relatives/settings");
@@ -82,8 +82,8 @@ const RelativesNavbar = () => {
       <div className="max-w-full w-[1140px] px-5 mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <div onClick={handleClick}>
-            <img src="/logo.svg" alt="logo" width={200} height={90} />
+          <div>
+            <img src="/logo.png" alt="logo" width={230} height={90} />
           </div>
 
           {/* Desktop Menu */}

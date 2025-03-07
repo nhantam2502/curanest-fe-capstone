@@ -43,7 +43,6 @@ type SelectedService = {
   id: string;
   description: string;
   thumbnail: string;
-  price?: number; // Add if needed
-  time?: string;  // Mapped from est-duration
+  
 };
 

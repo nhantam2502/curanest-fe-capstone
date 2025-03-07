@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="mx-auto max-w-screen-xl px-4  sm:px-6  lg:px-8 ">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div>
-            <img src="/logo.png" alt="logo" width={200} height={90} />
+            <img src="/logo.png" alt="logo" width={230} height={90} />
 
             <ul className="mb-5 flex gap-6">
               <li>

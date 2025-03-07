@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Check, Clock, Info } from "lucide-react";
@@ -9,20 +9,13 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import TimeSelection, {
   TimeSlot,
 } from "@/app/components/Relatives/TimeSelection";
-import {
-  CategoryInfo,
-  SelectedService,
-  Service,
-  ServiceItem,
-  TransformedCategory,
-} from "@/types/service";
+import { Service } from "@/types/service";
 import { Separator } from "@/components/ui/separator";
 import NurseSelectionList from "@/app/components/Relatives/NurseSelectionList";
 import nurses from "@/dummy_data/dummy_nurse.json";
 import { Nurse } from "@/types/nurse";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import serviceApiRequest from "@/apiRequest/services/apiService";
 
 type DummyServices = Record<string, Service[]>;
 
@@ -33,26 +26,28 @@ type SelectedTime = {
   date: string;
 };
 
-const DetailBooking = () => {
+const DetailBooking = ({ params }: { params: { id: string } }) => {
+  const { id } = params;
   const { toast } = useToast();
   const router = useRouter();
-
-  const [categories, setCategories] = useState<TransformedCategory[]>([]);
-  const [servicesLoading, setServicesLoading] = useState(true);
-  const [servicesError, setServicesError] = useState<string | null>(null);
-
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedServices, setSelectedServices] = useState<SelectedService[]>(
-    []
+  const [selectedMajor, setSelectedMajor] = useState(
+    "Chăm sóc bệnh nhân nội khoa"
   );
+  const [selectedServices, setSelectedServices] = useState<
+    Array<{
+      name: string;
+      price: number;
+      time: string;
+      description?: string;
+    }>
+  >([]);
 
   const [nurseSelectionMethod, setNurseSelectionMethod] = useState<
     "manual" | "auto"
   >("manual");
   const [selectedTime, setSelectedTime] = useState<SelectedTime | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<Nurse | null>(null);
-
   const getSteps = () => {
     const baseSteps = [
       { id: 1, title: "Chọn dịch vụ" },
@@ -85,104 +80,39 @@ const DetailBooking = () => {
     }).format(value);
   };
 
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        setServicesLoading(true);
-        const response = await serviceApiRequest.getListService(null);
-        
-        console.log("Dữ liệu trả về từ API:", response.payload.data);
-    
-        // Transform the response into the desired format
-        const transformedCategories = response.payload.data.map(
-          (category: CategoryInfo) => ({
-            ...category,
-            services: response.payload.data
-              .filter(
-                (item: ServiceItem) => item["category-id"] === category.id
-              )
-              .map((service: ServiceItem) => ({
-                name: service.name,
-                id: service.id,
-                description: service.description,
-                thumbnail: service.thumbnail,
-                "est-duration": service["est-duration"],
-                
-              })),
-          })
-        );
-    
-        console.log("Categories sau khi transform:", transformedCategories);
-    
-        setCategories(transformedCategories);
-        if (transformedCategories.length > 0) {
-          setSelectedCategory(transformedCategories[0].id);
-        }
-      } catch (error) {
-        console.error("Error fetching services:", error);
-        setServicesError("Không thể tải danh sách dịch vụ. Vui lòng thử lại.");
-      } finally {
-        setServicesLoading(false);
-      }
-    };
-    
-
-    fetchServices();
-  }, []);
-
-  useEffect(() => {
-    console.log("Danh sách categories:", categories);
-  }, [categories]);
-
-  
-  // Render loading state
-  if (servicesLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <span>Đang tải dịch vụ...</span>
-      </div>
-    );
-  }
-
-  // Render error state
-  if (servicesError || categories.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-full text-red-500">
-        {servicesError || "Không có dịch vụ nào được tìm thấy"}
-      </div>
-    );
-  }
-
-  const toggleService = (service: SelectedService) => {
+  const toggleService = (service: {
+    name: string;
+    price: number;
+    time: string;
+    description?: string;
+  }) => {
     setSelectedServices((prev) =>
-      prev.find((s) => s.id === service.id)
-        ? prev.filter((s) => s.id !== service.id)
+      prev.find((s) => s.name === service.name)
+        ? prev.filter((s) => s.name !== service.name)
         : [...prev, service]
     );
   };
 
   const calculateTotalPrice = () => {
-    // Placeholder calculation
     return selectedServices.reduce(
-      (total, service) => total + (service.price || 0),
+      (total, service) => total + service.price,
       0
     );
   };
 
-  // Calculate total time
   const calculateTotalTime = () => {
     return selectedServices.reduce(
-      (total, service) => total + (parseInt(service.time || "0") || 0),
+      (total, service) => total + parseInt(service.time),
       0
     );
   };
 
-  // const handleMajorChange = (newMajor: string) => {
-  //   if (selectedMajor !== newMajor) {
-  //     setSelectedMajor(newMajor);
-  //     setSelectedServices([]);
-  //   }
-  // };
+  const handleMajorChange = (newMajor: string) => {
+    if (selectedMajor !== newMajor) {
+      setSelectedMajor(newMajor);
+      setSelectedServices([]);
+    }
+  };
 
   const renderStepContent = (step: number) => {
     switch (step) {
@@ -197,23 +127,17 @@ const DetailBooking = () => {
 
             <div className="w-full">
               <div className="flex flex-wrap gap-4 mb-5">
-                {categories.map((category) => (
+                {Object.keys(dummy_services).map((major) => (
                   <Button
-                    key={category.id}
-                    variant={
-                      selectedCategory === category.id ? "default" : "outline"
-                    }
+                    key={major}
+                    variant={selectedMajor === major ? "default" : "outline"}
                     className={cn(
                       "text-lg rounded-full transition-colors duration-150 py-3 px-6",
-                      selectedCategory === category.id &&
-                        "bg-primary text-white"
+                      selectedMajor === major && "bg-primary text-white"
                     )}
-                    onClick={() => {
-                      setSelectedCategory(category.id);
-                      setSelectedServices([]);
-                    }}
+                    onClick={() => handleMajorChange(major)}
                   >
-                    {category.name}
+                    {major}
                   </Button>
                 ))}
               </div>
@@ -223,56 +147,57 @@ const DetailBooking = () => {
               <div
                 className={cn(
                   "space-y-6 mr-4",
-                  (categories.find((c) => c.id === selectedCategory)?.services
-                    ?.length || 0) > 6 && "max-h-96"
+                  services[selectedMajor].length > 6 && "max-h-96"
                 )}
               >
-                {categories
-                  .find((c) => c.id === selectedCategory)
-                  ?.services?.map((service) => (
-                    <div
-                      key={service.id}
-                      className={cn(
-                        "border rounded-lg cursor-pointer transition-all overflow-hidden p-4",
-                        selectedServices.some((s) => s.id === service.id)
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-200 hover:border-primary/50"
-                      )}
-                      onClick={() => toggleService(service)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-2">
-                          <h3 className="text-xl font-semibold">
-                            {service.name}
-                          </h3>
-                          <div className="flex items-center text-gray-600">
-                            {service["est-duration"] && <span>{service["est-duration"]} phút</span>}
-                            {service.description && (
-                              <>
-                                <span className="mx-2">•</span>
-                                <span>{service.description}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-6">
-                          {selectedServices.some(
-                            (s) => s.id === service.id
-                          ) && (
-                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                              <Check className="w-5 h-5 text-white" />
-                            </div>
+                {services[selectedMajor].map((service) => (
+                  <div
+                    key={service.name}
+                    className={cn(
+                      "border rounded-lg cursor-pointer transition-all overflow-hidden p-4",
+                      selectedServices.some((s) => s.name === service.name)
+                        ? "border-primary bg-primary/5"
+                        : "border-gray-200 hover:border-primary/50"
+                    )}
+                    onClick={() => toggleService(service)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-semibold">
+                          {service.name}
+                        </h3>
+                        <div className="flex items-center text-gray-600">
+                          <span>{service.time} phút</span>
+                          {service.description && (
+                            <>
+                              <span className="mx-2">•</span>
+                              <span>{service.description}</span>
+                            </>
                           )}
                         </div>
                       </div>
+                      <div className="flex items-center gap-6">
+                        <span className="font-bold text-2xl">
+                          {formatCurrency(service.price)}
+                        </span>
+
+                        {selectedServices.some(
+                          (s) => s.name === service.name
+                        ) && (
+                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <Check className="w-5 h-5 text-white" />
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
               <ScrollBar orientation="vertical" />
             </ScrollArea>
           </div>
         );
-        
+
       case 2:
         return (
           <div className="space-y-6 text-lg">
@@ -335,8 +260,9 @@ const DetailBooking = () => {
             }
           };
 
+          // Lọc điều dưỡng theo chuyên ngành được chọn
           const filteredNurses = nurses.filter(
-            (nurse) => nurse.specialization === selectedCategory
+            (nurse) => nurse.specialization === selectedMajor
           );
 
           return (
@@ -409,7 +335,7 @@ const DetailBooking = () => {
                         {service.name}
                       </span>
                       <span className="font-semibold text-xl text-red-600">
-                      {formatCurrency(service.price ?? 0)}
+                        {formatCurrency(service.price)}
                       </span>
                     </div>
                   ))
@@ -464,8 +390,8 @@ const DetailBooking = () => {
                     {nurseSelectionMethod === "auto"
                       ? "Hệ thống tự chọn"
                       : nurseSelectionMethod === "manual"
-                        ? "Tự chọn điều dưỡng"
-                        : ""}
+                      ? "Tự chọn điều dưỡng"
+                      : ""}
                   </span>
                 </div>
               </div>
@@ -550,7 +476,7 @@ const DetailBooking = () => {
                         {service.name}
                       </span>
                       <span className="font-semibold text-xl text-red-600">
-                      {formatCurrency(service.price ?? 0)}
+                        {formatCurrency(service.price)}
                       </span>
                     </div>
                   ))
@@ -746,7 +672,7 @@ const DetailBooking = () => {
                               {service.name}
                             </span>
                             <span className="font-semibold">
-                            {formatCurrency(service.price ?? 0)}
+                              {formatCurrency(service.price)}
                             </span>
                           </div>
                           <span className="text-lg text-gray-500">
