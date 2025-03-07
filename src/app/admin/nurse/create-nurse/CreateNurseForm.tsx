@@ -497,23 +497,6 @@ const NurseForm: React.FC = () => {
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Đang tạo..." : "Tạo điều dưỡng"}
             </Button>
-            <Button
-              variant="secondary" // Or any style you prefer
-              onClick={() => {
-                if (submissionSuccess) {
-                  router.push('/admin/nurse/map-nurse');
-                } else {
-                  toast({
-                    title: "Thông báo",
-                    description: "Vui lòng tạo điều dưỡng thành công trước khi gán danh mục.",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              disabled={!submissionSuccess} 
-            >
-              Gán danh mục
-            </Button>
             </div>
         </form>
       </Form>

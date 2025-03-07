@@ -1,4 +1,6 @@
 "use client";
+
+import React from "react";
 import {
   Table,
   TableBody,
@@ -8,100 +10,89 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Switch } from "@/components/ui/switch";
-import { useRouter } from "next/navigation";
-import { RelativesFilter } from "@/types/relatives";
-import Image from "next/image";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { GetAllNurse } from "@/types/nurse";
 
-interface UserTableProps {
-  users: RelativesFilter[] | undefined; // Ensure users can be undefined
+interface NurseTableProps {
+  nurses: GetAllNurse[];
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 }
 
-const ITEMS_PER_PAGE = 5;
-
-export default function NurseTable({ users }: UserTableProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [paginatedUsers, setPaginatedUsers] = useState<RelativesFilter[]>([]);
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!Array.isArray(users)) return; // Prevent errors if users is undefined
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    setPaginatedUsers(users.slice(startIndex, endIndex));
-  }, [users, currentPage]);
-
-  const totalPages = Array.isArray(users) ? Math.ceil(users.length / ITEMS_PER_PAGE) : 1;
-
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const handleViewDetails = (id: number | undefined) => {
-    router.push(`/admin/user/${id}`);
-  };
-
+export default function NurseTable({
+  nurses,
+  currentPage,
+  totalPages,
+  onPageChange,
+}: NurseTableProps) {
   return (
-    <div className="w-full">
-      <Table className="w-full border border-gray-200">
+    <div>
+      <Table>
         <TableHeader>
-          <TableRow className="bg-gray-100">
-            <TableHead className="px-4 py-2">Tên</TableHead>
-            <TableHead className="px-4 py-2">Email</TableHead>
-            <TableHead className="px-4 py-2">SĐT</TableHead>
-            <TableHead className="px-4 py-2">Avatar</TableHead>
-            <TableHead className="px-4 py-2">Action</TableHead>
+          <TableRow>
+            <TableHead>Tên</TableHead>
+            <TableHead>Giới tính</TableHead>
+            <TableHead>Nơi làm việc</TableHead>
+            <TableHead>Đánh giá</TableHead>
+            <TableHead>Avatar</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedUsers.map((user) => (
-            <TableRow key={user.id} className="hover:bg-gray-50">
-              <TableCell className="px-4 py-2">{user["full-name"]}</TableCell>
-              <TableCell className="px-4 py-2">{user.email}</TableCell>
-              <TableCell className="px-4 py-2">{user["phone-number"]}</TableCell>
-              <TableCell className="px-4 py-2 ">
-                <Image
-                  width={45}
-                  height={45}
-                  src={user.avatar || "/default-avatar.png"} // Default avatar if none provided
-                  alt="Avatar"
-                  className="rounded-full object-cover border"
-                />
-              </TableCell>
-              <TableCell className="py-4 px-4 space-x-2 flex items-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleViewDetails(user.id)}
-                >
-                  Chi tiết
-                </Button>
-                <Switch />
+          {nurses.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center italic text-gray-500">
+                Không có điều dưỡng nào.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            nurses.map((nurse) => (
+              <TableRow key={nurse["nurse-id"]}>
+                <TableCell>{nurse["nurse-name"]}</TableCell>
+                <TableCell>{nurse.gender ? "Nam" : "Nữ"}</TableCell>
+                <TableCell>{nurse["current-work-place"]}</TableCell>
+                <TableCell>
+                  <div className="flex space-x-1">
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${i < nurse.rate ? "text-yellow-500" : "text-gray-300"}`}
+                      />
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {nurse["nurse-picture"] ? (
+                    <img
+                      src={nurse["nurse-picture"]}
+                      alt="Avatar"
+                      className="w-10 h-10 rounded-full"
+                    />
+                  ) : (
+                    "N/A"
+                  )}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
-
-      {/* Pagination */}
-      <div className="flex justify-end mt-4 space-x-2">
-        <Button variant="outline" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+      <div className="flex justify-end mt-4 space-x-2 items-center">
+        <Button
+          variant="outline"
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-          <Button
-            key={page}
-            variant={currentPage === page ? "default" : "outline"}
-            onClick={() => goToPage(page)}
-          >
-            {page}
-          </Button>
-        ))}
-        <Button variant="outline" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+        <span>
+          Trang {currentPage} / {totalPages}
+        </span>
+        <Button
+          variant="outline"
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

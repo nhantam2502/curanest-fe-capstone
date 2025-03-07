@@ -1,6 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -25,7 +26,6 @@ import {
 import { Label } from "@/components/ui/label";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
 import { ServiceCate, ServiceFilter } from "@/types/service";
-import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
 interface ServiceManagementProps {
@@ -40,6 +40,10 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
   const [openCreateServiceModal, setOpenCreateServiceModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState<ServiceFilter | null>(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
   const fetchServices = useCallback(async () => {
     try {
       const response = await serviceApiRequest.getService(
@@ -49,6 +53,8 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
       if (response.status === 200 && response.payload) {
         const data = response.payload.data || [];
         setServices(data);
+        // Reset to first page on new fetch
+        setCurrentPage(1);
         console.log(data);
       } else {
         console.error("Error fetching services:", response);
@@ -80,6 +86,13 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
         service.description.toLowerCase().includes(lowerCaseQuery)
     );
   }, [services, searchQuery]);
+
+  // Compute pagination values
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+  const paginatedServices = filteredServices.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleCreateService = () => {
     fetchServices();
@@ -123,14 +136,17 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredServices.length === 0 ? (
+          {paginatedServices.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-center italic text-gray-500">
+              <TableCell
+                colSpan={3}
+                className="text-center italic text-gray-500"
+              >
                 Không có dịch vụ nào.
               </TableCell>
             </TableRow>
           ) : (
-            filteredServices.map((service) => (
+            paginatedServices.map((service) => (
               <TableRow key={service.id}>
                 <TableCell>{service.name}</TableCell>
                 <TableCell>{service.description}</TableCell>
@@ -165,6 +181,35 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
           )}
         </TableBody>
       </Table>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-end items-center space-x-2 mt-4">
+          <Button
+            variant="outline"
+            onClick={() =>
+              setCurrentPage((prev) => Math.max(prev - 1, 1))
+            }
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, totalPages)
+              )
+            }
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
