@@ -23,6 +23,9 @@ const nurseApiRequest = {
     return http.get<CreateRes>(url);
   },
   
+  getAllNurseDetail: (id: string) =>
+    http.get<CreateRes>(`/nurse/api/v1/nurses/${id}/private-detail`),
+
   createNurse: (body: CreateNurse) =>
     http.post<CreateRes>("/nurse/api/v1/nurses", body),
 

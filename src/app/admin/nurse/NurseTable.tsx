@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { GetAllNurse } from "@/types/nurse";
+import { useRouter } from "next/navigation";
+import { useNurse } from "@/app/context/NurseContext";
 
 interface NurseTableProps {
   nurses: GetAllNurse[];
@@ -26,6 +28,22 @@ export default function NurseTable({
   totalPages,
   onPageChange,
 }: NurseTableProps) {
+  const router = useRouter();
+  const { setSelectedNurse } = useNurse();
+
+  const handleRowClick = (nurseId: string) => {
+    router.push(`/admin/nurse/${nurseId}`);
+  };
+
+  const handleMapService = (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    nurse: GetAllNurse
+  ) => {
+    event.stopPropagation();
+    setSelectedNurse(nurse);
+    router.push(`/admin/nurse/map-service`);
+  };
+
   return (
     <div>
       <Table>
@@ -36,18 +54,26 @@ export default function NurseTable({
             <TableHead>Nơi làm việc</TableHead>
             <TableHead>Đánh giá</TableHead>
             <TableHead>Avatar</TableHead>
+            <TableHead>Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {nurses.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={4} className="text-center italic text-gray-500">
+              <TableCell
+                colSpan={6}
+                className="text-center italic text-gray-500"
+              >
                 Không có điều dưỡng nào.
               </TableCell>
             </TableRow>
           ) : (
             nurses.map((nurse) => (
-              <TableRow key={nurse["nurse-id"]}>
+              <TableRow
+                key={nurse["nurse-id"]}
+                onClick={() => handleRowClick(nurse["nurse-id"])}
+                className="cursor-pointer hover:bg-gray-100"
+              >
                 <TableCell>{nurse["nurse-name"]}</TableCell>
                 <TableCell>{nurse.gender ? "Nam" : "Nữ"}</TableCell>
                 <TableCell>{nurse["current-work-place"]}</TableCell>
@@ -56,7 +82,11 @@ export default function NurseTable({
                     {Array.from({ length: 5 }, (_, i) => (
                       <Star
                         key={i}
-                        className={`h-4 w-4 ${i < nurse.rate ? "text-yellow-500" : "text-gray-300"}`}
+                        className={`h-4 w-4 ${
+                          i < nurse.rate
+                            ? "text-yellow-500"
+                            : "text-gray-300"
+                        }`}
                       />
                     ))}
                   </div>
@@ -71,6 +101,11 @@ export default function NurseTable({
                   ) : (
                     "N/A"
                   )}
+                </TableCell>
+                <TableCell>
+                  <Button variant="outline" onClick={(event) => handleMapService(event, nurse)}>
+                    Map
+                  </Button>
                 </TableCell>
               </TableRow>
             ))

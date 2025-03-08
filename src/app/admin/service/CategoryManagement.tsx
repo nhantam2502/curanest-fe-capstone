@@ -192,7 +192,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   };
 
   return (
-    <div>
+    <div className="w-full">
       <div className="mb-4 flex justify-between items-center">
         <Label className="text-lg font-bold">Quản lý danh mục dịch vụ</Label>
         <CategoryForm

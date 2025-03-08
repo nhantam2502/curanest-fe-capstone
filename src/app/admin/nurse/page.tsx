@@ -2,19 +2,19 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import NurseTable from "@/app/admin/nurse/NurseTable";
-import NurseFilter, { NurseFilterValues } from "./NurseFilter";
+import NurseFilter from "./NurseFilter";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import { useToast } from "@/hooks/use-toast";
-import { GetAllNurse } from "@/types/nurse";
+import { GetAllNurse, GetAllNurseFilter } from "@/types/nurse";
 
 export default function NurseManagementPage() {
   const { toast } = useToast();
   const [nurses, setNurses] = useState<GetAllNurse[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<NurseFilterValues>({
+  const [filters, setFilters] = useState<GetAllNurseFilter>({
     "nurse-name": "",
     "service-id": "",
     rate: "",
@@ -23,8 +23,6 @@ export default function NurseManagementPage() {
 
   const fetchNurses = useCallback(async () => {
     try {
-      // Build the filter object for your API call. Here, we assume your API expects a shape like:
-      // { filter: { "nurse-name": string, "service-id": string, rate: string }, paging: { page: number, size: number, total: number } }
       const filter = {
         "nurse-name": filters["nurse-name"],
         "service-id": filters["service-id"],
@@ -62,7 +60,7 @@ export default function NurseManagementPage() {
     fetchNurses();
   }, [fetchNurses]);
 
-  const handleSearch = (newFilters: NurseFilterValues) => {
+  const handleSearch = (newFilters: GetAllNurseFilter) => {
     setFilters(newFilters);
     setCurrentPage(1);
   };
