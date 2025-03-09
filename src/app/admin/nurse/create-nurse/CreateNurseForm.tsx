@@ -12,8 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
-import { Major } from "@/types/major";
-import majorApiRequest from "@/apiRequest/major/apiMajor";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -34,7 +32,6 @@ interface Geo {
 
 const formSchema = z.object({
   "full-name": z.string().min(1, { message: "Tên đầy đủ là bắt buộc" }),
-  "major-id": z.string().min(1, { message: "Chuyên môn là bắt buộc" }),
   dob: z.string().min(1, { message: "Ngày sinh là bắt buộc" }),
   "citizen-id": z.string().min(1, { message: "CCCD là bắt buộc" }),
   "phone-number": z.string().min(1, { message: "Số điện thoại là bắt buộc" }),
@@ -60,7 +57,6 @@ const formSchema = z.object({
 const NurseForm: React.FC = () => {
   const router = useRouter();
   const { toast } = useToast();
-  const [majors, setMajors] = useState<Major[]>([]);
   const [districts, setDistricts] = useState<Geo[]>([]);
   const [wards, setWards] = useState<Geo[]>([]);
   const cityCode = "79";
@@ -73,7 +69,6 @@ const NurseForm: React.FC = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       "full-name": "",
-      "major-id": "",
       dob: "",
       "citizen-id": "",
       "phone-number": "",
@@ -94,20 +89,6 @@ const NurseForm: React.FC = () => {
     },
     mode: "onSubmit",
   });
-
-  useEffect(() => {
-    const fetchMajor = async () => {
-      try {
-        const response = await majorApiRequest.getMajor();
-        if (response.status === 200 && response.payload) {
-          setMajors(response.payload.data || []);
-        }
-      } catch (error) {
-        console.error("Error fetching majors:", error);
-      }
-    };
-    fetchMajor();
-  }, []);
 
   useEffect(() => {
     const fetchDistricts = async () => {
@@ -198,38 +179,6 @@ const NurseForm: React.FC = () => {
                   <Label>Tên đầy đủ</Label>
                   <FormControl>
                     <Input size={20} placeholder="Tên đầy đủ" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Major */}
-            <FormField
-              control={form.control}
-              name="major-id"
-              render={({ field }) => (
-                <FormItem>
-                  <Label>Chuyên môn</Label>
-                  <FormControl>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn chuyên môn" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {majors.map((major) => (
-                          <SelectItem
-                            key={major.id}
-                            value={major.id.toString()}
-                          >
-                            {major.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -547,23 +496,6 @@ const NurseForm: React.FC = () => {
             <div className="flex justify-end">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Đang tạo..." : "Tạo điều dưỡng"}
-            </Button>
-            <Button
-              variant="secondary" // Or any style you prefer
-              onClick={() => {
-                if (submissionSuccess) {
-                  router.push('/admin/nurse/map-nurse');
-                } else {
-                  toast({
-                    title: "Thông báo",
-                    description: "Vui lòng tạo điều dưỡng thành công trước khi gán danh mục.",
-                    variant: "destructive",
-                  });
-                }
-              }}
-              disabled={!submissionSuccess} 
-            >
-              Gán danh mục
             </Button>
             </div>
         </form>

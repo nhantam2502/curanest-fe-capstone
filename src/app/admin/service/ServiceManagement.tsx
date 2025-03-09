@@ -1,6 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -23,116 +24,86 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
+import serviceApiRequest from "@/apiRequest/service/apiServices";
+import { ServiceCate, ServiceFilter } from "@/types/service";
+import { Search } from "lucide-react";
 
 interface ServiceManagementProps {
-  selectedCategoryId: number | null;
+  selectedCategoryId: string;
 }
 
-interface ServiceCategory {
-  id: number;
-  name: string;
-  description: string;
-}
-
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  category_id: number;
-}
-
-const ServiceManagement: React.FC<ServiceManagementProps> = ({ selectedCategoryId }) => {
+const ServiceManagement: React.FC<ServiceManagementProps> = ({
+  selectedCategoryId,
+}) => {
   const { toast } = useToast();
-  const [services, setServices] = useState<Service[]>([]);
-  const [categories, setCategories] = useState<ServiceCategory[]>([]);
+  const [services, setServices] = useState<ServiceCate[]>([]);
   const [openCreateServiceModal, setOpenCreateServiceModal] = useState(false);
-  const [editingService, setEditingService] = useState<Service | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [serviceToDeleteId, setServiceToDeleteId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState<ServiceFilter | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const response = await serviceApiRequest.getService(
+        selectedCategoryId,
+        searchQuery
+      );
+      if (response.status === 200 && response.payload) {
+        const data = response.payload.data || [];
+        setServices(data);
+        // Reset to first page on new fetch
+        setCurrentPage(1);
+        console.log(data);
+      } else {
+        console.error("Error fetching services:", response);
+        toast({
+          title: "Lỗi tải dịch vụ",
+          description:
+            response.payload?.message || "Không thể tải dịch vụ.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching services:", error);
+    }
+  }, [searchQuery, selectedCategoryId, toast]);
 
   useEffect(() => {
-    const fetchServices = async () => {
-      // ... (fetch services logic - no changes here) ...
-      const dummyServices: Service[] = [
-        { id: 301, category_id: 1, name: "Vệ sinh cá nhân", description: "Dịch vụ vệ sinh cá nhân tại nhà" },
-        { id: 302, category_id: 1, name: "Thay băng", description: "Dịch vụ thay băng và chăm sóc vết thương" },
-        { id: 303, category_id: 2, name: "Theo dõi tim mạch", description: "Dịch vụ theo dõi tim mạch chuyên sâu" },
-        { id: 304, category_id: 2, name: "Hỗ trợ hô hấp", description: "Dịch vụ hỗ trợ hô hấp và oxy liệu pháp" },
-        { id: 305, category_id: 3, name: "Lấy mẫu xét nghiệm", description: "Dịch vụ lấy mẫu xét nghiệm tại nhà" },
-        { id: 306, category_id: 3, name: "Hướng dẫn dùng thuốc", description: "Dịch vụ hướng dẫn sử dụng thuốc và quản lý đơn thuốc" },
-      ];
-      setServices(dummyServices);
-    };
-
-    const fetchCategoriesForForm = async () => {
-      // ... (fetch categories for form logic - no changes here) ...
-      const dummyCategories: ServiceCategory[] = [
-        { id: 201, name: "Chăm sóc cơ bản", description: "Dịch vụ chăm sóc cơ bản" },
-        { id: 202, name: "Chăm sóc chuyên sâu", description: "Dịch vụ chăm sóc chuyên sâu" },
-        { id: 203, name: "Hỗ trợ y tế", description: "Dịch vụ hỗ trợ y tế" },
-      ];
-      setCategories(dummyCategories);
-    };
-
     fetchServices();
-    fetchCategoriesForForm();
-  }, []);
+  }, [fetchServices]);
 
+  // Only apply search filtering when there is input in the search box.
   const filteredServices = React.useMemo(() => {
-    if (!selectedCategoryId) {
+    if (!searchQuery || !searchQuery["service-name"]) {
       return services;
     }
-    return services.filter(service => service.category_id === selectedCategoryId);
-  }, [services, selectedCategoryId]);
+    const lowerCaseQuery = searchQuery["service-name"].toLowerCase();
+    return services.filter(
+      (service) =>
+        service.name.toLowerCase().includes(lowerCaseQuery) ||
+        service.description.toLowerCase().includes(lowerCaseQuery)
+    );
+  }, [services, searchQuery]);
+
+  // Compute pagination values
+  const totalPages = Math.ceil(filteredServices.length / itemsPerPage);
+  const paginatedServices = filteredServices.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleCreateService = () => {
-    const nextId = services.length > 0 ? Math.max(...services.map(s => s.id)) + 1 : 307;
-    const newService: Service = {
-      // ... (handle create service logic - no changes here) ...
-      id: nextId,
-      category_id: 0, //parseInt(createdService.categoryId, 10), not available yet but avoid type error
-      name: "dummy service",
-      description: "dummy des",
-    };
-    setServices([...services, newService]);
-    setOpenCreateServiceModal(false);
-  };
-
-  const handleEditService = (service: Service) => {
-    setEditingService(service);
-    setOpenCreateServiceModal(true);
-  };
-
-  const handleUpdateService = (updatedService: Service) => {
-    // ... (handle update service logic - no changes here) ...
-    setServices(
-      services.map((service) =>
-        service.id === updatedService.id ? updatedService : service
-      )
-    );
-    setEditingService(null);
-    setOpenCreateServiceModal(false);
+    fetchServices();
   };
 
   const handleCloseForm = () => {
     setOpenCreateServiceModal(false);
-    setEditingService(null);
   };
 
-  const handleDeleteService = async (serviceId: number) => {
-    setIsDeleting(true);
-    setServiceToDeleteId(serviceId);
-
-    // Simulate API call - replace with your actual API delete call
-    setTimeout(() => {
-      setServices(services.filter((service) => service.id !== serviceId));
-      setIsDeleting(false);
-      setServiceToDeleteId(null);
-      toast({
-        title: "Thành công",
-        description: "Dịch vụ đã được xoá thành công.",
-      });
-    }, 1000);
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery({ "service-name": e.target.value });
   };
 
   return (
@@ -143,11 +114,18 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ selectedCategoryI
           open={openCreateServiceModal}
           onOpenChange={setOpenCreateServiceModal}
           onCreateService={handleCreateService}
-          categories={categories}
-          editingService={editingService}
-          onUpdateService={handleUpdateService}
           onCancel={handleCloseForm}
         />
+      </div>
+      <div className="mb-4 relative">
+        <Input
+          type="text"
+          placeholder="Tìm kiếm theo tên hoặc mô tả..."
+          value={searchQuery?.["service-name"] || ""}
+          onChange={handleSearchChange}
+          className="pr-10"
+        />
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
       </div>
       <Table>
         <TableHeader>
@@ -158,28 +136,27 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ selectedCategoryI
           </TableRow>
         </TableHeader>
         <TableBody>
-          { selectedCategoryId === null ? ( // Conditional rendering here
+          {paginatedServices.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-center italic text-gray-500">
-                Chọn danh mục để xem dịch vụ
+              <TableCell
+                colSpan={3}
+                className="text-center italic text-gray-500"
+              >
+                Không có dịch vụ nào.
               </TableCell>
             </TableRow>
           ) : (
-            filteredServices.map((service) => ( // Render services if category is selected or if there are services even without category selected
+            paginatedServices.map((service) => (
               <TableRow key={service.id}>
                 <TableCell>{service.name}</TableCell>
                 <TableCell>{service.description}</TableCell>
                 <TableCell className="text-right font-medium space-x-2">
-                  <Button variant="ghost" size="sm" onClick={() => handleEditService(service)}>
+                  <Button variant="ghost" size="sm">
                     Sửa
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={isDeleting}
-                      >
+                      <Button variant="destructive" size="sm">
                         Xoá
                       </Button>
                     </AlertDialogTrigger>
@@ -187,20 +164,13 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ selectedCategoryI
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Bạn có chắc chắn muốn xoá dịch vụ này? Hành động này
-                          không thể hoàn tác.
+                          Bạn có chắc chắn muốn xoá dịch vụ này? Hành động này không thể hoàn tác.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() =>
-                            serviceToDeleteId === service.id &&
-                            handleDeleteService(service.id)
-                          }
-                          disabled={isDeleting}
-                        >
-                          {isDeleting ? "Đang xoá..." : "Xoá"}
+                        <AlertDialogAction>
+                          {/* Add delete logic here */}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -211,6 +181,35 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ selectedCategoryI
           )}
         </TableBody>
       </Table>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-end items-center space-x-2 mt-4">
+          <Button
+            variant="outline"
+            onClick={() =>
+              setCurrentPage((prev) => Math.max(prev - 1, 1))
+            }
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, totalPages)
+              )
+            }
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,84 +1,83 @@
 "use client";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState } from "react";
 import { Search } from "lucide-react";
-import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
-import { RelativesFilter } from "@/types/relatives";
+import { GetAllNurseFilter } from "@/types/nurse";
 
 interface NurseFilterProps {
-  setFilteredUsers: (users: RelativesFilter[]) => void;
-  resetUsers: () => void;
+  onSearch: (filters: GetAllNurseFilter) => void;
+  onReset: () => void;
 }
 
-
-export default function NurseFilter({ setFilteredUsers, resetUsers }: NurseFilterProps) {
-  const [filters, setFilters] = useState({
-    fullName: "",
-    email: "",
-    phoneNumber: "",
+export default function NurseFilter({ onSearch, onReset }: NurseFilterProps) {
+  const [filters, setFilters] = useState<GetAllNurseFilter>({
+    "nurse-name": "",
+    "service-id": "",
+    rate: "",
   });
-  
-  const role = "nurse";
 
-  const handleSearch = async () => {
-    try {
-      const response = await relativesApiRequest.getRelativesFilter({
-        filter: {
-          ...(filters.fullName.trim() && { "full-name": filters.fullName }),
-          ...(filters.email.trim() && { email: filters.email }),
-          ...(filters.phoneNumber.trim() && {
-            "phone-number": filters.phoneNumber,
-          }),
-          role,
-        },
-        paging: { page: 1, size: 10, total: 0 },
-      });
-
-      setFilteredUsers(response.payload.data || []);
-    } catch (error) {
-      console.error("Error fetching filtered users:", error);
-    }
+  const handleSearch = () => {
+    onSearch(filters);
   };
 
-  const clearFilters = () => {
-    setFilters({ fullName: "", email: "", phoneNumber: "" });
-    resetUsers(); 
+  const handleReset = () => {
+    setFilters({ "nurse-name": "", "service-id": "", rate: "" });
+    onReset();
   };
-  
 
   return (
     <div className="p-4 border rounded-lg shadow-sm mb-6 bg-white">
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 items-center">
         <Input
           type="text"
-          placeholder="Tìm theo tên"
-          value={filters.fullName}
+          placeholder="Tìm theo tên điều dưỡng"
+          value={filters["nurse-name"]}
           onChange={(e) =>
-            setFilters((prev) => ({ ...prev, fullName: e.target.value }))
+            setFilters((prev) => ({ ...prev, "nurse-name": e.target.value }))
           }
         />
         <Input
           type="text"
-          placeholder="Tìm theo email"
-          value={filters.email}
+          placeholder="Tìm theo dịch vụ"
+          value={filters["service-id"]}
           onChange={(e) =>
-            setFilters((prev) => ({ ...prev, email: e.target.value }))
+            setFilters((prev) => ({ ...prev, "service-id": e.target.value }))
           }
         />
-        <Input
-          type="text"
-          placeholder="Tìm theo số điện thoại"
-          value={filters.phoneNumber}
-          onChange={(e) =>
-            setFilters((prev) => ({ ...prev, phoneNumber: e.target.value }))
-          }
-        />
+        
+          <Select
+            value={filters.rate.toString()}
+            onValueChange={(value: string) =>
+              setFilters((prev) => ({ ...prev, rate: value }))
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Tìm theo đánh giá" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0">Tất cả</SelectItem>
+              <SelectItem value="1">1 sao trở lên</SelectItem>
+              <SelectItem value="2">2 sao trở lên</SelectItem>
+              <SelectItem value="3">3 sao trở lên</SelectItem>
+              <SelectItem value="4">4 sao trở lên</SelectItem>
+              <SelectItem value="5">5 sao</SelectItem>
+            </SelectContent>
+          </Select>
+
         <Button onClick={handleSearch}>
           <Search className="h-4 w-4 mr-2" />
           Tìm
         </Button>
-        <Button variant="outline" onClick={clearFilters}>
+        <Button variant="outline" onClick={handleReset}>
           Xoá bộ lọc
         </Button>
       </div>

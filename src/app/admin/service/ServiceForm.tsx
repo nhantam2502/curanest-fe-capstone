@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,124 +20,118 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { CreateServiceCate } from "@/types/service";
+import serviceApiRequest from "@/apiRequest/service/apiServices";
+import categoryApiRequest from "@/apiRequest/category/apiCategory";
+import { Category, CategoryFilter } from "@/types/category";
 
-// Define props for ServiceForm component (updated with editingService and onUpdateService)
 interface ServiceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateService: (
-    service: Omit<Service, "id" | "category_id"> & { categoryId: string }
-  ) => void;
-  categories: ServiceCategory[];
-  editingService: Service | null; // Prop to receive service being edited
-  onUpdateService: (updatedService: Service) => void; // Callback for updating service
-  onCancel: () => void; // Callback for cancel action
-}
-
-// Dummy types - replace with your actual types
-interface ServiceCategory {
-  id: number;
-  name: string;
-  description: string;
-}
-
-interface Service {
-  id: number;
-  name: string;
-  description: string;
-  category_id: number;
+  onCreateService: () => void;
+  onCancel: () => void;
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
   open,
   onOpenChange,
   onCreateService,
-  categories,
-  editingService,
-  onUpdateService,
-  onCancel,
 }) => {
-  // Destructure new props
-  const [newService, setNewService] = React.useState<
-    Omit<Service, "id" | "category_id"> & { categoryId: string }
-  >({ name: "", description: "", categoryId: "" });
+  const [newService, setNewService] = useState<CreateServiceCate>({
+    name: "",
+    description: "",
+    "category-id": "",
+    "est-duration": "",
+    thumbnail: "",
+  });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
+  const [searchQuery] = useState<CategoryFilter>({ name: "" });
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await categoryApiRequest.getCategory(searchQuery);
+      if (response.status === 200 && response.payload) {
+        setCategories(response.payload.data || []);
+      } else {
+        console.error("Error fetching categories:", response);
+        toast({
+          title: "Lỗi tải danh mục",
+          description:
+            response.payload?.message || "Không thể tải danh mục dịch vụ.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast({
+        title: "Lỗi tải danh mục",
+        description: "Không thể tải danh mục dịch vụ. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+  }, [searchQuery, toast]);
 
   useEffect(() => {
-    if (editingService) {
-      setNewService({
-        name: editingService.name,
-        description: editingService.description,
-        categoryId: editingService.category_id.toString(),
-      }); // Populate form with editing service data, including categoryId
-    } else {
-      setNewService({ name: "", description: "", categoryId: "" });
-    }
-  }, [editingService]);
+    fetchCategories();
+  }, [fetchCategories]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setNewService((prevState) => ({ ...prevState, [name]: value }));
+    setNewService((prevState: CreateServiceCate) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
-
-  // const handleCategoryChange = (value: string) => {
-  //   setNewService((prevState) => ({ ...prevState, categoryId: value }));
-  // };
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      let response;
-      if (editingService) {
-        // Dummy Update Logic - Replace with API call in real app
-        onUpdateService({
-          ...editingService,
-          ...newService,
-          category_id: parseInt(newService.categoryId, 10),
-        } as Service); // Call onUpdateService callback for edit mode, parse categoryId to number
-        response = { status: 200 }; // Simulate successful response
-      } else {
-        response = { status: 201 }; // Simulate successful response
-        onCreateService(newService);
-      }
+      // Transform the payload so that "category-id" is sent as "category_id"
+      const payload = {
+        name: newService.name,
+        description: newService.description,
+       "category-id": newService["category-id"], // transform here
+        "est-duration": newService["est-duration"],
+        thumbnail: newService.thumbnail,
+      };
 
-      if (response && (response.status === 200 || response.status === 201)) {
+      const response = await serviceApiRequest.createService(payload);
+      if (response && response.status === 201) {
         toast({
           title: "Thành công",
-          description: `Dịch vụ đã được ${
-            editingService ? "cập nhật" : "tạo"
-          } thành công.`,
+          description: "Danh mục dịch vụ đã được tạo thành công.",
         });
-        setNewService({ name: "", description: "", categoryId: "" });
+        onCreateService();
+        console.log(response);
+        setNewService({
+          name: "",
+          description: "",
+          "category-id": "",
+          "est-duration": "",
+          thumbnail: "",
+        });
         onOpenChange(false);
       } else {
         toast({
           title: "Lỗi",
-          description: `Không thể ${
-            editingService ? "cập nhật" : "tạo"
-          } dịch vụ. Vui lòng thử lại.`,
+          description:
+            response?.payload?.message ||
+            "Không thể tạo danh mục dịch vụ. Vui lòng thử lại.",
           variant: "destructive",
         });
-        console.error(
-          `Error ${editingService ? "updating" : "creating"} service:`,
-          response
-        );
+        console.error("Error creating category:", response);
       }
     } catch (error) {
       toast({
         title: "Lỗi",
-        description: `Không thể ${
-          editingService ? "cập nhật" : "tạo"
-        } dịch vụ. Vui lòng thử lại.`,
+        description: "Không thể tạo danh mục dịch vụ. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error(
-        `Error ${editingService ? "updating" : "creating"} service:`,
-        error
-      );
+      console.error("Error creating category:", error);
     } finally {
       setIsSaving(false);
     }
@@ -150,27 +144,24 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {editingService ? "Chỉnh sửa dịch vụ" : "Thêm dịch vụ mới"}
-          </DialogTitle>{" "}
-          {/* Dynamic modal title */}
+          <DialogTitle>Thêm danh mục mới</DialogTitle>
           <DialogDescription>
-            {editingService
-              ? "Chỉnh sửa thông tin dịch vụ."
-              : "Nhập thông tin chi tiết cho dịch vụ mới."}{" "}
-            {/* Dynamic modal description */}
+            Nhập tên và mô tả cho danh mục dịch vụ mới.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-        <div className="grid gap-2">
-            <Label htmlFor="category">Danh mục dịch vụ</Label>
-            <Select>
-              {" "}
-              {/* Simplified Select - no props for now */}
-              <SelectTrigger>
+          <div className="grid gap-2">
+            <Label htmlFor="category-id">Danh mục</Label>
+            <Select
+              value={newService["category-id"]}
+              onValueChange={(value) =>
+                setNewService((prev) => ({ ...prev, "category-id": value }))
+              }
+            >
+              <SelectTrigger id="category-id">
                 <SelectValue placeholder="Chọn danh mục" />
               </SelectTrigger>
-              <SelectContent className="bg-white">
+              <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name}
@@ -180,13 +171,13 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="name">Tên dịch vụ</Label>
+            <Label htmlFor="name">Tên danh mục</Label>
             <Input
               id="name"
               name="name"
               value={newService.name}
               onChange={handleInputChange}
-              placeholder="Ví dụ: Đo huyết áp tại nhà"
+              placeholder="Ví dụ: Chăm sóc tại nhà"
             />
           </div>
           <div className="grid gap-2">
@@ -196,14 +187,29 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               name="description"
               value={newService.description}
               onChange={handleInputChange}
-              placeholder="Mô tả chi tiết về dịch vụ"
+              placeholder="Mô tả ngắn gọn về danh mục"
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="est-duration">Thời gian dự kiến</Label>
+            <Input
+              id="est-duration"
+              name="est-duration"
+              value={newService["est-duration"]}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="thumbnail">Hình ảnh</Label>
+            <Input
+              id="thumbnail"
+              name="thumbnail"
+              value={newService.thumbnail}
+              onChange={handleInputChange}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="secondary" onClick={onCancel}>
-            Hủy
-          </Button>
           <Button type="submit" onClick={handleSave} disabled={isSaving}>
             {isSaving ? "Đang lưu..." : "Lưu"}
           </Button>

@@ -44,7 +44,6 @@ export interface NurseForStaff {
   department?: string; 
   email?: string;
 }
-
 export interface CreateNurse {
   address: string;
   certificate: string;
@@ -59,13 +58,51 @@ export interface CreateNurse {
   "full-name": string; 
   gender: boolean;
   "google-drive-url": string; 
-  "major-id": string; 
   "nurse-picture": string; 
   password?: string; 
   "phone-number": string; 
   slogan: string;
   ward: string;
 }
+
+export type GetAllNurse = {
+  "nurse-id": string;
+  "nurse-picture": string;
+  "nurse-name": string;
+  gender: boolean;
+  "current-work-place": string;
+  rate: number;
+};
+
+export type GetAllNurseDetail = {
+  id: string; 
+  role: string; 
+  email: string;
+  "phone-number": string;
+  "nurse-id": string;
+  "nurse-picture": string;
+  "nurse-name": string;
+  gender: boolean;
+  dob: string; 
+  address: string;
+  ward: string;
+  district: string;
+  city: string;
+  "current-work-place": string;
+  "education-level": string;
+  experience: string;
+  certificate: string;
+  "google-drive-url": string;
+  slogan: string;
+  rate: number;
+};
+
+export type GetAllNurseFilter = {
+  "service-id": string;
+  "nurse-name": string;
+  rate: string;
+}
+
 
 export type CreateRes = {
   status: number;
