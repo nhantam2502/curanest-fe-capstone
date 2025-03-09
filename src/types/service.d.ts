@@ -5,6 +5,13 @@ export type Service = {
   description?: string;
 };
 
+export interface Services {
+  id: number;
+  name: string;
+  major_id: number;
+  duration: string;
+  fee: number;
+}
 // --------------------------------------------------
 
 // Define types based on the API response structure

@@ -96,7 +96,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         <div className="mb-8 flex items-center justify-center">
           <Link href="/" className="flex flex-col items-center">
             {isCollapsed ? (
-              <Image src={logo} alt="Curanest Logo" width={40} height={40} />
+              <Image src="/logo.png" alt="Curanest Logo" width={40} height={40} />
             ) : (
               <>
                 <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>CURANEST</p>

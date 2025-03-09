@@ -273,7 +273,7 @@ const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
 
         {/* Feedback */}
     
-        <Feedback nurse={nurse} />
+        {/* <Feedback nurse={nurse} /> */}
 
         {/* Related Nurse */}
         {/* <div className="mt-10 mb-10">

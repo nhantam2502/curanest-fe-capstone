@@ -96,7 +96,7 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({
       >
         <div className="mb-8 flex items-center">
           <Link href="/" className="flex flex-row items-center">
-            <Image src={logo} alt="Curanest Logo" width={40} height={40} />
+            <Image src="/logo.png" alt="Curanest Logo" width={40} height={40} />
 
             {!isCollapsed && (
               <p className={`font-bold text-xl ml-3 ${PRIMARY_COLOR}`}>
