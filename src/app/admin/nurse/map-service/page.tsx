@@ -2,23 +2,13 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormItem,
-  FormLabel,
-  FormControl,
-} from "@/components/ui/form";
+import { Form, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import {
   Select,
   SelectTrigger,
@@ -30,22 +20,27 @@ import { useNurse } from "@/app/context/NurseContext";
 import { Star } from "lucide-react";
 import categoryApiRequest from "@/apiRequest/category/apiCategory";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
+// Import the nurse API request module that contains mapNurseToService
+import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 
 interface ServiceCategory {
-  id: number;
+  id: string; // id is a string from the API
   name: string;
 }
 
 interface Service {
   id: number;
   name: string;
-  category_id: number;
+  category_id: string; // assuming services use string for category id as well
 }
 
 const NurseServiceMappingPage: React.FC = () => {
   const { selectedNurse } = useNurse();
-  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>(
+    []
+  );
   const [services, setServices] = useState<Service[]>([]);
+  // selectedCategory is stored as a string
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -75,7 +70,11 @@ const NurseServiceMappingPage: React.FC = () => {
         setServices([]);
         return;
       }
-      const response = await serviceApiRequest.getService(selectedCategory, null);
+      // Pass the selectedCategory string directly to your API call
+      const response = await serviceApiRequest.getService(
+        selectedCategory,
+        null
+      );
       if (response.status === 200 && response.payload) {
         const data = response.payload.data || [];
         setServices(data);
@@ -92,27 +91,43 @@ const NurseServiceMappingPage: React.FC = () => {
     fetchServices();
   }, [fetchServices]);
 
-  // Handler for category select change
-  const handleCategoryChange = (categoryId: number) => {
-    setSelectedCategory(categoryId.toString());
+  // Handler for category select change: accept a string value
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
   };
 
   // Handler for service checkbox change
   const handleServiceCheckboxChange = (serviceId: number, checked: boolean) => {
     setSelectedServices((prev) =>
-      checked ? [...prev, serviceId.toString()] : prev.filter((id) => id !== serviceId.toString())
+      checked
+        ? [...prev, serviceId.toString()]
+        : prev.filter((id) => id !== serviceId.toString())
     );
   };
 
   const form = useForm();
 
-  const handleSubmitMapping = () => {
-    setShowConfirmationModal(true);
-    
+  // Updated handleSubmitMapping: call the API using nurseId and selectedServices
+  const handleSubmitMapping = async () => {
+    if (!selectedNurse) {
+      console.error("No nurse selected");
+      return;
+    }
+    try {
+      const nurseId = selectedNurse["nurse-id"];
+      const body = { "service-ids": selectedServices };
+      const response = await nurseApiRequest.mapNurseToService(nurseId, body);
+      console.log("Mapping response:", response);
+      setShowConfirmationModal(true);
+      // Additional handling on success can go here
+    } catch (error) {
+      console.error("Error mapping nurse to service:", error);
+      // You might want to handle the error by showing a message to the user
+    }
   };
 
   const filteredServices = selectedCategory
-    ? services.filter((service) => service.category_id === parseInt(selectedCategory))
+    ? services.filter((service) => service.category_id === selectedCategory)
     : services;
 
   return (
@@ -123,14 +138,21 @@ const NurseServiceMappingPage: React.FC = () => {
           <CardHeader>
             <CardTitle>Thông tin điều dưỡng</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center p-6">
+          <CardContent className="flex flex-col items-center p-6 ">
             <Avatar className="w-32 h-32 rounded-full mb-4">
-              <AvatarImage src={selectedNurse?.["nurse-picture"]} alt="Nurse Avatar" />
+              <AvatarImage
+                src={selectedNurse?.["nurse-picture"]}
+                alt="Nurse Avatar"
+              />
               <AvatarFallback>DN</AvatarFallback>
             </Avatar>
-            <div className="text-center">
-              <h1>Tên: {selectedNurse?.["nurse-name"] || "No nurse selected"}</h1>
-              <p className="text-gray-500">Nơi làm việc: {selectedNurse?.["current-work-place"]}</p>
+            <div className="text-center space-y-4">
+              <h1>
+                Tên: {selectedNurse?.["nurse-name"] || "No nurse selected"}
+              </h1>
+              <p className="text-gray-500">
+                Nơi làm việc: {selectedNurse?.["current-work-place"]}
+              </p>
               <div className="flex space-x-1 justify-center">
                 {Array.from({ length: 5 }, (_, i) => (
                   <Star
@@ -143,7 +165,9 @@ const NurseServiceMappingPage: React.FC = () => {
                   />
                 ))}
               </div>
-              <Badge variant="secondary">{selectedNurse?.gender ? "Nam" : "Nữ"}</Badge>
+              <Badge variant="secondary">
+                {selectedNurse?.gender ? "Nam" : "Nữ"}
+              </Badge>
             </div>
           </CardContent>
         </Card>
@@ -159,13 +183,15 @@ const NurseServiceMappingPage: React.FC = () => {
               <FormItem>
                 <FormLabel>Chọn danh mục dịch vụ</FormLabel>
                 <FormControl>
-                  <Select onValueChange={(value) => handleCategoryChange(Number(value))}>
+                  <Select
+                    onValueChange={(value) => handleCategoryChange(value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Chọn danh mục" />
                     </SelectTrigger>
                     <SelectContent>
                       {serviceCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
+                        <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
                       ))}
@@ -173,8 +199,9 @@ const NurseServiceMappingPage: React.FC = () => {
                   </Select>
                 </FormControl>
               </FormItem>
+
               <div className="mt-4 space-y-4">
-                {filteredServices.map((service) => (
+                {services.map((service) => (
                   <div key={service.id} className="flex items-center space-x-2">
                     <Checkbox
                       id={`service-${service.id}`}
@@ -182,10 +209,13 @@ const NurseServiceMappingPage: React.FC = () => {
                         handleServiceCheckboxChange(service.id, !!checked)
                       }
                     />
-                    <Label htmlFor={`service-${service.id}`}>{service.name}</Label>
+                    <Label htmlFor={`service-${service.id}`}>
+                      {service.name}
+                    </Label>
                   </div>
                 ))}
               </div>
+
               <Button className="mt-4" onClick={handleSubmitMapping}>
                 Gán dịch vụ
               </Button>

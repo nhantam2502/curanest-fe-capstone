@@ -104,7 +104,7 @@ export default function NurseTable({
                 </TableCell>
                 <TableCell>
                   <Button variant="outline" onClick={(event) => handleMapService(event, nurse)}>
-                    Map
+                    Gán dịch vụ
                   </Button>
                 </TableCell>
               </TableRow>

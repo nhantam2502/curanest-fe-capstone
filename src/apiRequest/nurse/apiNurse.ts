@@ -29,6 +29,10 @@ const nurseApiRequest = {
   createNurse: (body: CreateNurse) =>
     http.post<CreateRes>("/nurse/api/v1/nurses", body),
 
+  mapNurseToService: (nurseId: string, body: { "service-ids": string[] }) =>
+    http.post<CreateRes>(`/nurse/api/v1/nurses/${nurseId}/services`, body),
+  
+
 };
 
 export default nurseApiRequest;
