@@ -1,17 +1,35 @@
-import Footer from "@/app/components/HomePage/Footer";
-import Header from "@/app/components/HomePage/Header";
-import DetailNews from "@/app/components/News/DetailNews";
+"use client";
+
+import { useEffect, useState } from "react";
 import DetailNurse from "@/app/components/Nursing/DetailNurse";
-import nurse from "@/dummy_data/dummy_nurse.json";
+import { DetailNurseItemType } from "@/types/nurse";
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 
 const DetailNursePage = ({ params }: { params: { serviceId: string; nursingId: string } }) => {
   const { nursingId } = params;
+  const [detailNurse, setDetailNurse] = useState<DetailNurseItemType | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const detailNurse = nurse.find((n) => n.id === Number(nursingId));
+  useEffect(() => {
+    const fetchDetailNurse = async () => {
+      try {
+        const response = await nurseApiRequest.getDetailNurse(nursingId);
+        setDetailNurse(response.payload.data);
+        console.log(response.payload.data);
+      } catch (error) {
+        setError("Không thể tải thông tin điều dưỡng.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (!detailNurse) {
-    return <p>Điều dưỡng không tồn tại.</p>;
-  }
+    fetchDetailNurse();
+  }, [nursingId]);
+
+  if (loading) return <p>Đang tải...</p>;
+  if (error) return <p>{error}</p>;
+  if (!detailNurse) return <p>Điều dưỡng không tồn tại.</p>;
 
   return (
     <div>
@@ -19,4 +37,5 @@ const DetailNursePage = ({ params }: { params: { serviceId: string; nursingId: s
     </div>
   );
 };
+
 export default DetailNursePage;

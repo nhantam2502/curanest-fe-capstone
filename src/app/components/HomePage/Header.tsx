@@ -67,10 +67,10 @@ const Header = () => {
     { id: 5, name: "Tin tức", path: "/guest/news" },
   ];
 
-  // // Thêm "Đặt lịch" nếu role là relatives
-  // if (status === "authenticated" && session?.user?.role === "relatives") {
-  //   Menu.push({ id: 6, name: "Đặt lịch", path: "/relatives/booking" });
-  // }
+  // Thêm "Đặt lịch" nếu role là relatives
+  if (status === "authenticated" && session?.user?.role === "relatives") {
+    Menu.push({ id: 6, name: "Đặt lịch", path: "/relatives/booking" });
+  }
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
@@ -108,8 +108,16 @@ const Header = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <Avatar className="w-[70px] h-[70px] hidden md:block">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={session.user.image || ""} />
+                    <AvatarFallback>
+                      {session.user.name
+                        ? session.user.name
+                            .split(" ")
+                            .map((word) => word[0])
+                            .join("")
+                            .toUpperCase()
+                        : "?"}
+                    </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
 

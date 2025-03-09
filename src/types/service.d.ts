@@ -20,7 +20,7 @@ type ServiceItem = {
   status: string;
   description: string;
   "category-id": string;
-  thumbnail: string;
+  // thumbnail: string;
   "est-duration": string;
 };
 
@@ -32,7 +32,7 @@ type TransformedCategory = {
     name: string;
     id: string;
     description: string;
-    thumbnail: string;
+    // thumbnail: string;
     "est-duration": string;
   }[];
 };
@@ -42,7 +42,7 @@ type SelectedService = {
   name: string;
   id: string;
   description: string;
-  thumbnail: string;
+  // thumbnail: string;
   
 };
 

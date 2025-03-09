@@ -15,26 +15,22 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DetailNurseProps, Nurse } from "@/types/nurse";
+import { DetailNurseItemType } from "@/types/nurse";
 import {
   BookOpenCheck,
   Clock,
   GraduationCap,
-  Heart,
   MapPin,
   StarIcon,
   Users,
 } from "lucide-react";
 import TimeTableNurse from "./TimeTableNurse";
 import Feedback from "./Feedbacks";
-import data_nurses from "@/dummy_data/dummy_nurse.json";
-import Link from "next/link";
-import NursingCard from "./GuestNursingCard";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const DetailNurse = ({ nurse }: DetailNurseProps) => {
+const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -43,14 +39,11 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
   const params = useParams();
   const serviceIdRaw = params.serviceId;
   const serviceId =
-    typeof serviceIdRaw === "string"
-      ? serviceIdRaw
-      : serviceIdRaw
-      ? serviceIdRaw[0]
-      : "";
+    typeof serviceIdRaw === "string" ? serviceIdRaw : (serviceIdRaw?.[0] ?? "");
   const [searchTerm, setSearchTerm] = useState(
-    serviceId ? decodeURIComponent(serviceId) : ""
+    serviceId ? decodeURIComponent(decodeURIComponent(serviceId)) : ""
   );
+  console.log(searchTerm);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -75,13 +68,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
     );
   }
 
-  const relatedNurse = data_nurses
-    .filter(
-      (p) => p.specialization === nurse.specialization && p.id !== nurse.id
-    )
-    .slice(0, 3);
-
-  const handleBookingClick = (nurse: Nurse) => {
+  const handleBookingClick = (nurse: DetailNurseItemType) => {
     if (!nurse) {
       console.error("Nurse information is missing!");
       return;
@@ -94,7 +81,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
       return;
     }
     // Điều hướng tới trang tìm kiếm y tá
-    router.push(`/relatives/booking/${nurse.id}`);
+    router.push(`/relatives/booking/${nurse["nurse-id"]}`);
   };
 
   return (
@@ -127,17 +114,17 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <BreadcrumbLink className="text-xl text-gray-500 truncate max-w-[200px]">
-                      {nurse.name}
+                      {nurse["nurse-name"]}
                     </BreadcrumbLink>
                   </TooltipTrigger>
                   <TooltipContent className="bg-[#e5ab47] font-semibold text-lg text-white ml-5 rounded">
-                    <p>{nurse.name}</p>
+                    <p>{nurse["nurse-name"]}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             ) : (
               <BreadcrumbLink className="text-xl text-gray-500 truncate">
-                {nurse.name}
+                {nurse["nurse-name"]}
               </BreadcrumbLink>
             )}
           </BreadcrumbItem>
@@ -152,15 +139,15 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">
                   <img
-                    src={nurse.photo}
-                    alt={nurse.name}
+                    src={nurse["nurse-picture"]}
+                    alt={nurse["nurse-name"]}
                     className="w-60 h-60 rounded-full object-cover mb-4"
                   />
                   <h1 className="text-3xl font-bold text-center mb-2">
-                    {nurse.name}
+                    {nurse["nurse-name"]}
                   </h1>
 
-                  <div className="lg:mt-4 flex items-center justify-center">
+                  {/* <div className="lg:mt-4 flex items-center justify-center">
                     <div className="flex flex-wrap gap-2 justify-center">
                       {nurse.services.map((service, index) => (
                         <span
@@ -171,15 +158,15 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                         </span>
                       ))}
                     </div>
-                  </div>
+                  </div> */}
 
                   <div className="flex items-center gap-3 mt-4 mb-4">
                     <StarIcon className="w-6 h-6 fill-yellow-400 text-yellow-200" />
                     <span className="font-semibold text-xl">
-                      {nurse.avgRating}
+                      {nurse.rate.toFixed(1)}
                     </span>
                     <span className="text-gray-500 text-lg">
-                      ({nurse.totalRating} đánh giá)
+                      ({nurse.rate} đánh giá)
                     </span>
                   </div>
                   <Button
@@ -193,18 +180,21 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                 <div className="space-y-4 mt-6">
                   <div className="flex-shrink-0 flex items-center gap-4">
                     <MapPin className="w-8 h-8 text-[#e5ab47]" />
-                    <span className="text-xl">{nurse.hospital}</span>
+                    <span className="text-xl">
+                      {nurse["current-work-place"]}
+                    </span>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-4">
                     <GraduationCap className="w-8 h-8 text-[#e5ab47]" />
-                    <span className="text-xl">{nurse.education_level}</span>
+                    <span className="text-xl">{nurse["education-level"]}</span>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-4">
                     <BookOpenCheck className="w-10 h-10 text-[#e5ab47]" />
                     <span className="text-xl">
-                      {nurse.certificate.join(", ")}
+                      {nurse.certificate.split(" - ").join(", ")}
                     </span>
                   </div>
+
                   <div className="flex-shrink-0 flex items-center gap-4">
                     <Clock className="w-8 h-8 text-[#e5ab47]" />
                     <span className="text-xl">{nurse.experience}</span>
@@ -226,20 +216,20 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
+                  {/* <div>
                     <h3 className="font-semibold text-xl mb-3">
                       Số bệnh nhân đã điều trị
                     </h3>
                     <p className="text-4xl font-bold text-[#e5ab47]">
                       {nurse.totalPatients}+
                     </p>
-                  </div>
+                  </div> */}
                   <div>
                     <h3 className="font-semibold text-xl mb-3">
                       Đánh giá trung bình
                     </h3>
                     <p className="text-4xl font-bold text-[#e5ab47] flex items-center gap-3">
-                      {nurse.avgRating}
+                      {nurse.rate.toFixed(1)}
                       <StarIcon className="w-7 h-7 fill-yellow-400 text-yellow-200" />
                     </p>
                   </div>
@@ -256,11 +246,11 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TimeTableNurse  />
+                <TimeTableNurse />
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl">
                   <Heart className="w-7 h-7 text-[#e5ab47]" />
@@ -277,15 +267,16 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
                   ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         </div>
 
         {/* Feedback */}
+    
         <Feedback nurse={nurse} />
 
         {/* Related Nurse */}
-        <div className="mt-10 mb-10">
+        {/* <div className="mt-10 mb-10">
           <h2 className="text-4xl font-bold mb-5">
             Xem thêm Điều dưỡng cùng chuyên ngành
           </h2>
@@ -299,7 +290,7 @@ const DetailNurse = ({ nurse }: DetailNurseProps) => {
               </Link>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

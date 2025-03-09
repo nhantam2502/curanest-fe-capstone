@@ -4,8 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { Heart, Stethoscope, Baby, Users } from "lucide-react";
+import {
+  ActivitySquare,
+  Clipboard,
+  Home,
+  Search,
+  ShieldAlert,
+  Utensils,
+} from "lucide-react";
+import { Heart, Baby, Users } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -41,12 +48,17 @@ const ServicesPage = () => {
 
   // Category icons mapping
   const categoryIcons: { [key: string]: React.ReactNode } = {
-    "Chăm sóc người già": <Heart className="w-7 h-7 text-red-500" />,
-    "Chăm sóc sau phẫu thuật": (
-      <Stethoscope className="w-7 h-7 text-blue-500" />
+    "Chăm sóc cho bé yêu": <Baby className="w-7 h-7 text-pink-500" />,
+    "Chăm sóc cơ bản": <Heart className="w-7 h-7 text-blue-500" />,
+    "Y tế tại nhà": <Home className="w-7 h-7 text-green-500" />,
+    "Phục hồi chức năng": (
+      <ActivitySquare className="w-7 h-7 text-purple-500" />
     ),
-    "Chăm sóc mẹ và bé": <Baby className="w-7 h-7 text-pink-500" />,
-    "Dịch vụ khám bệnh": <Users className="w-7 h-7 text-orange-500" />,
+    "Hỗ trợ dinh dưỡng và vệ sinh": (
+      <Utensils className="w-7 h-7 text-amber-500" />
+    ),
+    "Chăm sóc đặc biệt": <ShieldAlert className="w-7 h-7 text-red-500" />,
+    "Tư vấn sức khỏe": <Clipboard className="w-7 h-7 text-teal-500" />,
   };
 
   useEffect(() => {
@@ -67,14 +79,12 @@ const ServicesPage = () => {
                 name: service.name,
                 id: service.id,
                 description: service.description,
-                thumbnail: service.thumbnail,
               })),
             })
           );
 
         setServices(transformedServices);
 
-        console.log("Fetched services: ", transformedServices);
       } catch (error) {
         console.error("Failed to fetch services:", error);
       }
@@ -88,7 +98,11 @@ const ServicesPage = () => {
     setCurrentPage(1);
   }, [searchTerm, selectedCategory]);
 
-  const handleServiceClick = ( category: string, service: string, id: string ) => {
+  const handleServiceClick = (
+    category: string,
+    service: string,
+    id: string
+  ) => {
     router.push(
       `/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(id)}`
     );
@@ -166,10 +180,6 @@ const ServicesPage = () => {
     return pageNumbers;
   };
 
-  console.log("Filtered categories: ", filteredCategories);
-  console.log("Current page: ", currentPage);
-  console.log("Total pages: ", totalPages);
-
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <div className="xl:w-[650px] mx-auto">
@@ -184,8 +194,9 @@ const ServicesPage = () => {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filter Sidebar */}
           <Card className="md:w-1/3 lg:w-1/4 h-fit">
-            <CardHeader className="p-6">
-              <CardTitle className="text-2xl font-bold">
+            <CardHeader className="p-6 bg-gradient-to-r from-irisBlueColor/10 to-transparent">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-irisBlueColor">
+                <Search className="h-6 w-6" />
                 Bộ lọc tìm kiếm
               </CardTitle>
             </CardHeader>

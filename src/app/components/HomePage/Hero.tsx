@@ -309,8 +309,8 @@ const Hero = () => {
             </p>
           </div>
 
-          <NursingList />
-        </div>
+          <NursingList serviceId="01957ad6-3995-7b43-94bf-22d6b3f6738b" />
+          </div>
       </section>
 
       {/* FAQ Section*/}

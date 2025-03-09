@@ -1,30 +1,30 @@
 // Interface cho một service
-export interface NurseService {
-  name: string;
-  time?: string;
-  price?: number;
-}
+// export interface NurseService {
+//   name: string;
+//   time?: string;
+//   price?: number;
+// }
 
 // Interface chính cho Nurse
-export interface Nurse {
-  id: number;
-  name: string;
-  specialization: string;  
-  avgRating: number;
-  totalRating: number;
-  photo: string;
-  totalPatients: number;
-  hospital?: string; 
-  experience: string;
-  education_level: string;
-  certificate: string[];
-  services: string[]; 
-}
+// export interface Nurse {
+//   id: number;
+//   name: string;
+//   specialization: string;  
+//   avgRating: number;
+//   totalRating: number;
+//   photo: string;
+//   totalPatients: number;
+//   hospital?: string; 
+//   experience: string;
+//   education_level: string;
+//   certificate: string[];
+//   services: string[]; 
+// }
 
 
-export interface DetailNurseProps {
-  nurse: Nurse;
-}
+// export interface DetailNurseProps {
+//   nurse: Nurse;
+// }
 
 // --------------------------------------
 export type NurseFilterType = {
@@ -56,6 +56,25 @@ export type NurseListResType = {
     size: number;
     total: number;
   };
+  success: boolean;
+};
+
+export type DetailNurseItemType = {
+  "nurse-id": string;
+  "nurse-picture": string;
+  "nurse-name": string;
+  gender: boolean;
+  city: string;
+  "current-work-place": string;
+  "education-level": string;
+  experience: string;
+  certificate: string;
+  slogan: string;
+  rate: number;
+};
+
+export type DetailNurseListResType = {
+  data: DetailNurseItemType;
   success: boolean;
 };
 

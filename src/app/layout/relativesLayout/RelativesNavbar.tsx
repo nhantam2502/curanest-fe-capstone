@@ -113,8 +113,16 @@ const RelativesNavbar = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <Avatar className="w-[70px] h-[70px] hidden md:block">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={session.user.image || ""} />
+                    <AvatarFallback>
+                      {session.user.name
+                        ? session.user.name
+                            .split(" ")
+                            .map((word) => word[0])
+                            .join("")
+                            .toUpperCase()
+                        : "?"}
+                    </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
 

@@ -13,7 +13,7 @@ const ServiceSchema = z.object({
   "category-id": z.string(),
   name: z.string(),
   description: z.string(),
-  thumbnail: z.string(),
+  // thumbnail: z.string(),
   "est-duration": z.string(),
   status: z.string(),
 });
