@@ -1,52 +1,198 @@
 "use client";
-import React, { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useMemo, useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, StarIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  ActivitySquare,
+  Clipboard,
+  Home,
+  Info,
+  Search,
+  ShieldAlert,
+  Utensils,
+} from "lucide-react";
+import { Heart, Baby, Users } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import NursingCard from "@/app/components/Nursing/NursingCard";
-import nursing from "@/dummy_data/dummy_nurse.json";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useRouter } from "next/navigation";
+import serviceApiRequest from "@/apiRequest/services/apiService";
+import {
+  CategoryInfo,
+  ServiceItem,
+  TransformedCategory,
+} from "@/types/service";
 
-const NurseList = () => {
+const ServicesPage = () => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialization, setSelectedSpecialization] = useState("");
-  const [minRating, setMinRating] = useState(0);
-  const [address, setAddress] = useState("");
-  const [district, setDistrict] = useState("");
-  const [ward, setWard] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [services, setServices] = useState<TransformedCategory[]>([]);
 
-  const specializations = Array.from(
-    new Set(nursing.map((nurse) => nurse.specialization))
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const servicesPerPage = 5;
+
+  // Category icons mapping
+  const categoryIcons: { [key: string]: React.ReactNode } = {
+    "Chăm sóc cho bé yêu": <Baby className="w-7 h-7 text-pink-500" />,
+    "Chăm sóc cơ bản": <Heart className="w-7 h-7 text-blue-500" />,
+    "Y tế tại nhà": <Home className="w-7 h-7 text-green-500" />,
+    "Phục hồi chức năng": (
+      <ActivitySquare className="w-7 h-7 text-purple-500" />
+    ),
+    "Hỗ trợ dinh dưỡng và vệ sinh": (
+      <Utensils className="w-7 h-7 text-amber-500" />
+    ),
+    "Chăm sóc đặc biệt": <ShieldAlert className="w-7 h-7 text-red-500" />,
+    "Tư vấn sức khỏe": <Clipboard className="w-7 h-7 text-teal-500" />,
+  };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await serviceApiRequest.getListService(null);
+
+        const transformedServices: TransformedCategory[] =
+          response.payload.data.map(
+            (item: {
+              "category-info": CategoryInfo;
+              "list-services": ServiceItem[];
+            }) => ({
+              name: item["category-info"].name,
+              id: item["category-info"].id,
+              description: item["category-info"].description,
+              services: item["list-services"].map((service: ServiceItem) => ({
+                name: service.name,
+                id: service.id,
+                description: service.description,
+              })),
+            })
+          );
+
+        setServices(transformedServices);
+
+        console.log("Fetched services: ", transformedServices);
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  const handleServiceClick = (
+    category: string,
+    service: string,
+    id: string
+  ) => {
+    router.push(
+      `/relatives/findingNurse/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(id)}`
+    );
+  };
+
+  const filteredCategories = useMemo(() => {
+    return services.filter((category) => {
+      const matchesSearch =
+        category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.services.some((service) =>
+          service.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      const matchesCategory =
+        !selectedCategory || category.name === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchTerm, selectedCategory, services]);
+
+  // Get current page services
+  const indexOfLastService = currentPage * servicesPerPage;
+  const indexOfFirstService = indexOfLastService - servicesPerPage;
+  const currentServices = filteredCategories.slice(
+    indexOfFirstService,
+    indexOfLastService
   );
 
-  const filteredNurses = useMemo(() => {
-    return nursing.filter((nurse) => {
-      // Bỏ điều kiện matchesSearch tạm thời
-      const matchesSpecialization =
-        !selectedSpecialization ||
-        nurse.specialization === selectedSpecialization ||
-        Object.keys(nurse.services).includes(searchTerm);
-      return matchesSpecialization ;
-    });
-  }, [searchTerm, selectedSpecialization]);
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredCategories.length / servicesPerPage);
+
+  // Handle page changes
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of services section
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages is less than max pages to show
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show first page, last page, current page, and pages around current page
+      if (currentPage <= 3) {
+        // If current page is near start, show first 4 pages and last page
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(-1); // Ellipsis
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // If current page is near end, show first page and last 4 pages
+        pageNumbers.push(1);
+        pageNumbers.push(-1); // Ellipsis
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // If current page is in middle, show first page, last page, and pages around current page
+        pageNumbers.push(1);
+        pageNumbers.push(-1); // Ellipsis
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(-1); // Ellipsis
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
+  };
+
+  console.log("Filtered categories: ", filteredCategories);
+  console.log("Current page: ", currentPage);
+  console.log("Total pages: ", totalPages);
 
   return (
-    <section className="hero_section">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <div className="xl:w-[650px] mx-auto">
-        <h2 className="heading text-center">
-          Đội ngũ điều dưỡng chuyên nghiệp
-        </h2>
+        <h2 className="heading text-center">Dịch Vụ Điều Dưỡng</h2>
         <p className="text_para text-center">
-          Đội ngũ điều dưỡng chuyên nghiệp, được tuyển chọn kỹ càng, cam kết
-          mang đến dịch vụ chăm sóc sức khỏe tận tâm và chất lượng
+          Chúng tôi cung cấp các dịch vụ chăm sóc sức khỏe chuyên nghiệp, tận
+          tâm với đội ngũ điều dưỡng giàu kinh nghiệm.
         </p>
       </div>
 
@@ -54,8 +200,9 @@ const NurseList = () => {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filter Sidebar */}
           <Card className="md:w-1/3 lg:w-1/4 h-fit">
-            <CardHeader className="p-6">
-              <CardTitle className="text-2xl font-bold">
+            <CardHeader className="p-6 bg-gradient-to-r from-irisBlueColor/10 to-transparent">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-irisBlueColor">
+                <Search className="h-6 w-6" />
                 Bộ lọc tìm kiếm
               </CardTitle>
             </CardHeader>
@@ -65,15 +212,18 @@ const NurseList = () => {
                 {/* Search Filter */}
                 <AccordionItem value="search" className="border-b-2">
                   <AccordionTrigger className="text-xl py-4">
-                    Tìm kiếm theo tên
+                    Tìm kiếm dịch vụ
                   </AccordionTrigger>
                   <AccordionContent className="pt-4 pb-6">
                     <div className="relative">
                       <Input
                         type="text"
-                        placeholder="Nhập tên điều dưỡng..."
+                        placeholder="Tìm kiếm dịch vụ..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
                         className="pl-12 py-6 text-lg"
                       />
                       <Search className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
@@ -81,133 +231,41 @@ const NurseList = () => {
                   </AccordionContent>
                 </AccordionItem>
 
-                {/* Specialization Filter */}
-                <AccordionItem value="specialization" className="border-b-2">
+                {/* Category Filter */}
+                <AccordionItem value="category" className="border-b-2">
                   <AccordionTrigger className="text-xl py-4">
-                    Chuyên môn
+                    Danh mục dịch vụ
                   </AccordionTrigger>
-
                   <AccordionContent className="pt-4 pb-6">
                     <div className="flex flex-wrap gap-3">
                       <Badge
                         variant="outline"
                         className={`cursor-pointer text-[18px] px-4 py-2 ${
-                          selectedSpecialization === ""
+                          selectedCategory === ""
                             ? "bg-[#e5ab47] text-white border-[#e5ab47]"
                             : ""
                         }`}
-                        onClick={() => setSelectedSpecialization("")}
+                        onClick={() => {
+                          setSelectedCategory("");
+                          setCurrentPage(1);
+                        }}
                       >
-                        All
+                        Tất cả
                       </Badge>
-                      {specializations.map((spec) => (
+                      {services.map((category) => (
                         <Badge
-                          key={spec}
+                          key={category.id}
                           variant="outline"
                           className={`cursor-pointer text-[18px] px-4 py-2 ${
-                            selectedSpecialization === spec
+                            selectedCategory === category.name
                               ? "bg-[#e5ab47] text-white border-[#e5ab47]"
                               : ""
                           }`}
-                          onClick={() => setSelectedSpecialization(spec)}
+                          onClick={() => setSelectedCategory(category.name)}
                         >
-                          {spec}
+                          {category.name}
                         </Badge>
                       ))}
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                {/* Rating Filter */}
-                <AccordionItem value="rating" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    <div className="flex items-center gap-2">
-                      Xếp hạng đánh giá
-                      <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />
-                    </div>
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="space-y-6">
-                      <Slider
-                        value={[minRating]}
-                        onValueChange={([value]) => setMinRating(value)}
-                        max={5}
-                        step={0.1}
-                        className="w-full"
-                      />
-                      <div className="text-lg text-muted-foreground flex gap-2">
-                        Tối thiểu: {minRating} / 5
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="nearby" className="border-b-2">
-                  <AccordionTrigger className="text-xl py-4">
-                    Xung quanh bạn
-                  </AccordionTrigger>
-
-                  <AccordionContent className="pt-4 pb-6">
-                    <div className="space-y-4">
-                      {/* Địa chỉ */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Địa chỉ
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập địa chỉ..."
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Quận/Huyện */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Quận/Huyện
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập quận/huyện..."
-                          value={district}
-                          onChange={(e) => setDistrict(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Phường */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Phường
-                        </label>
-                        <Input
-                          type="text"
-                          placeholder="Nhập phường..."
-                          value={ward}
-                          onChange={(e) => setWard(e.target.value)}
-                          className="py-4 text-lg"
-                        />
-                      </div>
-
-                      {/* Thành phố */}
-                      <div>
-                        <label className="block text-lg font-medium mb-2">
-                          Thành phố
-                        </label>
-                        <Input value={"Hồ Chí Minh"} className="py-4 text-lg" />
-                      </div>
-
-                      {/* Nút Lọc */}
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4 text-lg"
-                        disabled={!address || !district || !ward}
-                      >
-                        Lọc xung quanh
-                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -219,11 +277,7 @@ const NurseList = () => {
                 className="w-full mt-6 py-6 text-lg"
                 onClick={() => {
                   setSearchTerm("");
-                  setSelectedSpecialization("");
-                  setMinRating(0);
-                  setAddress("");
-                  setDistrict("");
-                  setWard("");
+                  setSelectedCategory("");
                 }}
               >
                 Đặt lại bộ lọc
@@ -231,13 +285,122 @@ const NurseList = () => {
             </CardContent>
           </Card>
 
-          {/* Main Content */}
+          {/* Services Content */}
           <div className="md:w-2/3 lg:w-3/4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {filteredNurses.map((nurse) => (
-                <NursingCard key={nurse.id} nurse={nurse} service={searchTerm} />
-            ))}
+            <div className="space-y-6">
+              {currentServices.length > 0 ? (
+                currentServices.map((category, index) => (
+                  <div key={index} className="w-full">
+                    <CardHeader className="p-6 ">
+                      <CardTitle className="flex items-center gap-3 text-3xl">
+                        {categoryIcons[category.name] || (
+                          <Users className="w-7 h-7 text-gray-500" />
+                        )}
+                        {category.name}
+                      </CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="p-6">
+                      <div className="flex flex-wrap gap-4">
+                        {category.services.map((service) => (
+                          <Button
+                            key={service.id}
+                            variant="outline"
+                            className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
+                            onClick={() =>
+                              handleServiceClick(
+                                category.name,
+                                service.name,
+                                service.id
+                              )
+                            }
+                          >
+                            {service.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-center">
+                  <Info className="h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-xl font-medium text-gray-700 mb-2">
+                    Không tìm thấy dịch vụ phù hợp
+                  </h3>
+                  <p className="text-[18px] text-gray-500">
+                    Thử điều chỉnh bộ lọc để xem nhiều kết quả hơn.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="text-[18px] mt-4 border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10"
+                    onClick={() => {
+                      setSearchTerm("");
+                      setSelectedCategory("");
+                    }}
+                  >
+                    Đặt lại bộ lọc
+                  </Button>
+                </div>
+              )}
             </div>
+
+            {/* Pagination */}
+            {filteredCategories.length > servicesPerPage && (
+              <div className="mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    {/* Previous Button */}
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          currentPage > 1 && handlePageChange(currentPage - 1)
+                        }
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+
+                    {/* Page Numbers */}
+                    {getPageNumbers().map((page, index) =>
+                      page === -1 ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={page === currentPage}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+
+                    {/* Next Button */}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          currentPage < totalPages &&
+                          handlePageChange(currentPage + 1)
+                        }
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -245,4 +408,4 @@ const NurseList = () => {
   );
 };
 
-export default NurseList;
+export default ServicesPage;

@@ -1,4 +1,4 @@
-import Footer from "@/app/components/HomePage/Footer";
+import Footer from "@/app/components/Relatives/Footer";
 import RelativesNavbar from "./RelativesNavbar";
 
 export default function RelativesLayout({

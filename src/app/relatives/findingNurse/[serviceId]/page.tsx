@@ -31,7 +31,6 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import GuestNursingCard from "@/app/components/Nursing/GuestNursingCard";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { NurseItemType } from "@/types/nurse";
 import {
@@ -42,6 +41,7 @@ import {
 } from "@/components/ui/accordion";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import RelativesNursingCard from "@/app/components/Nursing/RelativesNursingCard";
 
 const NurseList = () => {
   const params = useParams();
@@ -55,14 +55,9 @@ const NurseList = () => {
 
   // Lấy thêm các query parameter khác nếu có
   const searchParams = useSearchParams();
-  const serviceID = searchParams.get("serviceId") || "";
-  const service = searchParams.get("service") || "";
+  const serviceID = searchParams.get("serviceId");
+
   const category = searchParams.get("category") || "";
-
-  console.log("Service ID: ", serviceID);
-  console.log("Service: ", service);
-  console.log("Category: ", category);
-
   const [selectedSpecialization, setSelectedSpecialization] =
     useState(category);
 
@@ -83,6 +78,7 @@ const NurseList = () => {
           "service-id": serviceID || "",
         });
         setNurses(response.payload.data);
+        console.log("Nurses: ", response.payload.data);
       } catch (err) {
         console.log("Error fetching nurses ", err);
       } finally {
@@ -211,7 +207,7 @@ const NurseList = () => {
       <Breadcrumb className="px-10 py-10">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/guest/nurseList" className="text-xl">
+            <BreadcrumbLink href="/relatives/findingNurse" className="text-xl">
               Dịch vụ điều dưỡng
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -219,9 +215,7 @@ const NurseList = () => {
 
           <BreadcrumbItem>
             <BreadcrumbLink
-             onClick={() => {
-              window.history.back();
-            }}
+              href={`/relatives/findingNurse/${encodeURIComponent(searchTerm)}?category=${encodeURIComponent(category)}`}
               className="text-xl"
             >
               Danh sách điều dưỡng thuộc dịch vụ: {searchTerm}
@@ -327,7 +321,7 @@ const NurseList = () => {
                 <Button
                   variant="outline"
                   className="w-full mt-6 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
-                  onClick={() => router.push("/guest/nurseList")}
+                  onClick={() => router.push("/relatives/findingNurse")}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Quay lại
@@ -347,7 +341,7 @@ const NurseList = () => {
                 {currentNurses.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                     {currentNurses.map((nurse) => (
-                      <GuestNursingCard
+                      <RelativesNursingCard
                         key={nurse["nurse-id"]}
                         nurse={nurse}
                         service={serviceId}
@@ -454,7 +448,7 @@ const NurseList = () => {
                           value={nameFilter}
                           onChange={(e) => {
                             setNameFilter(e.target.value);
-                            setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+                            setCurrentPage(1); 
                           }}
                           className="pl-12 py-6 text-lg"
                         />
