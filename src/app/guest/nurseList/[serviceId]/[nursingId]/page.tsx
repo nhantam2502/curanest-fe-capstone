@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-=======
 "use client";
 
 import { useEffect, useState } from "react";
->>>>>>> dev
 import DetailNurse from "@/app/components/Nursing/DetailNurse";
 import { DetailNurseItemType } from "@/types/nurse";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";

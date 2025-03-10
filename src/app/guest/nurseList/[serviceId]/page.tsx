@@ -8,11 +8,8 @@ import {
   FileText,
   Info,
   Stethoscope,
-<<<<<<< HEAD
-=======
   Search,
   StarIcon,
->>>>>>> dev
 } from "lucide-react";
 
 import {
