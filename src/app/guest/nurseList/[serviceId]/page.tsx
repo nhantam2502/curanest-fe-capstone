@@ -56,11 +56,9 @@ const NurseList = () => {
   // Lấy thêm các query parameter khác nếu có
   const searchParams = useSearchParams();
   const serviceID = searchParams.get("serviceId") || "";
-  const service = searchParams.get("service") || "";
   const category = searchParams.get("category") || "";
 
   console.log("Service ID: ", serviceID);
-  console.log("Service: ", service);
   console.log("Category: ", category);
 
   const [selectedSpecialization, setSelectedSpecialization] =
@@ -71,27 +69,32 @@ const NurseList = () => {
 
   // Thêm state cho filter theo tên và rating
   const [nameFilter, setNameFilter] = useState("");
+  const [searchTriggered, setSearchTriggered] = useState(false);
   const [minRating, setMinRating] = useState(0);
 
   useEffect(() => {
-    if (!serviceId) return;
+    if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
 
     const fetchNurses = async () => {
       setLoading(true);
       try {
-        const response = await nurseApiRequest.getListNurse({
-          "service-id": serviceID || "",
-        });
+        const response = await nurseApiRequest.getListNurse(
+          serviceID || null,
+          minRating ? minRating.toString() : null,
+          currentPage,
+          nameFilter || null
+        );
         setNurses(response.payload.data);
       } catch (err) {
         console.log("Error fetching nurses ", err);
       } finally {
         setLoading(false);
+        setSearchTriggered(false); // Reset để tránh gọi API nhiều lần
       }
     };
 
     fetchNurses();
-  }, [serviceId, serviceID]);
+  }, [serviceID, searchTriggered]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,6 +129,11 @@ const NurseList = () => {
     setCurrentPage(page);
     // Scroll to top when changing page
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSearch = () => {
+    setSearchTriggered(true); // Chỉ gọi API khi nhấn nút
+    setCurrentPage(1); // Reset trang về 1 khi tìm kiếm mới
   };
 
   // Reset all filters
@@ -219,9 +227,7 @@ const NurseList = () => {
 
           <BreadcrumbItem>
             <BreadcrumbLink
-             onClick={() => {
-              window.history.back();
-            }}
+              href={`/guest/nurseList/${encodeURIComponent(searchTerm)}?category=${encodeURIComponent(category)}&serviceId=${decodeURIComponent(serviceID)}`}
               className="text-xl"
             >
               Danh sách điều dưỡng thuộc dịch vụ: {searchTerm}
@@ -508,15 +514,27 @@ const NurseList = () => {
                   </AccordionItem>
                 </Accordion>
 
-                {/* Reset Button */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-6 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
-                  onClick={resetFilters}
-                  disabled={nameFilter === "" && minRating === 0}
-                >
-                  Đặt lại bộ lọc
-                </Button>
+                <div className="flex justify-between gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    className="flex-1 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
+                    onClick={resetFilters}
+                  >
+                    Đặt lại
+                  </Button>
+
+                  <Button
+                    onClick={handleSearch}
+                    disabled={!nameFilter && minRating === 0} // Điều kiện disable
+                    className={`flex-1 py-6 text-lg ${
+                      !nameFilter && minRating === 0
+                        ? "bg-[#e5ab47]/90 cursor-not-allowed" // Khi disable
+                        : "bg-[#e5ab47] hover:bg-[#e5ab47]" // Khi enable
+                    }`}
+                  >
+                    Tìm kiếm
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -8,7 +8,6 @@ import {
   ActivitySquare,
   Clipboard,
   Home,
-  Info,
   Search,
   ShieldAlert,
   Utensils,
@@ -30,16 +29,17 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useRouter } from "next/navigation";
-import serviceApiRequest from "@/apiRequest/services/apiService";
 import {
   CategoryInfo,
   ServiceItem,
   TransformedCategory,
 } from "@/types/service";
+import serviceApiRequest from "@/apiRequest/service/apiServices";
 
 const ServicesPage = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [services, setServices] = useState<TransformedCategory[]>([]);
 
@@ -63,9 +63,11 @@ const ServicesPage = () => {
   };
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchFilteredServices = async () => {
       try {
-        const response = await serviceApiRequest.getListService(null);
+        const nameFilter = searchTerm.trim() ? searchTerm : null;
+
+        const response = await serviceApiRequest.getListService(nameFilter);
 
         const transformedServices: TransformedCategory[] =
           response.payload.data.map(
@@ -85,15 +87,14 @@ const ServicesPage = () => {
           );
 
         setServices(transformedServices);
-
-        console.log("Fetched services: ", transformedServices);
+        setCurrentPage(1);
       } catch (error) {
-        console.error("Failed to fetch services:", error);
+        console.error("Failed to fetch filtered services:", error);
       }
     };
 
-    fetchServices();
-  }, []);
+    fetchFilteredServices();
+  }, [searchTerm, selectedCategory]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -182,10 +183,6 @@ const ServicesPage = () => {
     return pageNumbers;
   };
 
-  console.log("Filtered categories: ", filteredCategories);
-  console.log("Current page: ", currentPage);
-  console.log("Total pages: ", totalPages);
-
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <div className="xl:w-[650px] mx-auto">
@@ -219,11 +216,8 @@ const ServicesPage = () => {
                       <Input
                         type="text"
                         placeholder="Tìm kiếm dịch vụ..."
-                        value={searchTerm}
-                        onChange={(e) => {
-                          setSearchTerm(e.target.value);
-                          setCurrentPage(1);
-                        }}
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
                         className="pl-12 py-6 text-lg"
                       />
                       <Search className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
@@ -245,10 +239,7 @@ const ServicesPage = () => {
                             ? "bg-[#e5ab47] text-white border-[#e5ab47]"
                             : ""
                         }`}
-                        onClick={() => {
-                          setSelectedCategory("");
-                          setCurrentPage(1);
-                        }}
+                        onClick={() => setSelectedCategory("")}
                       >
                         Tất cả
                       </Badge>
@@ -271,17 +262,32 @@ const ServicesPage = () => {
                 </AccordionItem>
               </Accordion>
 
-              {/* Reset Button */}
-              <Button
-                variant="outline"
-                className="w-full mt-6 py-6 text-lg"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("");
-                }}
-              >
-                Đặt lại bộ lọc
-              </Button>
+              {/* Reset & Submit Buttons */}
+              <div className="flex justify-between gap-4 mt-6">
+                <Button
+                  variant="outline"
+                  className="flex-1 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSearchInput("");
+                    setSelectedCategory("");
+                  }}
+                >
+                  Đặt lại
+                </Button>
+
+                <Button
+                  className={`flex-1 py-6 text-lg ${
+                    searchInput.trim() === ""
+                      ? "bg-[#e5ab47]/90 cursor-not-allowed"
+                      : "bg-[#e5ab47] hover:bg-[#e5ab47]"
+                  } text-white`}
+                  onClick={() => setSearchTerm(searchInput)}
+                  disabled={searchInput.trim() === ""} // Vô hiệu hóa khi input trống
+                >
+                  Tìm kiếm
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -323,24 +329,10 @@ const ServicesPage = () => {
                   </div>
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <Info className="h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-xl font-medium text-gray-700 mb-2">
-                    Không tìm thấy dịch vụ phù hợp
-                  </h3>
-                  <p className="text-[18px] text-gray-500">
-                    Thử điều chỉnh bộ lọc để xem nhiều kết quả hơn.
+                <div className="w-full p-8 text-center">
+                  <p className="text-2xl text-gray-500">
+                    Không tìm thấy dịch vụ nào phù hợp
                   </p>
-                  <Button
-                    variant="outline"
-                    className="text-[18px] mt-4 border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10"
-                    onClick={() => {
-                      setSearchTerm("");
-                      setSelectedCategory("");
-                    }}
-                  >
-                    Đặt lại bộ lọc
-                  </Button>
                 </div>
               )}
             </div>

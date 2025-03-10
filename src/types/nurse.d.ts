@@ -27,14 +27,6 @@ export interface DetailNurseProps {
 }
 
 // --------------------------------------
-export type NurseFilterType = {
-  "service-id": string;
-  "nurse-name"?: string;
-  rate?: number;
-  page?: number;
-  size?: number;
-};
-
 export type NurseItemType = {
   "nurse-id": string;
   "nurse-picture": string;

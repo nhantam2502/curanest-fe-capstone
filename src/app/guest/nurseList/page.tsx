@@ -29,16 +29,17 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useRouter } from "next/navigation";
-import serviceApiRequest from "@/apiRequest/services/apiService";
 import {
   CategoryInfo,
   ServiceItem,
   TransformedCategory,
 } from "@/types/service";
+import serviceApiRequest from "@/apiRequest/service/apiServices";
 
 const ServicesPage = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [services, setServices] = useState<TransformedCategory[]>([]);
 
@@ -62,9 +63,11 @@ const ServicesPage = () => {
   };
 
   useEffect(() => {
-    const fetchServices = async () => {
+    const fetchFilteredServices = async () => {
       try {
-        const response = await serviceApiRequest.getListService(null);
+        const nameFilter = searchTerm.trim() ? searchTerm : null;
+
+        const response = await serviceApiRequest.getListService(nameFilter);
 
         const transformedServices: TransformedCategory[] =
           response.payload.data.map(
@@ -84,14 +87,14 @@ const ServicesPage = () => {
           );
 
         setServices(transformedServices);
-
+        setCurrentPage(1);
       } catch (error) {
-        console.error("Failed to fetch services:", error);
+        console.error("Failed to fetch filtered services:", error);
       }
     };
 
-    fetchServices();
-  }, []);
+    fetchFilteredServices();
+  }, [searchTerm, selectedCategory]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -213,8 +216,8 @@ const ServicesPage = () => {
                       <Input
                         type="text"
                         placeholder="Tìm kiếm dịch vụ..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
                         className="pl-12 py-6 text-lg"
                       />
                       <Search className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
@@ -259,17 +262,32 @@ const ServicesPage = () => {
                 </AccordionItem>
               </Accordion>
 
-              {/* Reset Button */}
-              <Button
-                variant="outline"
-                className="w-full mt-6 py-6 text-lg"
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCategory("");
-                }}
-              >
-                Đặt lại bộ lọc
-              </Button>
+              {/* Reset & Submit Buttons */}
+              <div className="flex justify-between gap-4 mt-6">
+                <Button
+                  variant="outline"
+                  className="flex-1 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSearchInput("");
+                    setSelectedCategory("");
+                  }}
+                >
+                  Đặt lại
+                </Button>
+
+                <Button
+                  className={`flex-1 py-6 text-lg ${
+                    searchInput.trim() === ""
+                      ? "bg-[#e5ab47]/90 cursor-not-allowed"
+                      : "bg-[#e5ab47] hover:bg-[#e5ab47]"
+                  } text-white`}
+                  onClick={() => setSearchTerm(searchInput)}
+                  disabled={searchInput.trim() === ""} // Vô hiệu hóa khi input trống
+                >
+                  Tìm kiếm
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

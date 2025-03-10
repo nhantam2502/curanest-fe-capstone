@@ -5,7 +5,7 @@ interface Appointment {
   id: number;
   nurse_name: string;
   avatar: string;
-  status: string
+  status: string;
   phone_number: string;
   techniques: string;
   total_fee: number;
@@ -99,7 +99,13 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
   const changeMonth = (increment: number) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + increment);
-    setCurrentDate(newDate);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Đặt thời gian về đầu ngày để so sánh chính xác
+
+    if (newDate >= today) {
+      setCurrentDate(newDate);
+    }
   };
 
   const getDayOfWeek = (day: number) => {
@@ -184,10 +190,20 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => changeMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            disabled={
+              currentDate.getMonth() === new Date().getMonth() &&
+              currentDate.getFullYear() === new Date().getFullYear()
+            }
+            className={`p-2 rounded-full transition-colors ${
+              currentDate.getMonth() === new Date().getMonth() &&
+              currentDate.getFullYear() === new Date().getFullYear()
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
+            }`}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
+
           <div className="text-xl font-bold text-center">
             {getMonthYearString()}
           </div>

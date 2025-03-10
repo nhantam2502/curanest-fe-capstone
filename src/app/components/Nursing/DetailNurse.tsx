@@ -82,7 +82,9 @@ const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
       return;
     }
     // Điều hướng tới trang tìm kiếm y tá
-    router.push(`/relatives/booking/${nurse["nurse-id"]}`);
+    router.push(
+      `/relatives/findingNurse/${serviceId}/${nurse["nurse-id"]}/bookingNurse`
+    );
   };
 
   return (
@@ -273,7 +275,7 @@ const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
         </div>
 
         {/* Feedback */}
-    
+
         {/* <Feedback nurse={nurse} /> */}
 
         {/* Related Nurse */}
