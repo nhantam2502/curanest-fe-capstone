@@ -20,7 +20,7 @@ const NewsList = () => {
     <>
       {/* Search topic */}
       <div className="hero_section">
-        <section className="hero_section">
+        <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
           <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
             <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-20">
               {/* left side */}

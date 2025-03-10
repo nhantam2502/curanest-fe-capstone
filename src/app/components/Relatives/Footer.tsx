@@ -1,4 +1,3 @@
-
 import React from "react";
 
 const Footer = () => {
@@ -91,7 +90,7 @@ const Footer = () => {
               <ul className="mt-6 space-y-4 text-lg">
                 <li>
                   <a
-                    href="#about"
+                    href="/"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Giới thiệu
@@ -100,7 +99,7 @@ const Footer = () => {
 
                 <li>
                   <a
-                    href="#nursing"
+                    href="/"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Đội ngũ điều dưỡng
@@ -109,7 +108,7 @@ const Footer = () => {
 
                 <li>
                   <a
-                    href="#feedback"
+                    href="/"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Phản hồi từ khách hàng
@@ -132,7 +131,7 @@ const Footer = () => {
 
                 <li>
                   <a
-                    href="#faq"
+                    href="/"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Câu hỏi thường gặp

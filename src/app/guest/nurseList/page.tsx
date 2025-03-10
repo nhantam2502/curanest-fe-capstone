@@ -1,81 +1,187 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import { Heart, Stethoscope, Baby, Users } from "lucide-react";
+import {
+  ActivitySquare,
+  Clipboard,
+  Home,
+  Search,
+  ShieldAlert,
+  Utensils,
+} from "lucide-react";
+import { Heart, Baby, Users } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useRouter } from "next/navigation";
+import serviceApiRequest from "@/apiRequest/services/apiService";
+import {
+  CategoryInfo,
+  ServiceItem,
+  TransformedCategory,
+} from "@/types/service";
 
 const ServicesPage = () => {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [services, setServices] = useState<TransformedCategory[]>([]);
 
-  const categories = [
-    {
-      name: "Chăm sóc người già",
-      icon: <Heart className="w-7 h-7 text-red-500" />,
-      services: [
-        "Chăm sóc tại nhà",
-        "Theo dõi sức khỏe",
-        "Phục hồi chức năng",
-        "Dinh dưỡng",
-        "Đo sinh hiệu",
-      ],
-    },
-    {
-      name: "Chăm sóc sau phẫu thuật",
-      icon: <Stethoscope className="w-7 h-7 text-blue-500" />,
-      services: [
-        "Thay băng",
-        "Theo dõi sinh tồn",
-        "Vật lý trị liệu",
-        "Chăm sóc vết thương",
-      ],
-    },
-    {
-      name: "Chăm sóc mẹ và bé",
-      icon: <Baby className="w-7 h-7 text-pink-500" />,
-      services: [
-        "Chăm sóc sau sinh",
-        "Tư vấn dinh dưỡng",
-        "Theo dõi bé",
-        "Massage",
-      ],
-    },
-    {
-      name: "Dịch vụ khám bệnh",
-      icon: <Users className="w-7 h-7 text-orange-500" />,
-      services: ["Khám tổng quát", "Xét nghiệm", "Tư vấn", "Đo sinh hiệu"],
-    },
-  ];
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const servicesPerPage = 5;
 
-  const handleServiceClick = (category: string, service: string) => {
-    router.push(`/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}`);
+  // Category icons mapping
+  const categoryIcons: { [key: string]: React.ReactNode } = {
+    "Chăm sóc cho bé yêu": <Baby className="w-7 h-7 text-pink-500" />,
+    "Chăm sóc cơ bản": <Heart className="w-7 h-7 text-blue-500" />,
+    "Y tế tại nhà": <Home className="w-7 h-7 text-green-500" />,
+    "Phục hồi chức năng": (
+      <ActivitySquare className="w-7 h-7 text-purple-500" />
+    ),
+    "Hỗ trợ dinh dưỡng và vệ sinh": (
+      <Utensils className="w-7 h-7 text-amber-500" />
+    ),
+    "Chăm sóc đặc biệt": <ShieldAlert className="w-7 h-7 text-red-500" />,
+    "Tư vấn sức khỏe": <Clipboard className="w-7 h-7 text-teal-500" />,
+  };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await serviceApiRequest.getListService(null);
+
+        const transformedServices: TransformedCategory[] =
+          response.payload.data.map(
+            (item: {
+              "category-info": CategoryInfo;
+              "list-services": ServiceItem[];
+            }) => ({
+              name: item["category-info"].name,
+              id: item["category-info"].id,
+              description: item["category-info"].description,
+              services: item["list-services"].map((service: ServiceItem) => ({
+                name: service.name,
+                id: service.id,
+                description: service.description,
+              })),
+            })
+          );
+
+        setServices(transformedServices);
+
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedCategory]);
+
+  const handleServiceClick = (
+    category: string,
+    service: string,
+    id: string
+  ) => {
+    router.push(
+      `/guest/nurseList/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(id)}`
+    );
   };
 
   const filteredCategories = useMemo(() => {
-    return categories.filter(category => {
+    return services.filter((category) => {
       const matchesSearch =
         category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        category.services.some(service =>
-          service.toLowerCase().includes(searchTerm.toLowerCase())
+        category.services.some((service) =>
+          service.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
-      const matchesCategory = !selectedCategory || category.name === selectedCategory;
+      const matchesCategory =
+        !selectedCategory || category.name === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchTerm, selectedCategory, categories]);
+  }, [searchTerm, selectedCategory, services]);
+
+  // Get current page services
+  const indexOfLastService = currentPage * servicesPerPage;
+  const indexOfFirstService = indexOfLastService - servicesPerPage;
+  const currentServices = filteredCategories.slice(
+    indexOfFirstService,
+    indexOfLastService
+  );
+
+  // Calculate total pages
+  const totalPages = Math.ceil(filteredCategories.length / servicesPerPage);
+
+  // Handle page changes
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // Scroll to top of services section
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages is less than max pages to show
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show first page, last page, current page, and pages around current page
+      if (currentPage <= 3) {
+        // If current page is near start, show first 4 pages and last page
+        for (let i = 1; i <= 4; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(-1); // Ellipsis
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        // If current page is near end, show first page and last 4 pages
+        pageNumbers.push(1);
+        pageNumbers.push(-1); // Ellipsis
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // If current page is in middle, show first page, last page, and pages around current page
+        pageNumbers.push(1);
+        pageNumbers.push(-1); // Ellipsis
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(-1); // Ellipsis
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
+  };
 
   return (
-    <section className="hero_section">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <div className="xl:w-[650px] mx-auto">
         <h2 className="heading text-center">Dịch Vụ Điều Dưỡng</h2>
         <p className="text_para text-center">
@@ -88,8 +194,9 @@ const ServicesPage = () => {
         <div className="flex flex-col md:flex-row gap-8">
           {/* Filter Sidebar */}
           <Card className="md:w-1/3 lg:w-1/4 h-fit">
-            <CardHeader className="p-6">
-              <CardTitle className="text-2xl font-bold">
+            <CardHeader className="p-6 bg-gradient-to-r from-irisBlueColor/10 to-transparent">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3 text-irisBlueColor">
+                <Search className="h-6 w-6" />
                 Bộ lọc tìm kiếm
               </CardTitle>
             </CardHeader>
@@ -133,9 +240,9 @@ const ServicesPage = () => {
                       >
                         Tất cả
                       </Badge>
-                      {categories.map((category) => (
+                      {services.map((category) => (
                         <Badge
-                          key={category.name}
+                          key={category.id}
                           variant="outline"
                           className={`cursor-pointer text-[18px] px-4 py-2 ${
                             selectedCategory === category.name
@@ -169,32 +276,105 @@ const ServicesPage = () => {
           {/* Services Content */}
           <div className="md:w-2/3 lg:w-3/4">
             <div className="space-y-6">
-              {filteredCategories.map((category, index) => (
-                <div key={index} className="w-full">
-                  <CardHeader className="p-6 ">
-                    <CardTitle className="flex items-center gap-3 text-3xl">
-                      {category.icon}
-                      {category.name}
-                    </CardTitle>
-                  </CardHeader>
-                  
-                <CardContent className="p-6">
-                    <div className="flex flex-wrap gap-4">
-                      {category.services.map((service, serviceIndex) => (
-                        <Button
-                          key={serviceIndex}
-                          variant="outline"
-                          className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
-                          onClick={() => handleServiceClick(category.name, service)}
-                        >
-                          {service}
-                        </Button>
-                      ))}
-                    </div>
-                  </CardContent>
+              {currentServices.length > 0 ? (
+                currentServices.map((category, index) => (
+                  <div key={index} className="w-full">
+                    <CardHeader className="p-6 ">
+                      <CardTitle className="flex items-center gap-3 text-3xl">
+                        {categoryIcons[category.name] || (
+                          <Users className="w-7 h-7 text-gray-500" />
+                        )}
+                        {category.name}
+                      </CardTitle>
+                    </CardHeader>
+
+                    <CardContent className="p-6">
+                      <div className="flex flex-wrap gap-4">
+                        {category.services.map((service) => (
+                          <Button
+                            key={service.id}
+                            variant="outline"
+                            className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
+                            onClick={() =>
+                              handleServiceClick(
+                                category.name,
+                                service.name,
+                                service.id
+                              )
+                            }
+                          >
+                            {service.name}
+                          </Button>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </div>
+                ))
+              ) : (
+                <div className="w-full p-8 text-center">
+                  <p className="text-2xl text-gray-500">
+                    Không tìm thấy dịch vụ nào phù hợp
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
+
+            {/* Pagination */}
+            {filteredCategories.length > servicesPerPage && (
+              <div className="mt-8">
+                <Pagination>
+                  <PaginationContent>
+                    {/* Previous Button */}
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          currentPage > 1 && handlePageChange(currentPage - 1)
+                        }
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+
+                    {/* Page Numbers */}
+                    {getPageNumbers().map((page, index) =>
+                      page === -1 ? (
+                        <PaginationItem key={`ellipsis-${index}`}>
+                          <PaginationEllipsis />
+                        </PaginationItem>
+                      ) : (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={page === currentPage}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    )}
+
+                    {/* Next Button */}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          currentPage < totalPages &&
+                          handlePageChange(currentPage + 1)
+                        }
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
         </div>
       </div>
