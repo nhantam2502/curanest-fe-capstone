@@ -7,9 +7,9 @@ export default function RelativesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen">
+    <div className="flex flex-col min-h-screen">
       <RelativesNavbar />
-      <div>{children}</div>
+      <div  className="flex-grow">{children}</div>
       <Footer />
     </div>
   );

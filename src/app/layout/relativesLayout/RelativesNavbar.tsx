@@ -78,7 +78,7 @@ const RelativesNavbar = () => {
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
-      <div className="max-w-full w-[1140px] px-5 mx-auto">
+      <div className="max-w-full w-[1140px] mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>
@@ -117,8 +117,7 @@ const RelativesNavbar = () => {
                       {session.user.name
                         ? session.user.name
                             .split(" ")
-                            .map((word) => word[0])
-                            .join("")
+                            .slice(-1)[0][0]
                             .toUpperCase()
                         : "?"}
                     </AvatarFallback>
@@ -232,7 +231,7 @@ const RelativesNavbar = () => {
                     <div className="mt-4 pt-4 border-t">
                       <div className="space-y-1">
                         <Link
-                          href="/profile"
+                          href="/relatives/settings"
                           className="flex items-center gap-3 px-4 py-3 text-xl text-gray-700 hover:bg-gray-50 rounded-lg"
                         >
                           <User size={25} />

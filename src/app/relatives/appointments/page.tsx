@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { CalendarDays, Eye, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ const dummyData: Appointment[] = [
   },
 ];
 
-const getStatusColor = (status: Appointment['status']) => {
+const getStatusColor = (status: Appointment["status"]) => {
   switch (status) {
     case "completed":
       return "bg-green-500";
@@ -59,11 +59,15 @@ const getStatusColor = (status: Appointment['status']) => {
 };
 
 const AppointmentPage: React.FC = () => {
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null
+  );
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>(dummyData);
+  const [filteredAppointments, setFilteredAppointments] =
+    useState<Appointment[]>(dummyData);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
 
   const formatDate = (date: Date) => {
@@ -83,23 +87,19 @@ const AppointmentPage: React.FC = () => {
     setSelectedDate(date);
   };
 
-  // const handlePatientSelect = (patientId: string) => {
-  //   setSelectedPatientId(patientId);
-  //   setSelectedDate(null); // Reset selected date when changing patient
-  //   setFilteredAppointments(dummyData); // Reset to show all appointments for new patient
-  // };
-
   useEffect(() => {
     let filtered = [...dummyData];
     if (selectedDate) {
-      filtered = filtered.filter(apt => apt.appointment_date === selectedDate);
+      filtered = filtered.filter(
+        (apt) => apt.appointment_date === selectedDate
+      );
     }
     setFilteredAppointments(filtered);
   }, [selectedPatientId, selectedDate]);
 
   return (
-    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed h-full">
-      <div className="max-w-full w-[1500px] px-4 mx-auto">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen flex flex-col">
+      <div className="max-w-full w-[1500px] px-4 mx-auto flex-grow">
         {/* Header and Patient Selection */}
         <div className="mb-8">
           <div className="flex items-center space-x-4 mb-6">
@@ -108,15 +108,21 @@ const AppointmentPage: React.FC = () => {
               Lịch hẹn sắp tới
             </h2>
           </div>
-          
+
           <div className="flex flex-wrap gap-4 items-center">
             <p className="text-2xl font-bold">Hồ sơ bệnh nhân:</p>
             {[...Array(3)].map((_, index) => (
               <Button
                 key={index}
-                variant={selectedPatientId === `patient-${index}` ? "default" : "outline"}
+                variant={
+                  selectedPatientId === `patient-${index}`
+                    ? "default"
+                    : "outline"
+                }
                 className={`px-6 py-8 rounded-full transition-all text-lg ${
-                  selectedPatientId === `patient-${index}` ? "text-white" : "border"
+                  selectedPatientId === `patient-${index}`
+                    ? "text-white"
+                    : "border"
                 }`}
                 onClick={() => setSelectedPatientId(`patient-${index}`)}
               >
@@ -168,20 +174,26 @@ const AppointmentPage: React.FC = () => {
                                   {appointment.nurse_name}
                                 </AvatarFallback>
                               </Avatar>
-                              <Badge className={`${getStatusColor(appointment.status)} text-white text-lg px-4 py-1 rounded-full`}>
+                              <Badge
+                                className={`${getStatusColor(appointment.status)} text-white text-lg px-4 py-1 rounded-full`}
+                              >
                                 {appointment.status}
                               </Badge>
                             </div>
 
                             <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
                               <div>
-                                <p className="text-lg text-gray-500">Điều dưỡng</p>
+                                <p className="text-lg text-gray-500">
+                                  Điều dưỡng
+                                </p>
                                 <p className="font-semibold text-xl text-gray-900">
                                   {appointment.nurse_name}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-lg text-gray-500">Số điện thoại</p>
+                                <p className="text-lg text-gray-500">
+                                  Số điện thoại
+                                </p>
                                 <p className="font-semibold text-xl text-gray-900">
                                   {appointment.phone_number}
                                 </p>
@@ -189,27 +201,43 @@ const AppointmentPage: React.FC = () => {
                               <div>
                                 <p className="text-lg text-gray-500">Dịch vụ</p>
                                 <div className="flex flex-wrap gap-3">
-                                  {appointment.techniques.split("-").map((technique, index) => (
-                                    <Badge key={index} className="text-white text-base cursor-pointer">
-                                      {technique.trim()}
-                                    </Badge>
-                                  ))}
+                                  {appointment.techniques
+                                    .split("-")
+                                    .map((technique, index) => (
+                                      <Badge
+                                        key={index}
+                                        className="text-white text-base cursor-pointer"
+                                      >
+                                        {technique.trim()}
+                                      </Badge>
+                                    ))}
                                 </div>
                               </div>
                               <div>
-                                <p className="text-lg text-gray-500">Tổng tiền</p>
+                                <p className="text-lg text-gray-500">
+                                  Tổng tiền
+                                </p>
                                 <p className="font-semibold text-xl text-red-500">
-                                  {Number(appointment.total_fee).toLocaleString("vi-VN")} VND
+                                  {Number(appointment.total_fee).toLocaleString(
+                                    "vi-VN"
+                                  )}{" "}
+                                  VND
                                 </p>
                               </div>
                               <div>
-                                <p className="text-lg text-gray-500">Ngày hẹn</p>
+                                <p className="text-lg text-gray-500">
+                                  Ngày hẹn
+                                </p>
                                 <p className="font-semibold text-xl text-gray-900">
-                                  {formatDate(new Date(appointment.appointment_date))}
+                                  {formatDate(
+                                    new Date(appointment.appointment_date)
+                                  )}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-lg text-gray-500">Thời gian</p>
+                                <p className="text-lg text-gray-500">
+                                  Thời gian
+                                </p>
                                 <p className="font-semibold text-xl text-gray-900">
                                   {appointment.time_from_to}
                                 </p>
@@ -246,7 +274,7 @@ const AppointmentPage: React.FC = () => {
 
               {/* Right Side - Calendar */}
               <div className="lg:w-1/3">
-                <Calendar 
+                <Calendar
                   onDateSelect={handleDateSelect}
                   appointments={dummyData}
                 />
@@ -254,7 +282,7 @@ const AppointmentPage: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
             <p className="text-gray-600 text-xl font-medium">
               Vui lòng chọn hồ sơ bệnh nhân để xem lịch hẹn
             </p>

@@ -136,8 +136,8 @@ const AppointmentHistory = () => {
   const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
   return (
-    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed h-full">
-      <div className="max-w-full w-[1500px] px-4 mx-auto flex flex-col gap-8">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
+      <div className="max-w-full w-[1500px] px-4 mx-auto flex flex-col gap-8 py-8">
         {/* Header */}
         <div>
           <div className="flex items-center space-x-4 mb-6">
@@ -182,7 +182,7 @@ const AppointmentHistory = () => {
           </div>
         </div>
 
-        {selectedPatientId && (
+        {selectedPatientId ? (
           <>
             {/* Month Filter */}
             <div className="flex justify-end items-center space-x-4">
@@ -325,7 +325,7 @@ const AppointmentHistory = () => {
                   </Card>
                 ))
               ) : (
-                <div className="text-center py-12">
+                <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
                   <p className="text-gray-600 text-xl font-medium">
                     Không có lịch sử cuộc hẹn nào trong tháng này
                   </p>
@@ -333,10 +333,8 @@ const AppointmentHistory = () => {
               )}
             </div>
           </>
-        )}
-
-        {!selectedPatientId && (
-          <div className="text-center py-12">
+        ) : (
+          <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
             <p className="text-gray-600 text-xl font-medium">
               Vui lòng chọn hồ sơ bệnh nhân để xem lịch sử cuộc hẹn
             </p>
