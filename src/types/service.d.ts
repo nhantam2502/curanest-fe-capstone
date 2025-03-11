@@ -31,6 +31,8 @@ export type Service = {
   time: string;
   price: number;
   description?: string;
+  validityPeriod?: number;
+  usageTerms?: string;
 };
 
 export interface Services {
