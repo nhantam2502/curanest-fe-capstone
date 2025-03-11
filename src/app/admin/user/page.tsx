@@ -13,7 +13,7 @@ function Page() {
     const fetchUsers = async () => {
       try {
         const response = await relativesApiRequest.getRelativesFilter({
-          filter: {},
+          filter: {role: "relatives"},
           paging: { page: 1, size: 10, total: 0 },
         });
         setUsers(response.payload.data || []);

@@ -41,7 +41,6 @@ export default function NurseTable({
   ) => {
     event.stopPropagation();
     setSelectedNurse(nurse);
-    router.push(`/admin/nurse/map-service`);
   };
 
   return (
@@ -54,7 +53,6 @@ export default function NurseTable({
             <TableHead>Nơi làm việc</TableHead>
             <TableHead>Đánh giá</TableHead>
             <TableHead>Avatar</TableHead>
-            <TableHead>Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -101,11 +99,6 @@ export default function NurseTable({
                   ) : (
                     "N/A"
                   )}
-                </TableCell>
-                <TableCell>
-                  <Button variant="outline" onClick={(event) => handleMapService(event, nurse)}>
-                    Gán dịch vụ
-                  </Button>
                 </TableCell>
               </TableRow>
             ))

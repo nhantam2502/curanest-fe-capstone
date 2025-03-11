@@ -1,129 +1,193 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { GetAllNurseDetail } from "@/types/nurse";
-import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
-import { ChevronLeft, Star } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import categoryApiRequest from "@/apiRequest/category/apiCategory";
+import serviceApiRequest from "@/apiRequest/service/apiServices";
+import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
+import NurseDetailPage from "./NurseDetail";
+import { useParams } from "next/navigation";
 
-export default function NurseDetailPage() {
-  const { id } = useParams();
-  const router = useRouter();
-  const [nurseDetail, setNurseDetail] = useState<GetAllNurseDetail | null>(
-    null
+interface ServiceCategory {
+  id: string;
+  name: string;
+}
+
+interface Service {
+  id: number;
+  name: string;
+  category_id: string;
+}
+
+// Aesthetic ServiceChip component
+interface ServiceChipProps {
+  service: Service;
+  selected: boolean;
+  onToggle: (serviceId: number, newState: boolean) => void;
+}
+const ServiceChip: React.FC<ServiceChipProps> = ({ service, selected, onToggle }) => {
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(service.id, !selected)}
+      className={`px-3 py-1 rounded-full text-sm transition-colors border ${
+        selected
+          ? "bg-blue-500 text-white border-blue-500"
+          : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+      }`}
+    >
+      {service.name}
+    </button>
   );
-  const [error, setError] = useState<string | null>(null);
+};
 
+const NurseServiceMappingPage: React.FC = () => {
+  // Instead of using context for the nurse, we grab its id from the URL.
+  const { id } = useParams();
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
+  const [servicesByCategory, setServicesByCategory] = useState<Record<string, Service[]>>({});
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+
+  const form = useForm();
+
+  // Fetch service categories
   useEffect(() => {
-    const fetchNurseDetail = async (): Promise<void> => {
-      if (!id) {
-        setError("Không thể tải thông tin điều dưỡng.");
-        return;
-      }
-      const nurse_id = Array.isArray(id) ? id[0] : id;
+    const fetchCategories = async () => {
       try {
-        const response = await nurseApiRequest.getAllNurseDetail(nurse_id);
-        console.log("API response:", response);
-        setNurseDetail(response.payload.data);
-      } catch (err) {
-        console.error("Error fetching nurse detail:", err);
-        setError("Không thể tải thông tin điều dưỡng.");
+        const response = await categoryApiRequest.getCategory({ name: "" });
+        if (response.status === 200 && response.payload) {
+          setServiceCategories(response.payload.data || []);
+        } else {
+          console.error("Error fetching categories:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
       }
     };
+    fetchCategories();
+  }, []);
 
-    fetchNurseDetail();
-  }, [id]);
+  // Fetch services for each category and build mapping
+  useEffect(() => {
+    if (serviceCategories.length === 0) return;
+    const fetchAllServices = async () => {
+      const mapping: Record<string, Service[]> = {};
+      await Promise.all(
+        serviceCategories.map(async (category) => {
+          try {
+            const response = await serviceApiRequest.getService(category.id, null);
+            if (response.status === 200 && response.payload) {
+              mapping[category.id] = response.payload.data || [];
+            } else {
+              mapping[category.id] = [];
+            }
+          } catch (error) {
+            console.error("Error fetching services for category", category.id, error);
+            mapping[category.id] = [];
+          }
+        })
+      );
+      setServicesByCategory(mapping);
+    };
+    fetchAllServices();
+  }, [serviceCategories]);
 
-  if (error) {
-    return <div>{error}</div>;
-  }
+  // Handler for service chip toggle
+  const handleServiceChipToggle = (serviceId: number, newState: boolean) => {
+    setSelectedServices((prev) =>
+      newState
+        ? [...prev, serviceId.toString()]
+        : prev.filter((id) => id !== serviceId.toString())
+    );
+  };
 
-  if (!nurseDetail) {
-    return <div>Loading...</div>;
-  }
+  // Submit mapping API call using nurse id from URL parameters
+  const handleSubmitMapping = async () => {
+    if (!id) {
+      console.error("No nurse id found in URL");
+      return;
+    }
+    try {
+      const nurseId = Array.isArray(id) ? id[0] : id;
+      const body = { "service-ids": selectedServices };
+      const response = await nurseApiRequest.mapNurseToService(nurseId, body);
+      console.log("Mapping response:", response);
+      setShowConfirmationModal(true);
+    } catch (error) {
+      console.error("Error mapping nurse to service:", error);
+    }
+  };
+
+  // Flatten all services for the top display (to show selected service names)
+  const allServices: Service[] = Object.values(servicesByCategory).flat();
 
   return (
-    <div className="mx-auto p-6">
-      <Button className="mb-4" variant="outline" onClick={() => router.back()}>
-        <ChevronLeft className="mr-2 h-4 w-4" />
-        Trở lại
-      </Button>
-      <div className="flex items-center space-x-4">
-        <img
-          src={nurseDetail["nurse-picture"] || "/placeholder-avatar.png"}
-          alt={nurseDetail["nurse-name"]}
-          className="w-24 h-24 rounded-full object-cover"
-        />
-        <div>
-          <h2 className="text-2xl font-bold">{nurseDetail["nurse-name"]}</h2>
-          <p className="text-gray-600">
-            Slogan: {nurseDetail.slogan || "No slogan"}
-          </p>
-          <div className="flex items-center mt-2">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star
-                key={i}
-                className={`h-5 w-5 ${
-                  i < nurseDetail.rate ? "text-yellow-500" : "text-gray-300"
-                }`}
-              />
-            ))}
-            <span className="ml-2 text-sm text-gray-500">
-              ({nurseDetail.rate} / 5)
-            </span>
+    <div className="mx-auto flex">
+      {/* Left Panel: Nurse Detail */}
+      <div className="w-1/2">
+        <NurseDetailPage />
+      </div>
+
+      {/* Separator using a div with inline CSS */}
+      <div style={{ width: "1px", backgroundColor: "#ccc", margin: "0 16px" }} />
+
+      {/* Right Panel: Service Mapping */}
+      <div className="w-1/2">
+        {/* Top Part: Selected Services & Submit */}
+        <div className="mb-4 border-b pb-4">
+          <h2 className="text-xl font-bold mb-2">Dịch vụ đã chọn</h2>
+          {selectedServices.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {allServices
+                .filter((service) =>
+                  selectedServices.includes(service.id.toString())
+                )
+                .map((service) => (
+                  <span
+                    key={service.id}
+                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded"
+                  >
+                    {service.name}
+                  </span>
+                ))}
+            </div>
+          ) : (
+            <p>Chưa chọn dịch vụ nào.</p>
+          )}
+          <div className="mt-4 flex justify-end">
+            <Button onClick={handleSubmitMapping}>
+              Gán
+            </Button>
           </div>
         </div>
-      </div>
 
-      {/* Profile Details */}
-      <div className="mt-6 border-t pt-4 grid grid-cols-2 gap-4">
-        <DetailItem label="Role" value={nurseDetail.role} />
-        <DetailItem label="Email" value={nurseDetail.email} />
-        <DetailItem label="Phone Number" value={nurseDetail["phone-number"]} />
-        <DetailItem label="Gender" value={nurseDetail.gender ? "Nam" : "Nữ"} />
-        <DetailItem label="DOB" value={nurseDetail.dob} />
-        <DetailItem label="Address" value={nurseDetail.address} />
-        <DetailItem label="Ward" value={nurseDetail.ward} />
-        <DetailItem label="District" value={nurseDetail.district} />
-        <DetailItem label="City" value={nurseDetail.city} />
-        <DetailItem
-          label="Current Work Place"
-          value={nurseDetail["current-work-place"]}
-        />
-        <DetailItem
-          label="Education Level"
-          value={nurseDetail["education-level"]}
-        />
-        <DetailItem label="Experience" value={nurseDetail.experience} />
-        <DetailItem label="Certificate" value={nurseDetail.certificate} />
-        <div className="col-span-2">
-          <h3 className="font-medium text-gray-700">Google Drive URL:</h3>
-          <a
-            href={nurseDetail["google-drive-url"]}
-            className="text-blue-600 underline"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {nurseDetail["google-drive-url"]}
-          </a>
+        {/* Bottom Part: Categories & Their Services */}
+        <div>
+          {serviceCategories.map((category) => (
+            <div key={category.id} className="mb-4">
+              <h3 className="font-semibold mb-2">{category.name}</h3>
+              <div className="flex flex-wrap gap-2">
+                {servicesByCategory[category.id] && servicesByCategory[category.id].length > 0 ? (
+                  servicesByCategory[category.id].map((service) => (
+                    <ServiceChip
+                      key={service.id}
+                      service={service}
+                      selected={selectedServices.includes(service.id.toString())}
+                      onToggle={handleServiceChipToggle}
+                    />
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-sm">No services available.</p>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
-}
+};
 
-function DetailItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | boolean;
-}) {
-  return (
-    <div className="flex items-center">
-      <span className="font-medium text-gray-700 mr-2">{label}:</span>
-      <span className="text-gray-900">{String(value) || "N/A"}</span>
-    </div>
-  );
-}
+export default NurseServiceMappingPage;

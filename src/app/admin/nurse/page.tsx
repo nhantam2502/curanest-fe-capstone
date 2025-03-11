@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import NurseTable from "@/app/admin/nurse/NurseTable";
 import NurseFilter from "./NurseFilter";
 import Link from "next/link";
@@ -28,21 +28,21 @@ export default function NurseManagementPage() {
         "service-id": filters["service-id"],
         rate: filters.rate,
       };
+      // Subtract 1 from currentPage if API expects 0-indexed pages
       const paging = {
-        page: currentPage,
+        page: currentPage ,
         size: itemsPerPage,
-        total: 0, // total is not used for the request
       };
       const response = await nurseApiRequest.getAllNurse({ filter, paging });
       if (response.status === 200 && response.payload) {
         setNurses(response.payload.data || []);
-        // If the API returns the total count, use it. Otherwise, you might compute total pages from the response.
-        const total = response.payload.total || (response.payload.data ? response.payload.data.length : 0);
-        setTotalPages(Math.ceil(total / itemsPerPage) || 1);
+        setTotalPages(response.payload.paging.total || 1);
       } else {
         toast({
           title: "Lỗi tải điều dưỡng",
-          description: response.payload?.message || "Không thể tải danh sách điều dưỡng.",
+          description:
+            response.payload?.message ||
+            "Không thể tải danh sách điều dưỡng.",
           variant: "destructive",
         });
       }
