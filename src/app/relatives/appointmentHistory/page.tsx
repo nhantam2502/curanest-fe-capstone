@@ -136,7 +136,7 @@ const AppointmentHistory = () => {
   const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
   return (
-    <section className="hero_section h-full">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed h-full">
       <div className="max-w-full w-[1500px] px-4 mx-auto flex flex-col gap-8">
         {/* Header */}
         <div>

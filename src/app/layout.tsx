@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Curanest",
   description: "Tận tâm chăm sóc sức khỏe gia đình bạn.",
   icons: {
-    icon: "/logo.jpg",
+    icon: "/logo.png",
   },
 };
 
