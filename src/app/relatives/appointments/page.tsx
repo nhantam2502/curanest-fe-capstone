@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import Calendar from "@/app/components/Relatives/Calendar";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import { Appointment } from "@/types/appointment";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
+import { PatientRecord } from "@/types/patient";
 
+// Keep the original dummy data
 const dummyData: Appointment[] = [
   {
     id: 1,
@@ -59,16 +62,35 @@ const getStatusColor = (status: Appointment["status"]) => {
 };
 
 const AppointmentPage: React.FC = () => {
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
-    null
-  );
+  const [patients, setPatients] = useState<PatientRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [filteredAppointments, setFilteredAppointments] =
-    useState<Appointment[]>(dummyData);
+  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>(dummyData);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
+
+  // Fetch patient records when component mounts
+  useEffect(() => {
+    const fetchPatientRecords = async () => {
+      try {
+        setLoading(true);
+        const response = await patientApiRequest.getPatientRecord();
+        setPatients(response.payload.data);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching patient records:", err);
+        setError("Failed to load patient records. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatientRecords();
+  }, []);
 
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
@@ -109,36 +131,43 @@ const AppointmentPage: React.FC = () => {
             </h2>
           </div>
 
-          <div className="flex flex-wrap gap-4 items-center">
-            <p className="text-2xl font-bold">Hồ sơ bệnh nhân:</p>
-            {[...Array(3)].map((_, index) => (
-              <Button
-                key={index}
-                variant={
-                  selectedPatientId === `patient-${index}`
-                    ? "default"
-                    : "outline"
-                }
-                className={`px-6 py-8 rounded-full transition-all text-lg ${
-                  selectedPatientId === `patient-${index}`
-                    ? "text-white"
-                    : "border"
-                }`}
-                onClick={() => setSelectedPatientId(`patient-${index}`)}
-              >
-                <Avatar className="mr-3 w-12 h-12">
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt={`Bệnh nhân ${index + 1}`}
-                  />
-                  <AvatarFallback className="text-lg">{`B${index + 1}`}</AvatarFallback>
-                </Avatar>
-                <span className="text-lg font-semibold">
-                  Bệnh nhân {index + 1}
-                </span>
-              </Button>
-            ))}
-          </div>
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-gray-600 text-xl">Đang tải hồ sơ bệnh nhân...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 text-xl">{error}</p>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-4 items-center">
+              <p className="text-2xl font-bold">Hồ sơ bệnh nhân:</p>
+              {patients.length > 0 ? (
+                patients.map((patient, index) => (
+                  <Button
+                    key={index}
+                    variant={
+                      selectedPatientId === `patient-${index}`
+                        ? "default"
+                        : "outline"
+                    }
+                    className={`px-6 py-8 rounded-full transition-all text-lg ${
+                      selectedPatientId === `patient-${index}`
+                        ? "text-white"
+                        : "border"
+                    }`}
+                    onClick={() => setSelectedPatientId(`patient-${index}`)}
+                  >
+                    <span className="text-xl font-semibold">
+                      {patient["full-name"] || `Bệnh nhân ${index + 1}`}
+                    </span>
+                  </Button>
+                ))
+              ) : (
+                <p className="text-gray-600 text-xl">Không có hồ sơ bệnh nhân nào</p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Show calendar and appointments only after patient selection */}
@@ -297,6 +326,7 @@ const AppointmentPage: React.FC = () => {
           onClose={() => setIsDialogOpen(false)}
           appointment={selectedAppointment}
           nurse={selectedNurse}
+          patient={patients[0]}
         />
       )}
     </section>

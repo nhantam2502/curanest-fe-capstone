@@ -41,12 +41,6 @@ interface ServiceItem {
   usageTerms?: string;
 }
 
-interface NurseItem {
-  id: number;
-  name: string;
-  specialization: string;
-}
-
 interface SelectedTime {
   timeSlot: { display: string; value: string };
   date: string;
