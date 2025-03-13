@@ -462,7 +462,11 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             selectedNurse={selectedNurse}
             selectedTime={selectedTime}
             calculateTotalPrice={calculateTotalPrice}
-          />
+            nurseSelectionMethod={nurseSelectionMethod}
+            setCurrentStep={setCurrentStep}
+            toast={toast}
+            router={router}
+          />  
         );
     }
   };
