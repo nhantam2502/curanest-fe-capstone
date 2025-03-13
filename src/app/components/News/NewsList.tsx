@@ -19,8 +19,8 @@ const NewsList = () => {
   return (
     <>
       {/* Search topic */}
-      <div className="hero_section">
-        <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
+      <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
+        <section>
           <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10">
             <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-20">
               {/* left side */}
@@ -79,7 +79,7 @@ const NewsList = () => {
         </section>
 
         {/* Display news */}
-        <section id="news" className="mb-20">
+        <section id="news">
           <div className="mx-auto max-w-[1700px] px-6 sm:px-6 lg:px-10">
             <div className="xl:w-[470px] mx-auto text-center">
               <h2 className="text-5xl font-semibold text-gray-800">

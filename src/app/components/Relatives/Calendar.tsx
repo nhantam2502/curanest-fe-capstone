@@ -5,7 +5,7 @@ interface Appointment {
   id: number;
   nurse_name: string;
   avatar: string;
-  status: string
+  status: string;
   phone_number: string;
   techniques: string;
   total_fee: number;
@@ -99,7 +99,13 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
   const changeMonth = (increment: number) => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + increment);
-    setCurrentDate(newDate);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Đặt thời gian về đầu ngày để so sánh chính xác
+
+    if (newDate >= today) {
+      setCurrentDate(newDate);
+    }
   };
 
   const getDayOfWeek = (day: number) => {
@@ -125,6 +131,16 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
     return `${months[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
   };
 
+  const isToday = (date: number) => {
+    const today = new Date();
+    return (
+      date === today.getDate() &&
+      currentDate.getMonth() === today.getMonth() &&
+      currentDate.getFullYear() === today.getFullYear()
+    );
+  };
+  
+
   const renderCalendar = () => {
     const days: React.ReactNode[] = [];
     let day = 1;
@@ -147,35 +163,33 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
       const hasAppt = hasAppointment(currentDay);
       const isSelected = isInSelectedWeek(currentDay);
 
-      days.push(
-        <div
-          key={day}
-          onClick={() => handleDateClick(currentDay)}
-          className={`
-              w-12 h-12 flex items-center justify-center rounded-lg cursor-pointer
-              transition-all duration-200 hover:bg-blue-100
-              ${hasAppt ? "bg-yellow-100 hover:bg-yellow-200" : ""}
-              ${
-                isSelected
-                  ? "bg-[#71DDD7] text-white hover:bg-[#71DDD7]/90"
-                  : ""
-              }
-            `}
-        >
-          <div className="flex flex-col items-center">
-            <span className="text-xs">
-              {getDayOfWeek(
-                new Date(
-                  currentDate.getFullYear(),
-                  currentDate.getMonth(),
-                  currentDay
-                ).getDay()
-              )}
-            </span>
-            <span className="font-semibold">{currentDay}</span>
-          </div>
-        </div>
-      );
+    days.push(
+  <div
+    key={day}
+    onClick={() => handleDateClick(currentDay)}
+    className={`
+      w-12 h-12 flex items-center justify-center rounded-lg cursor-pointer
+      transition-all duration-200 hover:bg-blue-100
+      ${hasAppt ? "bg-yellow-100 hover:bg-yellow-200" : ""}
+      ${isSelected ? "bg-[#71DDD7] text-white hover:bg-[#71DDD7]/90" : ""}
+      ${isToday(currentDay) ? "border-2 border-teal-500" : ""}
+    `}
+  >
+    <div className="flex flex-col items-center">
+      <span className="text-xs">
+        {getDayOfWeek(
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDay
+          ).getDay()
+        )}
+      </span>
+      <span className="font-semibold">{currentDay}</span>
+    </div>
+  </div>
+);
+
       day++;
     }
 
@@ -184,10 +198,20 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => changeMonth(-1)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            disabled={
+              currentDate.getMonth() === new Date().getMonth() &&
+              currentDate.getFullYear() === new Date().getFullYear()
+            }
+            className={`p-2 rounded-full transition-colors ${
+              currentDate.getMonth() === new Date().getMonth() &&
+              currentDate.getFullYear() === new Date().getFullYear()
+                ? "opacity-50 cursor-not-allowed"
+                : "hover:bg-gray-100"
+            }`}
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
+
           <div className="text-xl font-bold text-center">
             {getMonthYearString()}
           </div>

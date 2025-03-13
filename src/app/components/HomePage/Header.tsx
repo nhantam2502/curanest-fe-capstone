@@ -73,7 +73,7 @@ const Header = () => {
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
-      <div className="max-w-full w-[1140px] px-5 mx-auto">
+      <div className="max-w-full w-[1140px] mx-auto">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>

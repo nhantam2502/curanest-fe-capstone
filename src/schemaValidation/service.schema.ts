@@ -30,13 +30,9 @@ export const ServiceListRes = z.object({
   success: z.boolean(),
 });
 
-// Filter schema
-export const ServiceFilterSchema = z.object({
-  "service-name": z.string().optional(),
-});
+
 
 // Export types
 export type ServiceListResType = z.TypeOf<typeof ServiceListRes>;
-export type ServiceFilterType = z.TypeOf<typeof ServiceFilterSchema>;
 export type ServiceType = z.TypeOf<typeof ServiceSchema>;
 export type CategoryInfoType = z.TypeOf<typeof CategoryInfoSchema>;

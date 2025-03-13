@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { CalendarDays, Eye, FileText, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,8 @@ import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import MedicalReport from "@/app/components/Relatives/MedicalReport";
 import nurseData from "@/dummy_data/dummy_nurse.json";
 import FeedbackDialog from "@/app/components/Relatives/FeedbackDialog";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
+import { PatientRecord } from "@/types/patient";
 
 const dummyData = [
   {
@@ -58,9 +60,7 @@ const years = Array.from(
 ).reverse();
 
 const AppointmentHistory = () => {
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
-    null
-  );
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
@@ -73,6 +73,28 @@ const AppointmentHistory = () => {
   const [isMedicalReportOpen, setIsMedicalReportOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  
+  const [patients, setPatients] = useState<PatientRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        setIsLoading(true);
+        const response = await patientApiRequest.getPatientRecord();
+        
+        setPatients(response.payload.data);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching patient records:", err);
+        setError("Failed to load patient records. Please try again later.");
+        setIsLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
 
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
@@ -136,8 +158,8 @@ const AppointmentHistory = () => {
   const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
   return (
-    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed h-full">
-      <div className="max-w-full w-[1500px] px-4 mx-auto flex flex-col gap-8">
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
+      <div className="max-w-full w-[1500px] px-4 mx-auto flex flex-col gap-8 py-8">
         {/* Header */}
         <div>
           <div className="flex items-center space-x-4 mb-6">
@@ -148,41 +170,46 @@ const AppointmentHistory = () => {
           </div>
 
           {/* Patient Selection */}
-          <div className="flex flex-wrap gap-4 items-center mb-6">
+          <div className="flex flex-wrap gap-4 items-center ">
             <p className="text-2xl font-bold">Hồ sơ bệnh nhân:</p>
-            {[...Array(3)].map((_, index) => (
-              <Button
-                key={index}
-                variant={
-                  selectedPatientId === `patient-${index}`
-                    ? "default"
-                    : "outline"
-                }
-                className={`px-6 py-8 rounded-full transition-all text-lg ${
-                  selectedPatientId === `patient-${index}`
-                    ? "text-white"
-                    : "border"
-                }`}
-                onClick={() => setSelectedPatientId(`patient-${index}`)}
-              >
-                <Avatar className="mr-3 w-12 h-12">
-                  <AvatarImage
-                    src="https://github.com/shadcn.png"
-                    alt={`Bệnh nhân ${index + 1}`}
-                  />
-                  <AvatarFallback className="text-lg">{`B${
-                    index + 1
-                  }`}</AvatarFallback>
-                </Avatar>
-                <span className="text-lg font-semibold">
-                  Bệnh nhân {index + 1}
-                </span>
-              </Button>
-            ))}
+            {isLoading ? (
+              <div className="w-full text-center py-4">
+                <p className="text-lg">Đang tải hồ sơ bệnh nhân...</p>
+              </div>
+            ) : error ? (
+              <div className="w-full text-center py-4">
+                <p className="text-lg text-red-500">{error}</p>
+              </div>
+            ) : patients.length > 0 ? (
+              patients.map((patient, index) => (
+                <Button
+                  key={patient.id}
+                  variant={
+                    selectedPatientId === patient.id
+                      ? "default"
+                      : "outline"
+                  }
+                  className={`px-6 py-8 rounded-full transition-all text-lg ${
+                    selectedPatientId === patient.id
+                      ? "text-white"
+                      : "border"
+                  }`}
+                  onClick={() => setSelectedPatientId(`patient-${index}`)}
+                  >
+                  <span className="text-xl font-semibold">
+                    {patient["full-name"] || `Bệnh nhân ${index + 1}`}
+                  </span>
+                </Button>
+              ))
+            ) : (
+              <div className="w-full text-center py-4">
+                <p className="text-lg">Không có hồ sơ bệnh nhân nào</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {selectedPatientId && (
+        {selectedPatientId ? (
           <>
             {/* Month Filter */}
             <div className="flex justify-end items-center space-x-4">
@@ -325,7 +352,7 @@ const AppointmentHistory = () => {
                   </Card>
                 ))
               ) : (
-                <div className="text-center py-12">
+                <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
                   <p className="text-gray-600 text-xl font-medium">
                     Không có lịch sử cuộc hẹn nào trong tháng này
                   </p>
@@ -333,10 +360,8 @@ const AppointmentHistory = () => {
               )}
             </div>
           </>
-        )}
-
-        {!selectedPatientId && (
-          <div className="text-center py-12">
+        ) : (
+          <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
             <p className="text-gray-600 text-xl font-medium">
               Vui lòng chọn hồ sơ bệnh nhân để xem lịch sử cuộc hẹn
             </p>
@@ -351,6 +376,7 @@ const AppointmentHistory = () => {
           onClose={() => setIsDialogOpen(false)}
           appointment={selectedAppointment}
           nurse={selectedNurse}
+          patient={patients[0]}
         />
       )}
 

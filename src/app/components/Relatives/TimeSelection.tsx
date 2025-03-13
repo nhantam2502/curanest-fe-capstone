@@ -8,6 +8,7 @@ export interface TimeSlot {
   start: string;
   end: string;
   display: string;
+  value: string;
 }
 
 // Type for the component props
@@ -63,7 +64,13 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           .padStart(2, "0")} - ${endHour
           .toString()
           .padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`,
+        value: `${startHour.toString().padStart(2, "0")}:${startMinute
+          .toString()
+          .padStart(2, "0")}-${endHour
+          .toString()
+          .padStart(2, "0")}:${endMinute.toString().padStart(2, "0")}`, // Thêm thuộc tính value
       };
+
       slots.push(timeSlot);
     }
     return slots;
@@ -139,7 +146,6 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           <span className="text-red-500">{totalTime} phút</span>)
         </h3>
         <div className="grid grid-cols-5 gap-4">
-         
           {getTimeSlots().map((slot) => (
             <Button
               key={slot.display}

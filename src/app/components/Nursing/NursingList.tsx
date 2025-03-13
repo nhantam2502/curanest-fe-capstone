@@ -13,14 +13,17 @@ const NursingList = ({ serviceId }: { serviceId: string }) => {
     const fetchNurses = async () => {
       setLoading(true);
       try {
-        const response = await nurseApiRequest.getListNurse({
-          "service-id": serviceId,
-        });
+        const response = await nurseApiRequest.getListNurse(
+          serviceId , 
+          null,               
+          1,                 
+          null             
+        );
 
-        console.log("API Response:", response); // Debug dữ liệu trả về
 
         const nursesData = response?.payload?.data || []; // Đảm bảo không bị undefined
         setNurses(nursesData.slice(0, 3)); // Giới hạn 3 kết quả đầu tiên
+        console.log(nursesData);
       } catch (err) {
         console.error("Error fetching nurses:", err);
       } finally {

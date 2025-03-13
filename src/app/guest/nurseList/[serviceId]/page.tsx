@@ -43,6 +43,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 
+// Replace the two separate cards with this combined card
 const NurseList = () => {
   const params = useParams();
   const router = useRouter();
@@ -56,11 +57,9 @@ const NurseList = () => {
   // Lấy thêm các query parameter khác nếu có
   const searchParams = useSearchParams();
   const serviceID = searchParams.get("serviceId") || "";
-  const service = searchParams.get("service") || "";
   const category = searchParams.get("category") || "";
 
   console.log("Service ID: ", serviceID);
-  console.log("Service: ", service);
   console.log("Category: ", category);
 
   const [selectedSpecialization, setSelectedSpecialization] =
@@ -71,27 +70,32 @@ const NurseList = () => {
 
   // Thêm state cho filter theo tên và rating
   const [nameFilter, setNameFilter] = useState("");
+  const [searchTriggered, setSearchTriggered] = useState(false);
   const [minRating, setMinRating] = useState(0);
 
   useEffect(() => {
-    if (!serviceId) return;
+    if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
 
     const fetchNurses = async () => {
       setLoading(true);
       try {
-        const response = await nurseApiRequest.getListNurse({
-          "service-id": serviceID || "",
-        });
+        const response = await nurseApiRequest.getListNurse(
+          serviceID || null,
+          minRating ? minRating.toString() : null,
+          currentPage,
+          nameFilter || null
+        );
         setNurses(response.payload.data);
       } catch (err) {
         console.log("Error fetching nurses ", err);
       } finally {
         setLoading(false);
+        setSearchTriggered(false); // Reset để tránh gọi API nhiều lần
       }
     };
 
     fetchNurses();
-  }, [serviceId, serviceID]);
+  }, [serviceID, searchTriggered]);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -126,6 +130,11 @@ const NurseList = () => {
     setCurrentPage(page);
     // Scroll to top when changing page
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSearch = () => {
+    setSearchTriggered(true); // Chỉ gọi API khi nhấn nút
+    setCurrentPage(1); // Reset trang về 1 khi tìm kiếm mới
   };
 
   // Reset all filters
@@ -219,9 +228,7 @@ const NurseList = () => {
 
           <BreadcrumbItem>
             <BreadcrumbLink
-             onClick={() => {
-              window.history.back();
-            }}
+              href={`/guest/nurseList/${encodeURIComponent(searchTerm)}?category=${encodeURIComponent(category)}&serviceId=${decodeURIComponent(serviceID)}`}
               className="text-xl"
             >
               Danh sách điều dưỡng thuộc dịch vụ: {searchTerm}
@@ -242,91 +249,202 @@ const NurseList = () => {
 
       <div className="mx-auto max-w-[1900px] px-8 lg:px-12 py-10">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Selected Info Card - Cột bên trái */}
-          <div className="w-full md:w-1/5 lg:w-1/5">
+          {/* Combined Filter and Info Card - Cột bên trái */}
+          <div className="w-full md:w-1/4 lg:w-1/4">
             <Card className="h-fit shadow-lg border-t-4 border-t-irisBlueColor rounded-lg overflow-hidden">
               <CardHeader className="p-6 bg-gradient-to-r from-irisBlueColor/10 to-transparent">
                 <CardTitle className="text-2xl font-bold flex items-center gap-3 text-irisBlueColor">
                   <FileText className="h-6 w-6" />
-                  Thông tin đã chọn
+                  Thông tin và Bộ lọc
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="p-6">
-                {/* Chuyên khoa đã chọn */}
-                <div className="mb-8">
-                  <p className="text-xl font-medium mb-4 flex items-center text-gray-800">
-                    <Stethoscope className="h-6 w-6 mr-3 text-irisBlueColor" />
-                    Chuyên khoa
-                  </p>
-                  {selectedSpecialization ? (
-                    <div className="animate-fadeIn">
-                      <Badge className="px-3 py-1.5 text-[18px] bg-[#e5ab47] hover:bg-[#e5ab47] text-white border-[#e5ab47] gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        {selectedSpecialization}
-                      </Badge>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-gray-500 italic pl-2 border-l-2 border-gray-300">
-                      <Info className="h-5 w-5 text-gray-400" />
-                      <p>Chưa chọn chuyên khoa</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Dịch vụ đã chọn */}
+                {/* Phần Thông tin đã chọn */}
                 <div className="mb-6">
-                  <p className="text-xl font-medium mb-4 flex items-center text-gray-800">
-                    <Clipboard className="h-6 w-6 mr-3 text-irisBlueColor" />
-                    Dịch vụ
-                  </p>
-                  {searchTerm ? (
-                    <div className="animate-fadeIn">
-                      <Badge className="px-3 py-1.5 text-[18px] bg-[#e5ab47] hover:bg-[#e5ab47] text-white border-[#e5ab47] gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        {searchTerm}
-                      </Badge>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-gray-500 italic pl-2 border-l-2 border-gray-300">
-                      <Info className="h-5 w-5 text-gray-400" />
-                      <p>Chưa chọn dịch vụ</p>
+                  <h3 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 text-irisBlueColor flex items-center">
+                    <Info className="h-5 w-5 mr-2" />
+                    Thông tin đã chọn
+                  </h3>
+
+                  {/* Chuyên khoa đã chọn */}
+                  <div className="mb-4">
+                    <p className="text-lg font-medium mb-2 flex items-center text-gray-700">
+                      <Stethoscope className="h-5 w-5 mr-2 text-irisBlueColor" />
+                      Chuyên khoa
+                    </p>
+                    {selectedSpecialization ? (
+                      <div className="animate-fadeIn">
+                        <Badge className="px-3 py-1.5 text-[16px] bg-[#e5ab47] hover:bg-[#e5ab47] text-white border-[#e5ab47] gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          {selectedSpecialization}
+                        </Badge>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-gray-500 italic pl-2 border-l-2 border-gray-300">
+                        <Info className="h-4 w-4 text-gray-400" />
+                        <p>Chưa chọn chuyên khoa</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dịch vụ đã chọn */}
+                  <div className="mb-4">
+                    <p className="text-lg font-medium mb-2 flex items-center text-gray-700">
+                      <Clipboard className="h-5 w-5 mr-2 text-irisBlueColor" />
+                      Dịch vụ
+                    </p>
+                    {searchTerm ? (
+                      <div className="animate-fadeIn">
+                        <Badge className="px-3 py-1.5 text-[16px] bg-[#e5ab47] hover:bg-[#e5ab47] text-white border-[#e5ab47] gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          {searchTerm}
+                        </Badge>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-gray-500 italic pl-2 border-l-2 border-gray-300">
+                        <Info className="h-4 w-4 text-gray-400" />
+                        <p>Chưa chọn dịch vụ</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hiển thị thông tin filter đã chọn */}
+                  {(nameFilter || minRating > 0) && (
+                    <div className="mb-4">
+                      <p className="text-lg font-medium mb-2 flex items-center text-gray-700">
+                        <Search className="h-5 w-5 mr-2 text-irisBlueColor" />
+                        Bộ lọc đã áp dụng
+                      </p>
+                      <div className="space-y-2">
+                        {nameFilter && (
+                          <div className="animate-fadeIn">
+                            <Badge className="px-3 py-1.5 text-[16px] bg-irisBlueColor hover:bg-irisBlueColor text-white border-irisBlueColor gap-2">
+                              <CheckCircle className="h-4 w-4" />
+                              Tên: {nameFilter}
+                            </Badge>
+                          </div>
+                        )}
+                        {minRating > 0 && (
+                          <div className="animate-fadeIn">
+                            <Badge className="px-3 py-1.5 text-[16px] bg-irisBlueColor hover:bg-irisBlueColor text-white border-irisBlueColor gap-2">
+                              <StarIcon className="h-4 w-4" />
+                              Đánh giá: {minRating}+ sao
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Hiển thị thông tin filter đã chọn */}
-                {(nameFilter || minRating > 0) && (
-                  <div className="mb-6">
-                    <p className="text-xl font-medium mb-4 flex items-center text-gray-800">
-                      <Search className="h-6 w-6 mr-3 text-irisBlueColor" />
-                      Bộ lọc đã áp dụng
-                    </p>
-                    <div className="space-y-2">
-                      {nameFilter && (
-                        <div className="animate-fadeIn">
-                          <Badge className="px-3 py-1.5 text-[16px] bg-irisBlueColor hover:bg-irisBlueColor text-white border-irisBlueColor gap-2">
-                            <CheckCircle className="h-4 w-4" />
-                            Tên: {nameFilter}
-                          </Badge>
-                        </div>
-                      )}
-                      {minRating > 0 && (
-                        <div className="animate-fadeIn">
-                          <Badge className="px-3 py-1.5 text-[16px] bg-irisBlueColor hover:bg-irisBlueColor text-white border-irisBlueColor gap-2">
-                            <StarIcon className="h-4 w-4" />
-                            Đánh giá: {minRating}+ sao
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                {/* Phần Bộ lọc tìm kiếm */}
+                <div className="mt-8">
+                  <h3 className="text-xl font-semibold mb-4 pb-2 border-b border-gray-200 text-irisBlueColor flex items-center">
+                    <Search className="h-5 w-5 mr-2" />
+                    Bộ lọc tìm kiếm
+                  </h3>
 
-                {/* Nút Quay lại và Reset */}
+                  <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full space-y-4"
+                    defaultValue="search"
+                  >
+                    {/* Search Filter */}
+                    <AccordionItem value="search" className="border-b">
+                      <AccordionTrigger className="text-lg py-3">
+                        Tìm kiếm theo tên
+                      </AccordionTrigger>
+                      <AccordionContent className="pt-3 pb-5">
+                        <div className="relative">
+                          <Input
+                            type="text"
+                            placeholder="Nhập tên điều dưỡng..."
+                            value={nameFilter}
+                            onChange={(e) => {
+                              setNameFilter(e.target.value);
+                              setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+                            }}
+                            className="pl-10 py-5 text-base"
+                          />
+                          <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Rating Filter */}
+                    <AccordionItem value="rating" className="border-b">
+                      <AccordionTrigger className="text-lg py-3">
+                        <div className="flex items-center gap-2">
+                          Xếp hạng đánh giá
+                          <StarIcon className="w-4 h-4 fill-yellow-400 text-yellow-200" />
+                        </div>
+                      </AccordionTrigger>
+
+                      <AccordionContent className="pt-3 pb-5">
+                        <div className="space-y-5">
+                          <Slider
+                            defaultValue={[0]}
+                            max={5}
+                            step={0.5}
+                            className="w-full"
+                            onValueChange={(value) => {
+                              setMinRating(value[0]);
+                              setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+                            }}
+                          />
+                          <div className="flex justify-between items-center">
+                            <div className="text-base text-muted-foreground flex gap-2">
+                              Tối thiểu:{" "}
+                              <span className="font-medium text-irisBlueColor">
+                                {minRating}
+                              </span>{" "}
+                              / 5
+                            </div>
+
+                            {/* Hiển thị rating bằng stars */}
+                            <div className="flex">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <StarIcon
+                                  key={star}
+                                  className={`w-4 h-4 ${star <= minRating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+
+                  <div className="flex justify-between gap-4 mt-6">
+                    <Button
+                      variant="outline"
+                      className="flex-1 py-5 text-base border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
+                      onClick={resetFilters}
+                    >
+                      Đặt lại
+                    </Button>
+
+                    <Button
+                      onClick={handleSearch}
+                      disabled={!nameFilter && minRating === 0} // Điều kiện disable
+                      className={`flex-1 py-5 text-base ${
+                        !nameFilter && minRating === 0
+                          ? "bg-[#e5ab47]/90 cursor-not-allowed" // Khi disable
+                          : "bg-[#e5ab47] hover:bg-[#e5ab47]" // Khi enable
+                      }`}
+                    >
+                      Tìm kiếm
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Nút Quay lại ở cuối cùng */}
                 <Button
                   variant="outline"
-                  className="w-full mt-6 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
+                  className="w-full mt-8 py-5 text-base border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
                   onClick={() => router.push("/guest/nurseList")}
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -336,8 +454,8 @@ const NurseList = () => {
             </Card>
           </div>
 
-          {/* Main Content - Cột giữa lớn hơn */}
-          <div className="w-full md:w-3/5 lg:w-3/5">
+          {/* Main Content - Cột bên phải lớn hơn */}
+          <div className="w-full md:w-2/3 lg:w-2/3">
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-irisBlueColor"></div>
@@ -422,103 +540,6 @@ const NurseList = () => {
                 )}
               </>
             )}
-          </div>
-
-          {/* Filter Sidebar - Cột bên phải */}
-          <div className="w-full md:w-1/5 lg:w-1/5">
-            <Card className="h-fit shadow-lg border-t-4 border-t-irisBlueColor rounded-lg overflow-hidden">
-              <CardHeader className="p-6 bg-gradient-to-r from-irisBlueColor/10 to-transparent">
-                <CardTitle className="text-2xl font-bold flex items-center gap-3 text-irisBlueColor">
-                  <Search className="h-6 w-6" />
-                  Bộ lọc tìm kiếm
-                </CardTitle>
-              </CardHeader>
-
-              <CardContent className="p-6">
-                <Accordion
-                  type="single"
-                  collapsible
-                  className="w-full space-y-4"
-                  defaultValue="search"
-                >
-                  {/* Search Filter */}
-                  <AccordionItem value="search" className="border-b-2">
-                    <AccordionTrigger className="text-xl py-4">
-                      Tìm kiếm theo tên
-                    </AccordionTrigger>
-                    <AccordionContent className="pt-4 pb-6">
-                      <div className="relative">
-                        <Input
-                          type="text"
-                          placeholder="Nhập tên điều dưỡng..."
-                          value={nameFilter}
-                          onChange={(e) => {
-                            setNameFilter(e.target.value);
-                            setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
-                          }}
-                          className="pl-12 py-6 text-lg"
-                        />
-                        <Search className="absolute left-4 top-4 h-6 w-6 text-gray-400" />
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  {/* Rating Filter */}
-                  <AccordionItem value="rating" className="border-b-2">
-                    <AccordionTrigger className="text-xl py-4">
-                      <div className="flex items-center gap-2">
-                        Xếp hạng đánh giá
-                        <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />
-                      </div>
-                    </AccordionTrigger>
-
-                    <AccordionContent className="pt-4 pb-6">
-                      <div className="space-y-6">
-                        <Slider
-                          defaultValue={[0]}
-                          max={5}
-                          step={0.5}
-                          className="w-full"
-                          onValueChange={(value) => {
-                            setMinRating(value[0]);
-                            setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
-                          }}
-                        />
-                        <div className="flex justify-between items-center">
-                          <div className="text-lg text-muted-foreground flex gap-2">
-                            Tối thiểu:{" "}
-                            <span className="font-medium text-irisBlueColor">
-                              {minRating}
-                            </span>{" "}
-                            / 5
-                          </div>
-
-                          {/* Hiển thị rating bằng stars */}
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <StarIcon
-                                key={star}
-                                className={`w-5 h-5 ${star <= minRating ? "fill-yellow-400 text-yellow-400" : "fill-gray-200 text-gray-200"}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-
-                {/* Reset Button */}
-                <Button
-                  variant="outline"
-                  className="w-full mt-6 py-6 text-lg border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
-                  onClick={resetFilters}
-                  disabled={nameFilter === "" && minRating === 0}
-                >
-                  Đặt lại bộ lọc
-                </Button>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
