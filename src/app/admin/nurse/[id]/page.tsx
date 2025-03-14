@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import categoryApiRequest from "@/apiRequest/category/apiCategory";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
@@ -43,16 +42,16 @@ const ServiceChip: React.FC<ServiceChipProps> = ({ service, selected, onToggle }
 };
 
 const NurseServiceMappingPage: React.FC = () => {
-  // Instead of using context for the nurse, we grab its id from the URL.
   const { id } = useParams();
+
+  // State for categories and a mapping for services by category
   const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
   const [servicesByCategory, setServicesByCategory] = useState<Record<string, Service[]>>({});
+  // This state holds the service ids (as strings) that the nurse already has mapped
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
-  const form = useForm();
-
-  // Fetch service categories
+  // Fetch service categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -69,7 +68,7 @@ const NurseServiceMappingPage: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Fetch services for each category and build mapping
+  // Once categories are loaded, fetch services for each category and build a mapping.
   useEffect(() => {
     if (serviceCategories.length === 0) return;
     const fetchAllServices = async () => {
@@ -94,7 +93,38 @@ const NurseServiceMappingPage: React.FC = () => {
     fetchAllServices();
   }, [serviceCategories]);
 
-  // Handler for service chip toggle
+  // NEW: Fetch the nurse's mapped services so the corresponding chips appear as selected.
+  useEffect(() => {
+    const fetchNurseService = async () => {
+      if (!id) {
+        console.error("No nurse id found in URL");
+        return;
+      }
+      const nurseId = Array.isArray(id) ? id[0] : id;
+      try {
+        const response = await nurseApiRequest.getNurseService(nurseId);
+        console.log("Nurse mapped services response:", response);
+        if (
+          response.status === 200 &&
+          response.payload &&
+          response.payload.data &&
+          response.payload.data["service-ids"]
+        ) {
+          const mappedServices = response.payload.data["service-ids"];
+          setSelectedServices(mappedServices);
+        } else {
+          console.error("Error fetching nurse services:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching nurse services:", error);
+      }
+    };
+    fetchNurseService();
+  }, [id]);
+  
+  
+
+  // Toggle selected services
   const handleServiceChipToggle = (serviceId: number, newState: boolean) => {
     setSelectedServices((prev) =>
       newState
@@ -157,9 +187,7 @@ const NurseServiceMappingPage: React.FC = () => {
             <p>Chưa chọn dịch vụ nào.</p>
           )}
           <div className="mt-4 flex justify-end">
-            <Button onClick={handleSubmitMapping}>
-              Gán
-            </Button>
+            <Button onClick={handleSubmitMapping}>Gán</Button>
           </div>
         </div>
 

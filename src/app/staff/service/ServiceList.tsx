@@ -1,191 +1,70 @@
 "use client";
-import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Services } from "@/types/service"; // Use Service (singular) for individual service type
-import { Trash } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 
-interface ServiceListProps {
-  services: Services[];
-  onAddService: (newService: Services) => void;
-  onDeleteService: (serviceId: number) => void;
+import React, { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area"; // For scrollable list if many services
+import { ChevronRightIcon, PlusIcon } from "lucide-react";
+
+// Define your Service type (adjust to your actual API response type)
+interface Service {
+  id: string;
+  name: string;
+  description?: string;
+  // ... other service properties
 }
 
-function ServiceList({
-  services,
-  onAddService,
-  onDeleteService,
-}: ServiceListProps) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newServiceName, setNewServiceName] = useState("");
-  const [newServiceDescription, setNewServiceDescription] = useState("");
-  const { toast } = useToast();
+interface ServiceListPanelProps {
+  onServiceSelect: (serviceId: string) => void; 
+}
 
-  const handleAddService = () => {
-    if (!newServiceName.trim() || !newServiceDescription.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please enter both service name and description.",
-      });
-      return;
-    }
+const ServiceListPanel: React.FC<ServiceListPanelProps> = ({ onServiceSelect }) => {
+  const [services, setServices] = useState<Service[]>([
+    { id: "svc-1", name: "Vật lý trị liệu", description: "Các buổi phục hồi chức năng và trị liệu vật lý" },
+    { id: "svc-2", name: "Điều dưỡng tại nhà", description: "Dịch vụ chăm sóc điều dưỡng tại nhà" },
+    { id: "svc-3", name: "Tư vấn y tế", description: "Tư vấn y tế trực tuyến hoặc trực tiếp" },
+    { id: "svc-4", name: "Chăm sóc chuyên sâu", description: "Chăm sóc đặc biệt cho các bệnh mãn tính" },
+    { id: "svc-5", name: "Chăm sóc sau phẫu thuật", description: "Chăm sóc và hỗ trợ sau khi phẫu thuật" },
+  ]);
 
-    const newService: Services = {
-      id: Date.now(), // Replace with your ID generation logic
-      name: newServiceName,
-      duration: "30 minutes",
-      fee: 100,
-      major_id: 1, // Replace with the actual major ID
-    };
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
 
-    onAddService(newService);
-    setNewServiceName("");
-    setNewServiceDescription("");
-    setIsAddDialogOpen(false);
-    toast({
-      variant: "default",
-      title: "Success",
-      description: "You have created a service",
-    });
-  };
-
-  const handleDeleteService = (serviceId: number) => {
-    onDeleteService(serviceId);
-    toast({
-      variant: "default",
-      title: "Success",
-      description: "You have deleted a service",
-    });
+  const handleServiceClick = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    onServiceSelect(serviceId);
   };
 
   return (
-    <div className="p-4 relative">
-      <Table className="mb-4">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Tên dịch vụ</TableHead>
-            <TableHead>Mô tả</TableHead>
-            <TableHead>Phí</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+    <Card className="h-[75vh] w-full">
+      <CardHeader>
+        <CardTitle>Dịch vụ</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <ScrollArea className="h-[calc(75vh - 80px)]">
           {services.map((service) => (
-            <TableRow key={service.id}>
-              <TableCell>{service.name}</TableCell>
-              <TableCell>{service.duration}</TableCell>
-              <TableCell>{service.fee}</TableCell>
-              <TableCell className="text-right space-x-2">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon">
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Bạn có chắc chắn muốn xóa dịch vụ này?
-                      </AlertDialogTitle>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDeleteService(service.id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      <div className="flex justify-end">
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline">Thêm</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Thêm dịch vụ</DialogTitle>
-              <DialogDescription>
-                Nhập thông tin của dịch vụ.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Tên
-                </Label>
-                <Input
-                  id="name"
-                  value={newServiceName}
-                  onChange={(e) => setNewServiceName(e.target.value)}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Mô tả
-                </Label>
-                <Input
-                  id="description"
-                  value={newServiceDescription}
-                  onChange={(e) => setNewServiceDescription(e.target.value)}
-                  className="col-span-3"
-                />
+            <div
+              key={service.id}
+              className={`p-4 border-b last:border-b-0 hover:bg-gray-100 cursor-pointer transition-colors duration-150 ${selectedServiceId === service.id ? "bg-gray-100 font-semibold" : ""}`}
+              onClick={() => handleServiceClick(service.id)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className="font-semibold">{service.name}</h4>
+                  {service.description && <p className="text-sm text-gray-500 truncate">{service.description}</p>}
+                </div>
+                <ChevronRightIcon className="h-4 w-4 text-gray-400 ml-2" />
               </div>
             </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsAddDialogOpen(false)}
-              >
-                Huỷ
-              </Button>
-              <Button type="submit" onClick={handleAddService}>
-                Thêm
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </div>
+          ))}
+        </ScrollArea>
+      </CardContent>
+    </Card>
   );
-}
+};
 
-export default ServiceList;
+export default ServiceListPanel;
