@@ -24,7 +24,10 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import categoryApiRequest, { addStaffToCate, removeStaffToCate } from "@/apiRequest/category/apiCategory";
+import categoryApiRequest, {
+  addStaffToCate,
+  removeStaffToCate,
+} from "@/apiRequest/category/apiCategory";
 import { Search } from "lucide-react";
 import { Category, CategoryFilter, StaffInfo } from "@/types/category";
 import {
@@ -37,7 +40,14 @@ import {
 } from "@/components/ui/dialog";
 import { RelativesFilter } from "@/types/relatives";
 import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface CategoryManagementProps {
   onCategorySelect: (categoryId: string) => void;
@@ -50,11 +60,17 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [categoryToDeleteId, setCategoryToDeleteId] = useState<string | null>(null);
+  const [categoryToDeleteId, setCategoryToDeleteId] = useState<string | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState<CategoryFilter | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
   const [nurseInfoDialogOpen, setNurseInfoDialogOpen] = useState(false);
-  const [selectedNurseInfo, setSelectedNurseInfo] = useState<StaffInfo | null>(null);
+  const [selectedNurseInfo, setSelectedNurseInfo] = useState<StaffInfo | null>(
+    null
+  );
   const [users, setUsers] = useState<RelativesFilter[]>([]);
   // State to hold the staff selected from the dropdown.
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
@@ -243,20 +259,43 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 }`}
               >
                 <TableCell>{category.name}</TableCell>
-                <TableCell className="max-w-xs truncate">
+                <TableCell className="max-w-xs line-clamp-5">
                   {category.description}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNurseInfoClick(category["staff-info"] || null, e);
-                    }}
-                  >
-                    Xem thông tin
-                  </Button>
+                  {category["staff-info"] ? (
+                    <div
+                      className="cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNurseInfoClick(category["staff-info"], e);
+                      }}
+                    >
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage
+                          src={
+                            category["staff-info"]["nurse-picture"] ||
+                            "/placeholder-avatar.png"
+                          }
+                          alt={category["staff-info"]["nurse-name"]}
+                        />
+                        <AvatarFallback>
+                          {category["staff-info"]["nurse-name"].charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNurseInfoClick(null, e);
+                      }}
+                    >
+                      Thêm
+                    </Button>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Button
@@ -284,8 +323,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Bạn có chắc chắn muốn xoá danh mục dịch vụ này? Hành động
-                          này không thể hoàn tác.
+                          Bạn có chắc chắn muốn xoá danh mục dịch vụ này? Hành
+                          động này không thể hoàn tác.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -317,14 +356,16 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
-            Trước 
+            Trước
           </Button>
           <span>
             Trang {currentPage} / {totalPages}
           </span>
           <Button
             variant="outline"
-            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
             disabled={currentPage === totalPages}
           >
             Sau
@@ -378,13 +419,20 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {users.map((user) => (
-                      <SelectItem key={user.id || ''} value={(user.id || '').toString()}>
+                      <SelectItem
+                        key={user.id || ""}
+                        value={(user.id || "").toString()}
+                      >
                         {user["full-name"]}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <Button onClick={handleAddStaff} className="my-2 w-full" variant="secondary">
+                <Button
+                  onClick={handleAddStaff}
+                  className="my-2 w-full"
+                  variant="secondary"
+                >
                   Xác nhận thêm y tá
                 </Button>
               </div>

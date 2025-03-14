@@ -39,7 +39,6 @@ const menuItems: MenuItem[] = [
     link: "/nurse-management",
     icon: <User className="h-4 w-4" />,
   },
-  { title: "Tuyển dụng", link: "/recruit", icon: <Briefcase className="h-4 w-4" /> },
   { title: "Lịch làm việc", link: "/schedule", icon: <Calendar className="h-4 w-4" /> },
   { title: "Dịch vụ", link: "/service", icon: <Hand className="h-4 w-4" /> },
 ];
