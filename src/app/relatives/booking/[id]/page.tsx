@@ -23,8 +23,6 @@ import { useRouter } from "next/navigation";
 import { ServiceCategorySelection } from "@/app/components/Relatives/Step1";
 import { ServicePackageSelection } from "@/app/components/Relatives/Step2";
 import { ServiceAdjustment } from "@/app/components/Relatives/Step3";
-import { BookingMethodSelection } from "@/app/components/Relatives/Step4";
-import { Step6Component } from "@/app/components/Relatives/Step6";
 import { OrderConfirmationComponent } from "@/app/components/Relatives/Step7";
 
 // Types
@@ -147,38 +145,19 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const [serviceQuantities, setServiceQuantities] = useState<{
     [key: string]: number;
   }>({});
-  const [nurseSelectionMethod, setNurseSelectionMethod] = useState<
-    "manual" | "auto"
-  >("manual");
+
   const [selectedTime, setSelectedTime] = useState<SelectedTime | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<Nurse | null>(null);
 
-  const getSteps = () => {
-    const baseSteps = [
-      { id: 1, title: "Chọn dịch vụ" },
-      { id: 2, title: "Chọn gói theo dịch vụ" },
-      { id: 3, title: "Điều chỉnh gói" },
-      { id: 4, title: "Hình thức đặt" },
-    ];
-
-    if (nurseSelectionMethod === "manual") {
-      baseSteps.push({ id: 5, title: "Chọn điều dưỡng" });
-    }
-
-    return [
-      ...baseSteps,
-      {
-        id: nurseSelectionMethod === "manual" ? 6 : 5,
-        title: "Chọn thời gian",
-      },
-      {
-        id: nurseSelectionMethod === "manual" ? 7 : 6,
-        title: "Xác nhận & thanh toán",
-      },
-    ];
-  };
-
-  const steps = getSteps();
+  // Redefined steps with nurse selection but without booking method selection
+  const steps = [
+    { id: 1, title: "Chọn dịch vụ" },
+    { id: 2, title: "Chọn gói theo dịch vụ" },
+    { id: 3, title: "Điều chỉnh gói" },
+    { id: 4, title: "Chọn điều dưỡng" },
+    { id: 5, title: "Chọn thời gian" },
+    { id: 6, title: "Xác nhận & thanh toán" },
+  ];
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -264,7 +243,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   };
 
   const handleCompleteBooking = () => {
-    if (!selectedServices.length || !selectedTime || !nurseSelectionMethod) {
+    if (!selectedServices.length || !selectedTime || !selectedNurse) {
       toast({
         variant: "destructive",
         title: "Đặt lịch không thành công",
@@ -287,22 +266,10 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         return selectedCategory !== null && selectedCateService !== null;
       case 2:
         return selectedMajor !== null && (selectedServices?.length || 0) > 0;
+      case 4:
+        return selectedNurse !== null;
       case 5:
-        // Case 5: Nếu là manual thì phải chọn điều dưỡng, nếu là auto thì phải chọn thời gian
-        // if (nurseSelectionMethod === "manual") {
-        //   return selectedNurse !== null;
-        // } else {
-        //   return selectedTime !== null; // Auto method - phải chọn thời gian
-        // }
-
-        return selectedTime !== null; // Auto method - phải chọn thời gian
-
-      case 6:
-        // Case 6: Phải chọn thời gian nếu là manual, hoặc đã đủ thông tin nếu là auto
-        if (nurseSelectionMethod === "manual") {
-          return selectedTime !== null;
-        }
-        return true;
+        return selectedTime !== null;
       default:
         return true;
     }
@@ -358,47 +325,35 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         );
 
       case 4:
+        // Nurse selection step
+        const handleNurseSelect = (nurseId: number) => {
+          console.log(`Selected nurse ID: ${nurseId}`);
+          const selectedNurse = nurses.find((nurse) => nurse.id === nurseId);
+          if (selectedNurse) {
+            setSelectedNurse(selectedNurse);
+          }
+        };
+
+        // Lọc điều dưỡng theo chuyên ngành được chọn
+        const filteredNurses = nurses.filter(
+          (nurse) => nurse.specialization === selectedMajor
+        );
+
         return (
-          <BookingMethodSelection
-            nurseSelectionMethod={nurseSelectionMethod}
-            setNurseSelectionMethod={setNurseSelectionMethod}
-            setSelectedNurse={setSelectedNurse}
-            onNext={handleNextStep}
-            onPrevious={handlePreviousStep}
-          />
+          <div className="space-y-6 text-lg">
+            <h2 className="text-3xl font-bold">Chọn điều dưỡng</h2>
+            {filteredNurses.length > 0 ? (
+              <NurseSelectionList
+                nurses={filteredNurses}
+                onSelect={handleNurseSelect}
+              />
+            ) : (
+              <p className="text-gray-600">Không có điều dưỡng nào phù hợp</p>
+            )}
+          </div>
         );
 
       case 5:
-        if (nurseSelectionMethod === "manual") {
-          const handleNurseSelect = (nurseId: number) => {
-            console.log(`Selected nurse ID: ${nurseId}`);
-            const selectedNurse = nurses.find((nurse) => nurse.id === nurseId);
-            if (selectedNurse) {
-              setSelectedNurse(selectedNurse);
-            }
-          };
-
-          // Lọc điều dưỡng theo chuyên ngành được chọn
-          const filteredNurses = nurses.filter(
-            (nurse) => nurse.specialization === selectedMajor
-          );
-
-          return (
-            <div className="space-y-6 text-lg">
-              <h2 className="text-3xl font-bold">Chọn điều dưỡng</h2>
-              {filteredNurses.length > 0 ? (
-                <NurseSelectionList
-                  nurses={filteredNurses}
-                  onSelect={handleNurseSelect}
-                />
-              ) : (
-                <p className="text-gray-600">Không có điều dưỡng nào phù hợp</p>
-              )}
-            </div>
-          );
-        }
-
-        // If auto selection, fall through to time selection
         return (
           <TimeSelection
             totalTime={calculateTotalTime()}
@@ -417,43 +372,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         );
 
       case 6:
-        if (nurseSelectionMethod === "manual") {
-          return (
-            <TimeSelection
-              totalTime={calculateTotalTime()}
-              onTimeSelect={({ date, timeSlot }) => {
-                const formattedDate =
-                  date instanceof Date
-                    ? date.toLocaleDateString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })
-                    : date;
-                setSelectedTime({ timeSlot, date: formattedDate });
-              }}
-            />
-          );
-        }
-        // If auto selection, show confirmation
-        return (
-          <Step6Component
-            nurseSelectionMethod={nurseSelectionMethod}
-            calculateTotalTime={calculateTotalTime}
-            setSelectedTime={setSelectedTime}
-            selectedServices={selectedServices}
-            serviceQuantities={serviceQuantities}
-            formatCurrency={formatCurrency}
-            calculateTotalPrice={calculateTotalPrice}
-            selectedNurse={selectedNurse}
-            selectedTime={selectedTime}
-            setCurrentStep={setCurrentStep}
-            toast={toast}
-            router={router}
-          />
-        );
-
-      case 7:
         return (
           <OrderConfirmationComponent
             selectedServices={selectedServices}
@@ -462,11 +380,10 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             selectedNurse={selectedNurse}
             selectedTime={selectedTime}
             calculateTotalPrice={calculateTotalPrice}
-            nurseSelectionMethod={nurseSelectionMethod}
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
-          />  
+          />
         );
     }
   };
@@ -523,7 +440,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             <Card>
               <CardContent className="pt-8">
                 <div className="space-y-8">
-                  <h2 className="text-2xl font-be-vietnam-pro font-bold mb-6">
+                <h2 className="text-2xl font-be-vietnam-pro font-bold mb-6">
                     Dịch vụ đã chọn
                   </h2>
 
@@ -596,7 +513,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                     </div>
                   )}
 
-                  {/* Hiển thị điều dưỡng đã chọn */}
+                  {/* Hiển thị điều dưỡng đã chọn - kept for compatibility but will be auto-assigned */}
                   {selectedNurse && (
                     <div className="mb-4">
                       <h3 className="text-xl font-be-vietnam-pro font-semibold">
