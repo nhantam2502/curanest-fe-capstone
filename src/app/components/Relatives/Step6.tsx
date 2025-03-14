@@ -7,7 +7,7 @@ interface SelectedTime {
 }
 
 interface Step6Props {
-  nurseSelectionMethod: "manual" | "auto";
+  // nurseSelectionMethod: "manual" | "auto";
   selectedServices: Array<{
     name: string;
     price: number;
@@ -37,7 +37,7 @@ interface Step6Props {
 }
 
 export const Step6Component: React.FC<Step6Props> = ({
-  nurseSelectionMethod,
+  // nurseSelectionMethod,
   selectedServices,
   serviceQuantities,
   formatCurrency,
@@ -55,7 +55,7 @@ export const Step6Component: React.FC<Step6Props> = ({
       formatCurrency={formatCurrency}
       selectedNurse={selectedNurse}
       selectedTime={selectedTime}
-      nurseSelectionMethod={nurseSelectionMethod}
+      // nurseSelectionMethod={nurseSelectionMethod}
       calculateTotalPrice={calculateTotalPrice}
       setCurrentStep={setCurrentStep}
       toast={toast}
