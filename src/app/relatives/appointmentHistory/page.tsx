@@ -2,8 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { CalendarDays, Eye, FileText, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import MedicalReport from "@/app/components/Relatives/MedicalReport";
@@ -16,13 +22,13 @@ const dummyData = [
   {
     id: 1,
     patientId: "patient-0",
-    nurse_name: "Nguyễn Văn A",
+    nurse_name: "Ho Dac Nhan Tam",
     avatar: "https://github.com/shadcn.png",
     status: "completed",
     phone_number: "0987654321",
     techniques: "Kỹ thuật A- Kỹ thuật B-Kỹ thuật C - Kỹ thuật G",
     total_fee: 500000,
-    appointment_date: "2025-01-20",
+    appointment_date: "2025-03-14",
     time_from_to: "08:00 - 09:00",
   },
   {
@@ -34,7 +40,7 @@ const dummyData = [
     phone_number: "0912345678",
     techniques: "Kỹ thuật D-Kỹ thuật E",
     total_fee: 300000,
-    appointment_date: "2025-01-20",
+    appointment_date: "2025-03-12",
     time_from_to: "10:00 - 11:00",
   },
 ];
@@ -60,7 +66,9 @@ const years = Array.from(
 ).reverse();
 
 const AppointmentHistory = () => {
-  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
+    null
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
@@ -73,7 +81,7 @@ const AppointmentHistory = () => {
   const [isMedicalReportOpen, setIsMedicalReportOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  
+
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +91,7 @@ const AppointmentHistory = () => {
       try {
         setIsLoading(true);
         const response = await patientApiRequest.getPatientRecord();
-        
+
         setPatients(response.payload.data);
         setIsLoading(false);
       } catch (err) {
@@ -136,8 +144,11 @@ const AppointmentHistory = () => {
     setIsFeedbackOpen(true);
   };
 
-  const handleSubmitFeedback = async (feedback: { rating: number; content: string }) => {
-    console.log('Submitting feedback:', feedback);
+  const handleSubmitFeedback = async (feedback: {
+    rating: number;
+    content: string;
+  }) => {
+    console.log("Submitting feedback:", feedback);
   };
 
   const filteredAppointments = dummyData.filter((appointment) => {
@@ -157,9 +168,18 @@ const AppointmentHistory = () => {
   const currentYear = monthFilter.split("-")[0];
   const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
+  // Hàm để hiển thị kỹ thuật dưới dạng badges
+  const renderTechniques = (techniquesString: string) => {
+    return techniquesString.split("-").map((technique, index) => (
+      <Badge key={index} variant="secondary" className="mr-1 mb-1 text-[16px]">
+        {technique.trim()}
+      </Badge>
+    ));
+  };
+
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
-      <div className="max-w-full w-[1500px] px-4 mx-auto flex flex-col gap-8 py-8">
+      <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col gap-8 py-8">
         {/* Header */}
         <div>
           <div className="flex items-center space-x-4 mb-6">
@@ -170,41 +190,33 @@ const AppointmentHistory = () => {
           </div>
 
           {/* Patient Selection */}
-          <div className="flex flex-wrap gap-4 items-center ">
+          <div className="flex flex-wrap gap-4 items-center">
             <p className="text-2xl font-bold">Hồ sơ bệnh nhân:</p>
-            {isLoading ? (
-              <div className="w-full text-center py-4">
-                <p className="text-lg">Đang tải hồ sơ bệnh nhân...</p>
-              </div>
-            ) : error ? (
-              <div className="w-full text-center py-4">
-                <p className="text-lg text-red-500">{error}</p>
-              </div>
-            ) : patients.length > 0 ? (
+            {patients.length > 0 ? (
               patients.map((patient, index) => (
                 <Button
-                  key={patient.id}
+                  key={index}
                   variant={
-                    selectedPatientId === patient.id
+                    selectedPatientId === `patient-${index}`
                       ? "default"
                       : "outline"
                   }
                   className={`px-6 py-8 rounded-full transition-all text-lg ${
-                    selectedPatientId === patient.id
+                    selectedPatientId === `patient-${index}`
                       ? "text-white"
                       : "border"
                   }`}
                   onClick={() => setSelectedPatientId(`patient-${index}`)}
-                  >
+                >
                   <span className="text-xl font-semibold">
                     {patient["full-name"] || `Bệnh nhân ${index + 1}`}
                   </span>
                 </Button>
               ))
             ) : (
-              <div className="w-full text-center py-4">
-                <p className="text-lg">Không có hồ sơ bệnh nhân nào</p>
-              </div>
+              <p className="text-gray-600 text-xl">
+                Không có hồ sơ bệnh nhân nào
+              </p>
             )}
           </div>
         </div>
@@ -212,7 +224,7 @@ const AppointmentHistory = () => {
         {selectedPatientId ? (
           <>
             {/* Month Filter */}
-            <div className="flex justify-end items-center space-x-4">
+            <div className="flex justify-end items-center space-x-4 mb-6">
               <label className="text-xl font-medium">Chọn tháng:</label>
 
               <select
@@ -244,120 +256,112 @@ const AppointmentHistory = () => {
               </select>
             </div>
 
-            {/* Appointments List */}
-            <div className="space-y-6">
-              {filteredAppointments.length > 0 ? (
-                filteredAppointments.map((appointment) => (
-                  <Card
-                    key={appointment.id}
-                    className="w-full border border-gray-200 hover:shadow-lg transition-shadow duration-300"
-                  >
-                    <CardContent className="p-8">
-                      <div className="flex flex-col md:flex-row gap-8">
-                        <div className="relative flex flex-col items-center">
-                          <Avatar className="w-20 h-20 mb-3">
-                            <AvatarImage
-                              src={appointment.avatar}
-                              alt={appointment.nurse_name}
-                            />
-                            <AvatarFallback className="text-lg">
-                              {appointment.nurse_name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <Badge className="bg-green-500 text-white text-lg px-4 py-1 rounded-full">
-                            Hoàn thành
-                          </Badge>
-                        </div>
+            {/* Appointments Table */}
+            <div className="rounded-md border shadow-sm">
+              <Table  >
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-semibold text-xl">
+                      Điều dưỡng
+                    </TableHead>
+                    <TableHead className="font-semibold text-xl">
+                      Số điện thoại
+                    </TableHead>
+                    <TableHead className="font-semibold text-xl">Dịch vụ</TableHead>
+                    <TableHead className="font-semibold text-xl">
+                      Tổng tiền
+                    </TableHead>
+                    <TableHead className="font-semibold text-xl">
+                      Ngày hẹn
+                    </TableHead>
+                    <TableHead className="font-semibold text-xl">
+                      Thời gian
+                    </TableHead>
+                    <TableHead className="font-semibold text-xl">
+                      Trạng thái
+                    </TableHead>
+                    <TableHead className="font-semibold text-xl text-center">
+                      Thao tác
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
 
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div>
-                            <p className="text-lg text-gray-500">Điều dưỡng</p>
-                            <p className="font-semibold text-xl text-gray-900">
-                              {appointment.nurse_name}
-                            </p>
+                <TableBody>
+                  {filteredAppointments.length > 0 ? (
+                    filteredAppointments.map((appointment) => (
+                      <TableRow key={appointment.id}>
+                        <TableCell className="text-lg">
+                          {appointment.nurse_name}
+                        </TableCell>
+                        
+                        <TableCell className="text-lg">{appointment.phone_number}</TableCell>
+                        
+                        <TableCell className="max-w-[250px]">
+                          <div className="flex flex-wrap ">
+                            {renderTechniques(appointment.techniques)}
                           </div>
-                          <div>
-                            <p className="text-lg text-gray-500">
-                              Số điện thoại
-                            </p>
-                            <p className="font-semibold text-xl text-gray-900">
-                              {appointment.phone_number}
-                            </p>
+                        </TableCell>
+
+                        <TableCell className="font-semibold text-red-500 text-lg">
+                          {Number(appointment.total_fee).toLocaleString(
+                            "vi-VN"
+                          )}{" "}
+                          VND
+                        </TableCell>
+
+                        <TableCell className="text-lg">
+                          {formatDate(new Date(appointment.appointment_date))}
+                        </TableCell>
+
+                        <TableCell className="text-lg">{appointment.time_from_to}</TableCell>
+                        
+                        <TableCell>
+                          <Badge className="bg-green-500 text-[16px]">Hoàn thành</Badge>
+                        </TableCell>
+
+                        <TableCell>
+                          <div className="flex space-x-2 justify-center">
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() => handleViewDetail(appointment)}
+                              className="flex items-center text-lg"
+                            >
+                              <Eye className="mr-1 h-4 w-4" /> Chi tiết
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() =>
+                                handleViewMedicalReport(appointment)
+                              }
+                              className="flex items-center text-blue-600 text-lg"
+                            >
+                              <FileText className="mr-1 h-4 w-4" /> Báo cáo
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() => handleSendFeedback(appointment)}
+                              className="flex items-center text-green-600 text-lg"
+                            >
+                              <MessageCircle className="mr-1 h-4 w-4" /> Đánh giá
+                            </Button>
                           </div>
-                          <div>
-                            <p className="text-lg text-gray-500">Dịch vụ</p>
-                            <div className="flex flex-wrap gap-3">
-                              {appointment.techniques
-                                .split("-")
-                                .map((technique, index) => (
-                                  <Badge
-                                    key={index}
-                                    className="text-white text-base"
-                                  >
-                                    {technique.trim()}
-                                  </Badge>
-                                ))}
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-lg text-gray-500">Tổng tiền</p>
-                            <p className="font-semibold text-xl text-red-500">
-                              {Number(appointment.total_fee).toLocaleString(
-                                "vi-VN"
-                              )}{" "}
-                              VND
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-lg text-gray-500">Ngày hẹn</p>
-                            <p className="font-semibold text-xl text-gray-900">
-                              {formatDate(
-                                new Date(appointment.appointment_date)
-                              )}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-lg text-gray-500">Thời gian</p>
-                            <p className="font-semibold text-xl text-gray-900">
-                              {appointment.time_from_to}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-4 justify-center">
-                          <Button
-                            variant="outline"
-                            className="text-lg px-6 py-5 flex items-center justify-center"
-                            onClick={() => handleViewDetail(appointment)}
-                          >
-                            Xem chi tiết <Eye className="ml-2 w-5 h-5" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="text-lg px-6 py-5 bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200 flex items-center justify-center"
-                            onClick={() => handleViewMedicalReport(appointment)}
-                          >
-                            Xem báo cáo <FileText className="ml-2 w-5 h-5" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="text-lg px-6 py-5 bg-green-50 hover:bg-green-100 text-green-600 border-green-200 flex items-center justify-center"
-                            onClick={() => handleSendFeedback(appointment)}
-                          >
-                            Gửi đánh giá{" "}
-                            <MessageCircle className="ml-2 w-5 h-5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
-                  <p className="text-gray-600 text-xl font-medium">
-                    Không có lịch sử cuộc hẹn nào trong tháng này
-                  </p>
-                </div>
-              )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <p className="text-gray-600 text-lg">
+                          Không có lịch sử cuộc hẹn nào trong tháng này
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </div>
           </>
         ) : (

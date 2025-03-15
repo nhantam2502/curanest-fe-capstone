@@ -352,6 +352,7 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
+            nurseSelectionMethod = "manual"
           />
         );
     }
