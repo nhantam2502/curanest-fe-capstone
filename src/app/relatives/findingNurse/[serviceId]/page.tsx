@@ -59,8 +59,8 @@ const NurseList = () => {
   const serviceID = searchParams.get("serviceId") || "";
   const category = searchParams.get("category") || "";
 
-  // console.log("Service ID: ", serviceID);
-  // console.log("Category: ", category);
+  console.log("Service ID: ", serviceID);
+  console.log("Category: ", category);
 
   const [selectedSpecialization, setSelectedSpecialization] =
     useState(category);
