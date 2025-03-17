@@ -5,14 +5,14 @@ import dummy_services from "@/dummy_data/dummy_service_booking.json";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Service } from "@/types/service";
+import { Service, ServiceItem } from "@/types/service";
 import TimeSelection, {
   TimeSlot,
 } from "@/app/components/Relatives/TimeSelection";
 import { Separator } from "@/components/ui/separator";
 import { Nurse } from "@/types/nurse";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import PatientProfileSelection from "@/app/components/Relatives/PatientRecordSelection";
 import dummyNursing from "@/dummy_data/dummy_nurse.json";
@@ -31,15 +31,6 @@ type SelectedTime = {
 type DummyServices = Record<string, Service[]>;
 const services: DummyServices = dummy_services;
 
-interface ServiceItem {
-  name: string;
-  price: number;
-  time: string;
-  description?: string;
-  validityPeriod?: number;
-  usageTerms?: string;
-}
-
 interface ServicePackages {
   [packageName: string]: ServiceItem[];
 }
@@ -51,52 +42,157 @@ interface ServiceTypes {
 const servicesByType: ServiceTypes = {
   oneTime: {
     "Chăm sóc bệnh nhân nội khoa": [
-      { name: "Theo dõi và chăm sóc người bệnh", time: "120", price: 200000 },
-      { name: "Dùng thuốc theo y lệnh", time: "60", price: 100000 },
-      { name: "Theo dõi diễn biến bệnh", time: "90", price: 150000 },
-      { name: "Chăm sóc dinh dưỡng", time: "120", price: 200000 },
-      { name: "Chăm sóc vết thương", time: "90", price: 150000 },
+      {
+        id: "1",
+        name: "Theo dõi và chăm sóc người bệnh",
+        status: "available",
+        description: "Theo dõi sức khỏe bệnh nhân nội khoa",
+        "category-id": "internal-medicine",
+        "est-duration": "120",
+        price: 200000,
+      },
+      {
+        id: "2",
+        name: "Dùng thuốc theo y lệnh",
+        status: "available",
+        description: "Hỗ trợ bệnh nhân uống thuốc theo chỉ định",
+        "category-id": "internal-medicine",
+        "est-duration": "60",
+        price: 100000,
+      },
+      {
+        id: "3",
+        name: "Theo dõi diễn biến bệnh",
+        status: "available",
+        description: "Theo dõi tình trạng sức khỏe",
+        "category-id": "internal-medicine",
+        "est-duration": "90",
+        price: 150000,
+      },
+      {
+        id: "4",
+        name: "Chăm sóc dinh dưỡng",
+        status: "available",
+        description: "Hỗ trợ dinh dưỡng cho bệnh nhân",
+        "category-id": "internal-medicine",
+        "est-duration": "120",
+        price: 200000,
+      },
+      {
+        id: "5",
+        name: "Chăm sóc vết thương",
+        status: "available",
+        description: "Thay băng, vệ sinh vết thương",
+        "category-id": "internal-medicine",
+        "est-duration": "90",
+        price: 150000,
+      },
     ],
     "Chăm sóc bệnh nhân ngoại khoa": [
-      { name: "Chăm sóc vết thương", time: "90", price: 150000 },
-      { name: "Hỗ trợ phẫu thuật", time: "180", price: 300000 },
-      { name: "Thay băng vô trùng", time: "60", price: 120000 },
-      { name: "Theo dõi sau phẫu thuật", time: "120", price: 200000 },
+      {
+        id: "6",
+        name: "Chăm sóc vết thương",
+        status: "available",
+        description: "Thay băng và theo dõi vết thương sau phẫu thuật",
+        "category-id": "surgery",
+        "est-duration": "90",
+        price: 150000,
+      },
+      {
+        id: "7",
+        name: "Hỗ trợ phẫu thuật",
+        status: "available",
+        description: "Chuẩn bị dụng cụ và hỗ trợ bác sĩ trong phẫu thuật",
+        "category-id": "surgery",
+        "est-duration": "180",
+        price: 300000,
+      },
+      {
+        id: "8",
+        name: "Thay băng vô trùng",
+        status: "available",
+        description: "Thay băng trong điều kiện vô trùng",
+        "category-id": "surgery",
+        "est-duration": "60",
+        price: 120000,
+      },
+      {
+        id: "9",
+        name: "Theo dõi sau phẫu thuật",
+        status: "available",
+        description: "Giám sát tình trạng hồi phục sau phẫu thuật",
+        "category-id": "surgery",
+        "est-duration": "120",
+        price: 200000,
+      },
     ],
   },
   subscription: {
-    "Gói Chăm Sóc Hàng Tháng": [
+    "Chăm sóc bệnh nhân nội khoa": [
       {
-        name: "Theo dõi sức khỏe tổng quát",
-        time: "60",
-        price: 400000,
-        validityPeriod: 30,
-        usageTerms: "Tối đa 4 lần trong 30 ngày",
+        id: "10",
+        name: "Gói chăm sóc sức khỏe hàng tuần",
+        status: "available",
+        description: "Theo dõi và kiểm tra sức khỏe bệnh nhân 3 lần/tuần",
+        "category-id": "internal-medicine",
+        "est-duration": "60",
+        price: 500000,
       },
       {
-        name: "Chăm sóc bệnh nhân nội trú",
-        time: "120",
+        id: "11",
+        name: "Gói theo dõi huyết áp và đường huyết",
+        status: "available",
+        description: "Kiểm tra huyết áp và đường huyết mỗi ngày",
+        "category-id": "internal-medicine",
+        "est-duration": "30",
+        price: 700000,
+      },
+      {
+        id: "12",
+        name: "Gói hỗ trợ dinh dưỡng hàng tháng",
+        status: "available",
+        description: "Tư vấn và hỗ trợ chế độ dinh dưỡng mỗi tuần",
+        "category-id": "internal-medicine",
+        "est-duration": "45",
         price: 800000,
-        validityPeriod: 30,
-        usageTerms: "Tối đa 2 lần trong 30 ngày",
       },
     ],
-    "Gói Tiêm Ngừa": [
+    "Chăm sóc bệnh nhân ngoại khoa": [
       {
-        name: "Tiêm chủng định kỳ",
-        time: "60",
-        price: 1500000,
-        validityPeriod: 60,
-        usageTerms: "Tối đa 3 lần trong 60 ngày",
+        id: "13",
+        name: "Gói theo dõi phục hồi sau phẫu thuật",
+        status: "available",
+        description: "Theo dõi hồi phục và chăm sóc vết thương 2 lần/tuần",
+        "category-id": "surgery",
+        "est-duration": "90",
+        price: 600000,
+      },
+      {
+        id: "14",
+        name: "Gói phục hồi chức năng",
+        status: "available",
+        description: "Hỗ trợ vận động và phục hồi chức năng hàng tuần",
+        "category-id": "surgery",
+        "est-duration": "120",
+        price: 900000,
       },
     ],
   },
 };
-const BookingNurse = ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+
+const BookingNurse = () => {
+  // const { id } = params;
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const router = useRouter();
+
+  const params = useParams();
+  const serviceIdRaw = params.serviceId; 
+  const serviceId =
+    typeof serviceIdRaw === "string" ? serviceIdRaw : (serviceIdRaw?.[0] ?? "");
+  const decodedServiceId = serviceId
+    ? decodeURIComponent(decodeURIComponent(serviceId))
+    : "";
 
   const [selectedServices, setSelectedServices] = useState<
     Array<{
@@ -131,7 +227,7 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
   ];
 
   const selectedNurse: Nurse | null =
-    dummyNursing.find((nurse: Nurse) => String(nurse.id) === id) ?? null;
+    dummyNursing.find((nurse: Nurse) => String(nurse.id) === params.id) ?? null;
   //  Compare as strings
   // console.log("selectedNurse: ", selectedNurse);
 
@@ -155,16 +251,17 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
     }
   };
 
-  const calculatePackagePrice = (services: Service[]): number => {
+  const calculatePackagePrice = (services: ServiceItem[]): number => {
     return services.reduce(
-      (total: number, service: Service) => total + service.price,
+      (total: number, service: ServiceItem) => total + (service.price ?? 0),
       0
     );
   };
 
-  const calculatePackageTotalTime = (services: Service[]): number => {
+  const calculatePackageTotalTime = (services: ServiceItem[]): number => {
     return services.reduce(
-      (total: number, service: Service) => total + parseInt(service.time),
+      (total: number, service: ServiceItem) =>
+        total + parseInt(service["est-duration"]),
       0
     );
   };
@@ -256,7 +353,7 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
         setProfiles(response.payload.data);
         setErrorProfiles(null);
 
-        console.log("patient records :", response.payload.data);
+        // console.log("patient records :", response.payload.data);
       } catch (err) {
         setErrorProfiles("Không thể tải hồ sơ bệnh nhân");
         console.error(err);
@@ -352,213 +449,222 @@ const BookingNurse = ({ params }: { params: { id: string } }) => {
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
-            nurseSelectionMethod = "manual"
+            nurseSelectionMethod="manual"
           />
         );
     }
   };
 
   return (
-   <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
-         <div className=" max-w-full w-[1500px] px-5 mx-auto flex flex-col gap-12">
-           <div className="flex justify-between items-center w-full px-6">
-             {steps.map((step, index) => (
-               <React.Fragment key={step.id}>
-                 <div className="flex flex-col items-center">
-                   <div
-                     className={cn(
-                       "w-12 h-12 rounded-full flex items-center justify-center border-2",
-                       currentStep >= step.id
-                         ? "border-primary bg-primary text-white"
-                         : "border-gray-300"
-                     )}
-                   >
-                     {currentStep > step.id ? (
-                       <Check className="w-8 h-8" />
-                     ) : (
-                       <span className="text-2xl">{step.id}</span>
-                     )}
-                   </div>
-                   <span
-                     className={cn(
-                       "mt-2 text-xl",
-                       currentStep >= step.id ? "text-primary" : "text-gray-500"
-                     )}
-                   >
-                     {step.title}
-                   </span>
-                 </div>
-                 {index < steps.length - 1 && (
-                   <div
-                     className={cn(
-                       "flex-1 h-1",
-                       currentStep > index + 1 ? "bg-primary" : "bg-gray-300"
-                     )}
-                   />
-                 )}
-               </React.Fragment>
-             ))}
-           </div>
-   
-           <div className="flex gap-12">
-             <div className="w-full md:w-2/3">
-               {renderStepContent(currentStep)}
-             </div>
-   
-             {/* Right Side */}
-             <div className="w-1/3">
-               <Card>
-                 <CardContent className="pt-8">
-                   <div className="space-y-8">
-                   <h2 className="text-2xl font-be-vietnam-pro font-bold mb-6">
-                       Dịch vụ đã chọn
-                     </h2>
-   
-                     {selectedServices && selectedServices.length > 0 ? (
-                       <div className="space-y-3">
-                         {/* Hiển thị tên gói nếu đã chọn */}
-                         {selectedMajor && (
-                           <div className="pb-3 mb-3 border-b">
-                             <span className="text-lg font-semibold text-primary">
-                               {selectedMajor}
-                             </span>
-                             {selectedServiceType === "subscription" &&
-                               Array.isArray(
-                                 servicesByType[selectedServiceType]?.[
-                                   selectedMajor
-                                 ]
-                               ) &&
-                               servicesByType[selectedServiceType][selectedMajor]
-                                 .length > 0 && (
-                                 <div className="text-sm text-blue-600 mt-1">
-                                   Áp dụng trong{" "}
-                                   {
-                                     servicesByType[selectedServiceType][
-                                       selectedMajor
-                                     ][0].validityPeriod
-                                   }{" "}
-                                   ngày
-                                 </div>
-                               )}
-                           </div>
-                         )}
-   
-                         {selectedServices.map((service, index) => (
-                           <div key={index} className="flex flex-col gap-1">
-                             <div className="flex justify-between text-xl">
-                               <span className="font-semibold">
-                                 {service.name}
-                               </span>
-                               <span className="font-semibold">
-                                 {formatCurrency(
-                                   service.price *
-                                     (serviceQuantities[service.name] || 1)
-                                 )}
-                               </span>
-                             </div>
-   
-                             {/* Hiển thị thời gian và giá theo từng lần đặt */}
-                             <div className="text-lg text-gray-600 flex items-center justify-between w-full">
-                               <span>{service.time} phút</span>
-                               <span className="flex items-center">
-                                 {/* Hiển thị giá ban đầu */}
-                                 <span className="text-gray-600 mr-1">
-                                   {formatCurrency(service.price)}/lần
-                                 </span>
-   
-                                 {/* Hiển thị số lượng nếu > 1 */}
-                                 {(serviceQuantities[service.name] || 1) > 1 && (
-                                   <span className="ml-2 text-gray-600">
-                                     (x{serviceQuantities[service.name]})
-                                   </span>
-                                 )}
-                               </span>
-                             </div>
-                           </div>
-                         ))}
-                       </div>
-                     ) : (
-                       <div className="text-gray-500 italic">
-                         Chưa có dịch vụ nào được chọn
-                       </div>
-                     )}
-   
-                     {/* Hiển thị điều dưỡng đã chọn - kept for compatibility but will be auto-assigned */}
-                     {selectedNurse && (
-                       <div className="mb-4">
-                         <h3 className="text-xl font-be-vietnam-pro font-semibold">
-                           Điều dưỡng đã chọn
-                         </h3>
-                         <div className="text-lg text-gray-600">
-                           {selectedNurse.name}
-                         </div>
-                       </div>
-                     )}
-   
-                     {/* Hiển thị thời gian đã chọn */}
-                     {selectedTime && (
-                       <div className="space-y-2">
-                         <h3 className="text-xl font-be-vietnam-pro font-semibold">
-                           Thời gian đã chọn
-                         </h3>
-   
-                         <div className="text-xl text-gray-600 space-y-1">
-                           <div className="flex items-center space-x-2">
-                             <Calendar />
-                             <span>{selectedTime.date}</span>
-                           </div>
-                           <div className="flex items-center space-x-2">
-                             <Clock />
-                             <span>{selectedTime.timeSlot.display}</span>
-                           </div>
-                         </div>
-                       </div>
-                     )}
-                     <div className="pt-6 border-t">
-                       <div className="flex justify-between items-center mb-8">
-                         <span className="font-bold text-2xl">Tổng tiền</span>
-                         <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
-                           {formatCurrency(calculateTotalPrice())}
-                         </span>
-                       </div>
-   
-                       <div className="flex gap-6">
-                         {currentStep > 1 && (
-                           <Button
-                             className="w-1/2 text-lg"
-                             size="lg"
-                             variant="outline"
-                             onClick={() => setCurrentStep(currentStep - 1)}
-                           >
-                             Quay lại
-                           </Button>
-                         )}
-   
-                         <Button
-                           className="w-1/2 text-lg bg-[#71DDD7] hover:bg-[#71DDD7]"
-                           size="lg"
-                           disabled={!canContinue()}
-                           onClick={() => {
-                             if (currentStep === steps.length) {
-                               handleCompleteBooking(); // Gọi hàm đặt lịch khi đến bước cuối
-                             } else {
-                               setCurrentStep(currentStep + 1);
-                             }
-                           }}
-                         >
-                           {currentStep === steps.length
-                             ? "Hoàn tất đặt lịch"
-                             : "Tiếp tục"}
-                         </Button>
-                       </div>
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             </div>
-           </div>
-         </div>
-       </section>
+    <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
+      <div className=" max-w-full w-[1500px] px-5 mx-auto flex flex-col gap-12">
+        <div className="flex justify-between items-center w-full px-6">
+          {steps.map((step, index) => (
+            <React.Fragment key={step.id}>
+              <div className="flex flex-col items-center">
+                <div
+                  className={cn(
+                    "w-12 h-12 rounded-full flex items-center justify-center border-2",
+                    currentStep >= step.id
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-300"
+                  )}
+                >
+                  {currentStep > step.id ? (
+                    <Check className="w-8 h-8" />
+                  ) : (
+                    <span className="text-2xl">{step.id}</span>
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "mt-2 text-xl",
+                    currentStep >= step.id ? "text-primary" : "text-gray-500"
+                  )}
+                >
+                  {step.title}
+                </span>
+              </div>
+              {index < steps.length - 1 && (
+                <div
+                  className={cn(
+                    "flex-1 h-1",
+                    currentStep > index + 1 ? "bg-primary" : "bg-gray-300"
+                  )}
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        <div className="flex gap-12">
+          <div className="w-full md:w-2/3">
+            {renderStepContent(currentStep)}
+          </div>
+
+          {/* Right Side */}
+          <div className="w-1/3">
+            <Card>
+              <CardContent className="pt-8">
+                <div className="space-y-8">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-be-vietnam-pro font-bold">
+                      Dịch vụ đã chọn
+                    </h2>
+
+                    <Badge
+                      variant="outline"
+                      className="text-xl bg-[#e5ab47] text-white border-[#e5ab47]"
+                    >
+                      {decodedServiceId}
+                    </Badge>
+                  </div>
+
+                  {selectedServices && selectedServices.length > 0 ? (
+                    <div className="space-y-3">
+                      {/* Hiển thị tên gói nếu đã chọn */}
+                      {selectedMajor && (
+                        <div className="pb-3 mb-3 border-b">
+                          <span className="text-lg font-semibold text-primary">
+                            {selectedMajor}
+                          </span>
+                          {selectedServiceType === "subscription" &&
+                            Array.isArray(
+                              servicesByType[selectedServiceType]?.[
+                                selectedMajor
+                              ]
+                            ) &&
+                            servicesByType[selectedServiceType][selectedMajor]
+                              .length > 0 && (
+                              <div className="text-sm text-blue-600 mt-1">
+                                Áp dụng trong{" "}
+                                {
+                                  servicesByType[selectedServiceType][
+                                    selectedMajor
+                                  ][0].validityPeriod
+                                }{" "}
+                                ngày
+                              </div>
+                            )}
+                        </div>
+                      )}
+
+                      {selectedServices.map((service, index) => (
+                        <div key={index} className="flex flex-col gap-1">
+                          <div className="flex justify-between text-xl">
+                            <span className="font-semibold">
+                              {service.name}
+                            </span>
+                            <span className="font-semibold">
+                              {formatCurrency(
+                                service.price *
+                                  (serviceQuantities[service.name] || 1)
+                              )}
+                            </span>
+                          </div>
+
+                          {/* Hiển thị thời gian và giá theo từng lần đặt */}
+                          <div className="text-lg text-gray-600 flex items-center justify-between w-full">
+                            <span>{service.time} phút</span>
+                            <span className="flex items-center">
+                              {/* Hiển thị giá ban đầu */}
+                              <span className="text-gray-600 mr-1">
+                                {formatCurrency(service.price)}/lần
+                              </span>
+
+                              {/* Hiển thị số lượng nếu > 1 */}
+                              {(serviceQuantities[service.name] || 1) > 1 && (
+                                <span className="ml-2 text-gray-600">
+                                  (x{serviceQuantities[service.name]})
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 italic">
+                      Chưa có gói dịch vụ nào được chọn
+                    </div>
+                  )}
+
+                  {/* Hiển thị điều dưỡng đã chọn - kept for compatibility but will be auto-assigned */}
+                  {selectedNurse && (
+                    <div className="mb-4">
+                      <h3 className="text-xl font-be-vietnam-pro font-semibold">
+                        Điều dưỡng đã chọn
+                      </h3>
+                      <div className="text-lg text-gray-600">
+                        {selectedNurse.name}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hiển thị thời gian đã chọn */}
+                  {selectedTime && (
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-be-vietnam-pro font-semibold">
+                        Thời gian đã chọn
+                      </h3>
+
+                      <div className="text-xl text-gray-600 space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <Calendar />
+                          <span>{selectedTime.date}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Clock />
+                          <span>{selectedTime.timeSlot.display}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="pt-6 border-t">
+                    <div className="flex justify-between items-center mb-8">
+                      <span className="font-bold text-2xl">Tổng tiền</span>
+                      <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                        {formatCurrency(calculateTotalPrice())}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-6">
+                      {currentStep > 1 && (
+                        <Button
+                          className="w-1/2 text-lg"
+                          size="lg"
+                          variant="outline"
+                          onClick={() => setCurrentStep(currentStep - 1)}
+                        >
+                          Quay lại
+                        </Button>
+                      )}
+
+                      <Button
+                        className="w-1/2 text-lg bg-[#71DDD7] hover:bg-[#71DDD7]"
+                        size="lg"
+                        disabled={!canContinue()}
+                        onClick={() => {
+                          if (currentStep === steps.length) {
+                            handleCompleteBooking(); // Gọi hàm đặt lịch khi đến bước cuối
+                          } else {
+                            setCurrentStep(currentStep + 1);
+                          }
+                        }}
+                      >
+                        {currentStep === steps.length
+                          ? "Hoàn tất đặt lịch"
+                          : "Tiếp tục"}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 

@@ -192,11 +192,11 @@ const Hero = () => {
       {/* Services Section*/}
       <section id="services">
         <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10 mt-10">
-          <div className="xl:w-[470px] mx-auto">
-            <h2 className="heading text-center">Our medical services</h2>
+          <div className="xl:w-[480px] mx-auto">
+            <h2 className="heading text-center">Dịch Vụ Điều Dưỡng</h2>
             <p className="text_para text-center">
-              World-class care for everyone. Our health System offers unmatched,
-              expert health care
+              Chúng tôi cung cấp các dịch vụ chăm sóc sức khỏe chuyên nghiệp,
+              tận tâm với đội ngũ điều dưỡng giàu kinh nghiệm.
             </p>
           </div>
 
@@ -307,8 +307,8 @@ const Hero = () => {
             </p>
           </div>
 
-          <NursingList serviceId="01957ad6-3995-7b43-94bf-22d6b3f6738b" />
-          </div>
+          <NursingList serviceId="01957acd-db4f-7740-9771-c38a6e062368" />
+        </div>
       </section>
 
       {/* FAQ Section*/}

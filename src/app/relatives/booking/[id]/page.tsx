@@ -1,20 +1,22 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Baby,
+  Badge,
   Calendar,
   Check,
   Clock,
-  Heart,
-  HomeIcon,
-  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import dummy_services from "@/dummy_data/dummy_service_booking.json";
 import TimeSelection from "@/app/components/Relatives/TimeSelection";
-import { Service } from "@/types/service";
+import {
+  CategoryInfo,
+  Service,
+  ServiceItem,
+  TransformedCategory,
+} from "@/types/service";
 import NurseSelectionList from "@/app/components/Relatives/NurseSelectionList";
 import nurses from "@/dummy_data/dummy_nurse.json";
 import { Nurse } from "@/types/nurse";
@@ -26,20 +28,12 @@ import { ServiceAdjustment } from "@/app/components/Relatives/Step3";
 import { BookingMethodSelection } from "@/app/components/Relatives/Step4";
 import { Step6Component } from "@/app/components/Relatives/Step6";
 import { OrderConfirmationComponent } from "@/app/components/Relatives/Step7";
+import serviceApiRequest from "@/apiRequest/service/apiServices";
 
 // Types
 type DummyServices = Record<string, Service[]>;
 
 const services: DummyServices = dummy_services;
-
-interface ServiceItem {
-  name: string;
-  price: number;
-  time: string;
-  description?: string;
-  validityPeriod?: number;
-  usageTerms?: string;
-}
 
 interface SelectedTime {
   timeSlot: { display: string; value: string };
@@ -54,77 +48,142 @@ interface ServiceTypes {
   [key: string]: ServicePackages;
 }
 
-const serviceCategories = [
-  {
-    id: "baby-care",
-    title: "Chăm sóc cho bé yêu",
-    icon: Baby,
-    services: ["Rửa mũi cho bé", "Tắm cho bé", "Vệ sinh rốn", "Mát-xa cho bé"],
-  },
-  {
-    id: "basic-care",
-    title: "Chăm sóc cơ bản",
-    icon: Heart,
-    services: [
-      "Chăm sóc người già, bệnh nhân tại nhà",
-      "Hỗ trợ sau phẫu thuật, tai biến",
-      "Chăm sóc bệnh nhân ung thư, suy kiệt",
-    ],
-  },
-  {
-    id: "home-medical",
-    title: "Y tế tại nhà",
-    icon: HomeIcon,
-    services: [
-      "Đo huyết áp, đường huyết",
-      "Tiêm thuốc, truyền dịch",
-      "Hút đờm, khí dung",
-      "Thay băng, cắt chỉ",
-      "Đặt sonde tiểu, sonde dạ dày",
-    ],
-  },
-];
-
 const servicesByType: ServiceTypes = {
   oneTime: {
     "Chăm sóc bệnh nhân nội khoa": [
-      { name: "Theo dõi và chăm sóc người bệnh", time: "120", price: 200000 },
-      { name: "Dùng thuốc theo y lệnh", time: "60", price: 100000 },
-      { name: "Theo dõi diễn biến bệnh", time: "90", price: 150000 },
-      { name: "Chăm sóc dinh dưỡng", time: "120", price: 200000 },
-      { name: "Chăm sóc vết thương", time: "90", price: 150000 },
+      {
+        id: "1",
+        name: "Theo dõi và chăm sóc người bệnh",
+        status: "available",
+        description: "Theo dõi sức khỏe bệnh nhân nội khoa",
+        "category-id": "internal-medicine",
+        "est-duration": "120",
+        price: 200000,
+      },
+      {
+        id: "2",
+        name: "Dùng thuốc theo y lệnh",
+        status: "available",
+        description: "Hỗ trợ bệnh nhân uống thuốc theo chỉ định",
+        "category-id": "internal-medicine",
+        "est-duration": "60",
+        price: 100000,
+      },
+      {
+        id: "3",
+        name: "Theo dõi diễn biến bệnh",
+        status: "available",
+        description: "Theo dõi tình trạng sức khỏe",
+        "category-id": "internal-medicine",
+        "est-duration": "90",
+        price: 150000,
+      },
+      {
+        id: "4",
+        name: "Chăm sóc dinh dưỡng",
+        status: "available",
+        description: "Hỗ trợ dinh dưỡng cho bệnh nhân",
+        "category-id": "internal-medicine",
+        "est-duration": "120",
+        price: 200000,
+      },
+      {
+        id: "5",
+        name: "Chăm sóc vết thương",
+        status: "available",
+        description: "Thay băng, vệ sinh vết thương",
+        "category-id": "internal-medicine",
+        "est-duration": "90",
+        price: 150000,
+      },
     ],
     "Chăm sóc bệnh nhân ngoại khoa": [
-      { name: "Chăm sóc vết thương", time: "90", price: 150000 },
-      { name: "Hỗ trợ phẫu thuật", time: "180", price: 300000 },
-      { name: "Thay băng vô trùng", time: "60", price: 120000 },
-      { name: "Theo dõi sau phẫu thuật", time: "120", price: 200000 },
+      {
+        id: "6",
+        name: "Chăm sóc vết thương",
+        status: "available",
+        description: "Thay băng và theo dõi vết thương sau phẫu thuật",
+        "category-id": "surgery",
+        "est-duration": "90",
+        price: 150000,
+      },
+      {
+        id: "7",
+        name: "Hỗ trợ phẫu thuật",
+        status: "available",
+        description: "Chuẩn bị dụng cụ và hỗ trợ bác sĩ trong phẫu thuật",
+        "category-id": "surgery",
+        "est-duration": "180",
+        price: 300000,
+      },
+      {
+        id: "8",
+        name: "Thay băng vô trùng",
+        status: "available",
+        description: "Thay băng trong điều kiện vô trùng",
+        "category-id": "surgery",
+        "est-duration": "60",
+        price: 120000,
+      },
+      {
+        id: "9",
+        name: "Theo dõi sau phẫu thuật",
+        status: "available",
+        description: "Giám sát tình trạng hồi phục sau phẫu thuật",
+        "category-id": "surgery",
+        "est-duration": "120",
+        price: 200000,
+      },
     ],
   },
   subscription: {
-    "Gói Chăm Sóc Hàng Tháng": [
+    "Chăm sóc bệnh nhân nội khoa": [
       {
-        name: "Theo dõi sức khỏe tổng quát",
-        time: "60",
-        price: 400000,
-        validityPeriod: 30,
-        usageTerms: "Tối đa 4 lần trong 30 ngày",
+        id: "10",
+        name: "Gói chăm sóc sức khỏe hàng tuần",
+        status: "available",
+        description: "Theo dõi và kiểm tra sức khỏe bệnh nhân 3 lần/tuần",
+        "category-id": "internal-medicine",
+        "est-duration": "60",
+        price: 500000,
       },
       {
-        name: "Chăm sóc bệnh nhân nội trú",
-        time: "120",
+        id: "11",
+        name: "Gói theo dõi huyết áp và đường huyết",
+        status: "available",
+        description: "Kiểm tra huyết áp và đường huyết mỗi ngày",
+        "category-id": "internal-medicine",
+        "est-duration": "30",
+        price: 700000,
+      },
+      {
+        id: "12",
+        name: "Gói hỗ trợ dinh dưỡng hàng tháng",
+        status: "available",
+        description: "Tư vấn và hỗ trợ chế độ dinh dưỡng mỗi tuần",
+        "category-id": "internal-medicine",
+        "est-duration": "45",
         price: 800000,
-        validityPeriod: 30,
-        usageTerms: "Tối đa 2 lần trong 30 ngày",
       },
     ],
-    "Gói Tiêm Ngừa": [
+    "Chăm sóc bệnh nhân ngoại khoa": [
       {
-        name: "Tiêm chủng định kỳ",
-        time: "60",
-        price: 1500000,
-        validityPeriod: 60,
-        usageTerms: "Tối đa 3 lần trong 60 ngày",
+        id: "13",
+        name: "Gói theo dõi phục hồi sau phẫu thuật",
+        status: "available",
+        description: "Theo dõi hồi phục và chăm sóc vết thương 2 lần/tuần",
+        "category-id": "surgery",
+        "est-duration": "90",
+        price: 600000,
+      },
+      {
+        id: "14",
+        name: "Gói phục hồi chức năng",
+        status: "available",
+        description: "Hỗ trợ vận động và phục hồi chức năng hàng tuần",
+        "category-id": "surgery",
+        "est-duration": "120",
+        price: 900000,
       },
     ],
   },
@@ -134,11 +193,21 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const { toast } = useToast();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedMajor, setSelectedMajor] = useState<string | null>(null);
-  const [selectedCateService, setSelectedCateService] = useState<number | null>(
-    null
-  );
+  const [selection, setSelection] = useState<{
+    categoryId: string;
+    serviceId: string;
+  } | null>(null);
+
+  console.log("selection: ", selection);
+  
+  // Replace this hardcoded data
+  const [serviceCategories, setServiceCategories] = useState<
+    TransformedCategory[]
+  >([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const [selectedServiceType, setSelectedServiceType] = useState<
     "oneTime" | "subscription"
   >("oneTime");
@@ -249,16 +318,17 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     }
   };
 
-  const calculatePackagePrice = (services: Service[]): number => {
+  const calculatePackagePrice = (services: ServiceItem[]): number => {
     return services.reduce(
-      (total: number, service: Service) => total + service.price,
+      (total: number, service: ServiceItem) => total + (service.price ?? 0),
       0
     );
   };
 
-  const calculatePackageTotalTime = (services: Service[]): number => {
+  const calculatePackageTotalTime = (services: ServiceItem[]): number => {
     return services.reduce(
-      (total: number, service: Service) => total + parseInt(service.time),
+      (total: number, service: ServiceItem) =>
+        total + parseInt(service["est-duration"]),
       0
     );
   };
@@ -284,7 +354,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const canContinue = () => {
     switch (currentStep) {
       case 1:
-        return selectedCategory !== null && selectedCateService !== null;
+        return selection !== null;
       case 2:
         return selectedMajor !== null && (selectedServices?.length || 0) > 0;
       case 5:
@@ -308,17 +378,51 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     }
   };
 
+  useEffect(() => {
+    const fetchFilteredServices = async () => {
+      try {
+        const nameFilter = searchTerm.trim() ? searchTerm : null;
+
+        const response = await serviceApiRequest.getListService(nameFilter);
+
+        const transformedServices: TransformedCategory[] =
+          response.payload.data.map(
+            (item: {
+              "category-info": CategoryInfo;
+              "list-services": ServiceItem[];
+            }) => ({
+              name: item["category-info"].name,
+              id: item["category-info"].id,
+              description: item["category-info"].description,
+              services: item["list-services"].map((service: ServiceItem) => ({
+                name: service.name,
+                id: service.id,
+                description: service.description,
+              })),
+            })
+          );
+
+        setServiceCategories(transformedServices);
+      } catch (error) {
+        console.error("Failed to fetch filtered services:", error);
+      }
+    };
+
+    fetchFilteredServices();
+  }, [searchTerm]);
+
   const renderStepContent = (step: number) => {
     switch (step) {
       case 1:
         return (
           <ServiceCategorySelection
             serviceCategories={serviceCategories}
-            selectedCategory={selectedCategory}
-            selectedCateService={selectedCateService}
-            setSelectedCategory={setSelectedCategory}
-            setSelectedCateService={setSelectedCateService}
+            selection={selection}
+            setSelection={setSelection}
             onNext={handleNextStep}
+            isLoading={isLoading}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
           />
         );
 
@@ -466,7 +570,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
-          />  
+          />
         );
     }
   };
@@ -523,9 +627,15 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             <Card>
               <CardContent className="pt-8">
                 <div className="space-y-8">
-                  <h2 className="text-2xl font-be-vietnam-pro font-bold mb-6">
-                    Dịch vụ đã chọn
-                  </h2>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-be-vietnam-pro font-bold">
+                      Dịch vụ đã chọn
+                    </h2>
+
+                    <Badge className="text-xl bg-[#e5ab47] text-white border-[#e5ab47]">
+                      {selection?.serviceId}
+                    </Badge>
+                  </div>
 
                   {selectedServices && selectedServices.length > 0 ? (
                     <div className="space-y-3">
