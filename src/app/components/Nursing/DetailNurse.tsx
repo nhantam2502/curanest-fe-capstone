@@ -88,7 +88,7 @@ const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
   };
 
   return (
-    <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
+    <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen">
       {/* Breadcrumb */}
       <Breadcrumb className="px-10 py-10">
         <BreadcrumbList>
