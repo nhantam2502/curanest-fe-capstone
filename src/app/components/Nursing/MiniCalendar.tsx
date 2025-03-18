@@ -8,7 +8,7 @@ interface CalendarProps {
   appointments: Appointment[];
 }
 
-const AppointmentSchedule: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
+const MiniCalendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -114,25 +114,34 @@ const AppointmentSchedule: React.FC<CalendarProps> = ({ onDateSelect, appointmen
       const currentDay = day;
       const hasAppt = hasAppointment(currentDay);
       const isSelected = isInSelectedWeek(currentDay);
-
+      const today = new Date();
+      const isToday =
+        today.getFullYear() === currentDate.getFullYear() &&
+        today.getMonth() === currentDate.getMonth() &&
+        today.getDate() === currentDay;
+    
       days.push(
         <div
           key={day}
           onClick={() => handleDateClick(currentDay)}
           className={`
             w-6 h-6 flex items-center justify-center rounded-lg cursor-pointer
-            transition-all duration-200 hover:bg-blue-100 text-xs
+            transition-all duration-200 hover:bg-blue-100 text-xs relative
             ${hasAppt ? "bg-yellow-100 hover:bg-yellow-200" : ""}
             ${isSelected ? "bg-[#71DDD7] text-white hover:bg-[#71DDD7]/90" : ""}
           `}
         >
           <div className="flex flex-col items-center">
             <span className="font-medium">{currentDay}</span>
+            {isToday && (
+              <div className="absolute inset-0 border-2 border-red-500 rounded-lg"></div>
+            )}
           </div>
         </div>
       );
       day++;
     }
+    
 
     return (
       <div className="w-full bg-white rounded-lg">
@@ -164,4 +173,4 @@ const AppointmentSchedule: React.FC<CalendarProps> = ({ onDateSelect, appointmen
   return renderCalendar();
 };
 
-export default AppointmentSchedule;
+export default MiniCalendar;

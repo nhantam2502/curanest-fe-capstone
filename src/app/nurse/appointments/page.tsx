@@ -11,10 +11,10 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import AppointmentSchedule from "@/app/components/Nursing/AppointmentSchedule";
 import DonutChart from "@/app/components/Nursing/DonutChart";
 import { Appointment, ScheduleEvent } from "@/types/appointment";
 import { useRouter } from "next/navigation";
+import MiniCalendar from "@/app/components/Nursing/MiniCalendar";
 
 const NurseScheduleCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -150,14 +150,12 @@ const NurseScheduleCalendar = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-500" />
-                <span className="text-sm font-medium">Lịch của bạn</span>
+                <span className="text-sm font-medium">Lịch hẹn với bệnh nhân</span>
               </div>
-              <span className="text-xs text-gray-500">
-                120 ca đã được lên lịch
-              </span>
+             
             </div>
             {/* Mini calendar */}
-            <AppointmentSchedule
+            <MiniCalendar
               appointments={appointments}
               onDateSelect={(date) => handleDateSelect(date)}
             />
