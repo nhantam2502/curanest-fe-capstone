@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ArrowLeft,
@@ -70,32 +70,12 @@ const NurseList = () => {
 
   // Thêm state cho filter theo tên và rating
   const [nameFilter, setNameFilter] = useState("");
-  const [searchTriggered, setSearchTriggered] = useState(false);
   const [minRating, setMinRating] = useState(0);
-
-  useEffect(() => {
-    if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
-
-    const fetchNurses = async () => {
-      setLoading(true);
-      try {
-        const response = await nurseApiRequest.getListNurse(
-          serviceID || null,
-          minRating ? minRating.toString() : null,
-          currentPage,
-          nameFilter || null
-        );
-        setNurses(response.payload.data);
-      } catch (err) {
-        console.log("Error fetching nurses ", err);
-      } finally {
-        setLoading(false);
-        setSearchTriggered(false); // Reset để tránh gọi API nhiều lần
-      }
-    };
-
-    fetchNurses();
-  }, [serviceID, searchTriggered]);
+  // Thêm state để lưu các giá trị filter đã được áp dụng (chỉ sau khi người dùng nhấn tìm kiếm)
+  const [appliedNameFilter, setAppliedNameFilter] = useState("");
+  const [appliedMinRating, setAppliedMinRating] = useState(0);
+  const [searchTriggered, setSearchTriggered] = useState(false);
+  const resetButtonRef = useRef(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,17 +83,10 @@ const NurseList = () => {
 
   const filteredNurses = useMemo(() => {
     return nurses.filter((nurse) => {
-      // Filter theo tên điều dưỡng
-      const matchesName =
-        !nameFilter ||
-        nurse["nurse-name"].toLowerCase().includes(nameFilter.toLowerCase());
-
-      // Filter theo rating
-      const matchesRating = nurse.rate >= minRating;
-
-      return matchesName && matchesRating;
+      // Không cần filter theo tên và rating ở đây vì đã filter từ API
+      return true;
     });
-  }, [searchTerm, selectedSpecialization, nameFilter, minRating, nurses]);
+  }, [nurses]);
 
   // Tính toán tổng số trang
   const totalPages = Math.ceil(filteredNurses.length / itemsPerPage);
@@ -133,15 +106,27 @@ const NurseList = () => {
   };
 
   const handleSearch = () => {
-    setSearchTriggered(true); // Chỉ gọi API khi nhấn nút
-    setCurrentPage(1); // Reset trang về 1 khi tìm kiếm mới
+    setAppliedNameFilter(nameFilter);
+    setAppliedMinRating(minRating);
+    setSearchTriggered(true);
+    setCurrentPage(1);
   };
 
   // Reset all filters
   const resetFilters = () => {
+    if (resetButtonRef.current) return; // Ngăn spam
+
+    resetButtonRef.current = true; // Đánh dấu đang xử lý
     setNameFilter("");
     setMinRating(0);
+    setAppliedNameFilter("");
+    setAppliedMinRating(0);
     setCurrentPage(1);
+    setSearchTriggered(true);
+
+    setTimeout(() => {
+      resetButtonRef.current = false;
+    }, 1000);
   };
 
   // Generate page numbers for pagination
@@ -214,6 +199,36 @@ const NurseList = () => {
 
     return items;
   };
+
+  useEffect(() => {
+    if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
+
+    const fetchNurses = async () => {
+      setLoading(true);
+      try {
+        const response = await nurseApiRequest.getListNurse(
+          serviceID || null,
+          appliedMinRating ? appliedMinRating.toString() : null,
+          currentPage,
+          appliedNameFilter || null
+        );
+        setNurses(response.payload.data);
+      } catch (err) {
+        console.log("Error fetching nurses ", err);
+      } finally {
+        setLoading(false);
+        setSearchTriggered(false); // Reset để tránh gọi API nhiều lần
+      }
+    };
+
+    fetchNurses();
+  }, [
+    serviceID,
+    appliedNameFilter,
+    appliedMinRating,
+    currentPage,
+    searchTriggered,
+  ]);
 
   return (
     <div className="hero_section">
@@ -309,27 +324,27 @@ const NurseList = () => {
                     )}
                   </div>
 
-                  {/* Hiển thị thông tin filter đã chọn */}
-                  {(nameFilter || minRating > 0) && (
+                  {/* Hiển thị thông tin filter đã chọn - CHỈ hiển thị khi đã áp dụng (sau khi nhấn tìm kiếm) */}
+                  {(appliedNameFilter || appliedMinRating > 0) && (
                     <div className="mb-4">
                       <p className="text-lg font-medium mb-2 flex items-center text-gray-700">
                         <Search className="h-5 w-5 mr-2 text-irisBlueColor" />
                         Bộ lọc đã áp dụng
                       </p>
                       <div className="space-y-2">
-                        {nameFilter && (
+                        {appliedNameFilter && (
                           <div className="animate-fadeIn">
                             <Badge className="px-3 py-1.5 text-[16px] bg-irisBlueColor hover:bg-irisBlueColor text-white border-irisBlueColor gap-2">
                               <CheckCircle className="h-4 w-4" />
-                              Tên: {nameFilter}
+                              Tên: {appliedNameFilter}
                             </Badge>
                           </div>
                         )}
-                        {minRating > 0 && (
+                        {appliedMinRating > 0 && (
                           <div className="animate-fadeIn">
                             <Badge className="px-3 py-1.5 text-[16px] bg-irisBlueColor hover:bg-irisBlueColor text-white border-irisBlueColor gap-2">
                               <StarIcon className="h-4 w-4" />
-                              Đánh giá: {minRating}+ sao
+                              Đánh giá: {appliedMinRating}+ sao
                             </Badge>
                           </div>
                         )}
@@ -364,7 +379,7 @@ const NurseList = () => {
                             value={nameFilter}
                             onChange={(e) => {
                               setNameFilter(e.target.value);
-                              setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+                              setCurrentPage(1);
                             }}
                             className="pl-10 py-5 text-base"
                           />
@@ -391,7 +406,7 @@ const NurseList = () => {
                             className="w-full"
                             onValueChange={(value) => {
                               setMinRating(value[0]);
-                              setCurrentPage(1); // Reset về trang 1 khi filter thay đổi
+                              setCurrentPage(1);
                             }}
                           />
                           <div className="flex justify-between items-center">
@@ -423,6 +438,7 @@ const NurseList = () => {
                       variant="outline"
                       className="flex-1 py-5 text-base border-irisBlueColor text-irisBlueColor hover:bg-irisBlueColor/10 hover:text-irisBlueColor"
                       onClick={resetFilters}
+                      disabled={!nameFilter && minRating === 0}
                     >
                       Đặt lại
                     </Button>
