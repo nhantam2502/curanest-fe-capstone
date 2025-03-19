@@ -2,9 +2,8 @@ import { NurseItemType } from "@/types/nurse";
 import { Hospital, Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 
 const GuestNursingCard = ({
   nurse,
@@ -42,7 +41,7 @@ const GuestNursingCard = ({
       className="w-[400px] md:w-[400px] min-h-[300px] overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer"
       >
       {/* Top gradient background */}
-      <div className="h-40 bg-gradient-to-r from-blue-300 to-yellow-300" />
+      <div className="h-40 bg-gradient-to-r from-cyan-200 to-yellow-200" />
 
       <div className="absolute top-16 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
         {/* Avatar lớn hơn */}

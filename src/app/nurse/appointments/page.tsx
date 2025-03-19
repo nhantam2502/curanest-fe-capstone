@@ -29,7 +29,7 @@ const NurseScheduleCalendar = () => {
       phone_number: "0123456789",
       techniques: "Chăm sóc bệnh nhân",
       total_fee: 500000,
-      appointment_date: "2025-01-24",
+      appointment_date: "2025-03-17",
       time_from_to: "08:00-09:00",
     },
     {
@@ -40,7 +40,7 @@ const NurseScheduleCalendar = () => {
       phone_number: "0987654321",
       techniques: "Tiêm thuốc",
       total_fee: 300000,
-      appointment_date: "2025-01-26",
+      appointment_date: "2025-03-21",
       time_from_to: "10:00-12:00",
     },
   ];
@@ -55,7 +55,7 @@ const NurseScheduleCalendar = () => {
       status: "completed",
       name: "Nguyễn Văn A",
       classType: "wound-care",
-      appointment_date: "2025-01-24",
+      appointment_date: "2025-03-17",
     },
     {
       id: "2",
@@ -65,7 +65,7 @@ const NurseScheduleCalendar = () => {
       status: "upcoming",
       name: "Trần Thị B",
       classType: "injection",
-      appointment_date: "2025-01-26",
+      appointment_date: "2025-03-21",
     },
   ];
 
