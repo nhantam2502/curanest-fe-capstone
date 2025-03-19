@@ -75,7 +75,7 @@ export function AboutTab({ profileData }: AboutTabProps) {
             <Award className="mr-2 h-5 w-5" />
             Kỹ năng & Chuyên môn
           </h2>
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             {profileData.data.skills && profileData.data.skills.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {profileData.data.skills.map((skill, index) => (
@@ -87,7 +87,7 @@ export function AboutTab({ profileData }: AboutTabProps) {
             ) : (
               <p className="text-gray-500 italic">Chưa có thông tin kỹ năng</p>
             )}
-          </div>
+          </div> */}
         </CardContent>
       </Card>
     </div>

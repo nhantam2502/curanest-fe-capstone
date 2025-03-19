@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { infoNurseRes, ProfileData } from "@/types/nurse";
+import { infoNurseRes } from "@/types/nurse";
 
 interface ExperienceTabProps {
   profileData: infoNurseRes;
