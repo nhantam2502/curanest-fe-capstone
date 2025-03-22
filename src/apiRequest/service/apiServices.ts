@@ -22,11 +22,7 @@ const serviceApiRequest = {
   createService: (cateId: string, body: CreateServiceCate) =>
     http.post<Res>(`/appointment/api/v1/categories/${cateId}/services`, body),
 
-  getServicePackage: (serviceId: string) =>
-    http.get<Res>(`/appointment/api/v1/services/${serviceId}/svcpackage`),
 
-  createServicePackage: (serviceId: string, body: CreateServicePackage) =>
-    http.post<Res>(`/appointment/api/v1/services/${serviceId}/svcpackage`, body),
 };
 
 export default serviceApiRequest;

@@ -21,12 +21,12 @@ export type ServiceTask = {
     cost: number;
     description: string;
     "est-duration": number;
-    "is-must-have": true;
+    "is-must-have": boolean;
     name: string;
-    order: number;
+    "task-order": number;
     "price-of-step": number;
     "staff-advice": string;
-    unit: "quantity" | "time";
+    unit: string;
   };
   
   export interface Res {

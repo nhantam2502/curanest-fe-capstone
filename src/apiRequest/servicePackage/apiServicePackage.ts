@@ -2,7 +2,7 @@ import http from "@/lib/http";
 import { CreateServicePackage, Res } from "@/types/servicesPack";
 import { CreateServiceTask } from "@/types/servicesTask";
 
-const serviceApiRequest = {
+const servicePackageApiRequest = {
     // Service Package
   getServicePackage: (serviceId: string) =>
     http.get<Res>(`/appointment/api/v1/services/${serviceId}/svcpackage`),
@@ -24,4 +24,4 @@ const serviceApiRequest = {
     ),
 };
 
-export default serviceApiRequest;
+export default servicePackageApiRequest;
