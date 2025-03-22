@@ -1,6 +1,7 @@
 import http from "@/lib/http";
 import { ServiceListResType } from "@/schemaValidation/service.schema";
 import { CreateServiceCate, Res, ServiceFilter } from "@/types/service";
+import { CreateServicePackage } from "@/types/servicesPack";
 
 const serviceApiRequest = {
   getService: (cateId: string, filter: ServiceFilter | null) => {
@@ -10,7 +11,7 @@ const serviceApiRequest = {
     }
     return http.get<Res>(queryString);
   },
-  
+
   getListService: (serviceName: string | null) =>
     http.get<ServiceListResType>(
       `/appointment/api/v1/services/group-by-category${
@@ -18,8 +19,10 @@ const serviceApiRequest = {
       }`
     ),
 
-  createService: (body: CreateServiceCate) =>
-    http.post<Res>("/appointment/api/v1/services", body),
+  createService: (cateId: string, body: CreateServiceCate) =>
+    http.post<Res>(`/appointment/api/v1/categories/${cateId}/services`, body),
+
+
 };
 
 export default serviceApiRequest;

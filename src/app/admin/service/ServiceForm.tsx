@@ -40,14 +40,15 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   const [newService, setNewService] = useState<CreateServiceCate>({
     name: "",
     description: "",
-    "category-id": "",
     "est-duration": "",
-    thumbnail: "",
   });
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
   const [searchQuery] = useState<CategoryFilter>({ name: "" });
   const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<
+    string | undefined
+  >(undefined);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -89,17 +90,27 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
 
   const handleSave = async () => {
     setIsSaving(true);
+    if (!selectedCategoryId) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng chọn một danh mục.",
+        variant: "destructive",
+      });
+      setIsSaving(false);
+      return;
+    }
+
     try {
-      // Transform the payload so that "category-id" is sent as "category_id"
       const payload = {
         name: newService.name,
         description: newService.description,
-       "category-id": newService["category-id"], // transform here
         "est-duration": newService["est-duration"],
-        thumbnail: newService.thumbnail,
       };
 
-      const response = await serviceApiRequest.createService(payload);
+      const response = await serviceApiRequest.createService(
+        selectedCategoryId,
+        payload
+      ); // Pass selectedCategoryId
       if (response && response.status === 201) {
         toast({
           title: "Thành công",
@@ -110,10 +121,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         setNewService({
           name: "",
           description: "",
-          "category-id": "",
           "est-duration": "",
-          thumbnail: "",
         });
+        setSelectedCategoryId(undefined); // Reset selected category
         onOpenChange(false);
       } else {
         toast({
@@ -152,13 +162,8 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="category-id">Danh mục</Label>
-            <Select
-              value={newService["category-id"]}
-              onValueChange={(value) =>
-                setNewService((prev) => ({ ...prev, "category-id": value }))
-              }
-            >
-              <SelectTrigger id="category-id">
+            <Select onValueChange={setSelectedCategoryId}>
+              <SelectTrigger>
                 <SelectValue placeholder="Chọn danh mục" />
               </SelectTrigger>
               <SelectContent>
@@ -196,15 +201,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               id="est-duration"
               name="est-duration"
               value={newService["est-duration"]}
-              onChange={handleInputChange}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="thumbnail">Hình ảnh</Label>
-            <Input
-              id="thumbnail"
-              name="thumbnail"
-              value={newService.thumbnail}
               onChange={handleInputChange}
             />
           </div>

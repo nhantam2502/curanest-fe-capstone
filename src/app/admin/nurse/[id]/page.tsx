@@ -12,14 +12,11 @@ interface ServiceCategory {
   id: string;
   name: string;
 }
-
 interface Service {
   id: number;
   name: string;
   category_id: string;
 }
-
-// Aesthetic ServiceChip component
 interface ServiceChipProps {
   service: Service;
   selected: boolean;
@@ -122,8 +119,6 @@ const NurseServiceMappingPage: React.FC = () => {
     fetchNurseService();
   }, [id]);
   
-  
-
   // Toggle selected services
   const handleServiceChipToggle = (serviceId: number, newState: boolean) => {
     setSelectedServices((prev) =>
@@ -190,8 +185,7 @@ const NurseServiceMappingPage: React.FC = () => {
             <Button onClick={handleSubmitMapping}>Gán</Button>
           </div>
         </div>
-
-        {/* Bottom Part: Categories & Their Services */}
+        
         <div>
           {serviceCategories.map((category) => (
             <div key={category.id} className="mb-4">
