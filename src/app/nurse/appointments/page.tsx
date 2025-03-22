@@ -11,10 +11,10 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import AppointmentSchedule from "@/app/components/Nursing/AppointmentSchedule";
 import DonutChart from "@/app/components/Nursing/DonutChart";
 import { Appointment, ScheduleEvent } from "@/types/appointment";
 import { useRouter } from "next/navigation";
+import MiniCalendar from "@/app/components/Nursing/MiniCalendar";
 
 const NurseScheduleCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -29,7 +29,7 @@ const NurseScheduleCalendar = () => {
       phone_number: "0123456789",
       techniques: "Chăm sóc bệnh nhân",
       total_fee: 500000,
-      appointment_date: "2025-01-24",
+      appointment_date: "2025-03-17",
       time_from_to: "08:00-09:00",
     },
     {
@@ -40,7 +40,7 @@ const NurseScheduleCalendar = () => {
       phone_number: "0987654321",
       techniques: "Tiêm thuốc",
       total_fee: 300000,
-      appointment_date: "2025-01-26",
+      appointment_date: "2025-03-21",
       time_from_to: "10:00-12:00",
     },
   ];
@@ -55,7 +55,7 @@ const NurseScheduleCalendar = () => {
       status: "completed",
       name: "Nguyễn Văn A",
       classType: "wound-care",
-      appointment_date: "2025-01-24",
+      appointment_date: "2025-03-17",
     },
     {
       id: "2",
@@ -65,7 +65,7 @@ const NurseScheduleCalendar = () => {
       status: "upcoming",
       name: "Trần Thị B",
       classType: "injection",
-      appointment_date: "2025-01-26",
+      appointment_date: "2025-03-21",
     },
   ];
 
@@ -150,14 +150,12 @@ const NurseScheduleCalendar = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-500" />
-                <span className="text-sm font-medium">Lịch của bạn</span>
+                <span className="text-sm font-medium">Lịch hẹn với bệnh nhân</span>
               </div>
-              <span className="text-xs text-gray-500">
-                120 ca đã được lên lịch
-              </span>
+             
             </div>
             {/* Mini calendar */}
-            <AppointmentSchedule
+            <MiniCalendar
               appointments={appointments}
               onDateSelect={(date) => handleDateSelect(date)}
             />

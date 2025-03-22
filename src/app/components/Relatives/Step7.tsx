@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock } from "lucide-react";
 
 interface OrderConfirmationProps {
-  // nurseSelectionMethod: "manual" | "auto";
+  nurseSelectionMethod: "manual" | "auto";
 
   selectedServices: Array<{
     name: string;
@@ -39,7 +39,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
   selectedNurse,
   selectedTime,
   calculateTotalPrice,
-  // nurseSelectionMethod,
+  nurseSelectionMethod,
   setCurrentStep,
   toast,
   router

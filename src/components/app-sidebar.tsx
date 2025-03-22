@@ -32,15 +32,15 @@ const data = {
       icon: CalendarClock,
     },
     {
-      title: "Lịch làm việc",
-      url: "#",
+      title: "Lịch sử cuộc hẹn",
+      url: "/nurse/appointmentHistory",
       icon: CalendarDays,
     },
-    {
-      title: "Income & appointment history",
-      url: "#",
-      icon: HandCoins,
-    },
+    // {
+    //   title: "Income & appointment history",
+    //   url: "#",
+    //   icon: HandCoins,
+    // },
   ],
 };
 

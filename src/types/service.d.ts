@@ -1,5 +1,5 @@
 export type ServiceCate = {
-  id:string;
+  id: string;
   "category-id": string;
   name: string;
   description: string;
@@ -47,6 +47,7 @@ type CategoryInfo = {
   id: string;
   name: string;
   description: string;
+  thumbnail ?: string;
 };
 
 type ServiceItem = {
@@ -55,14 +56,18 @@ type ServiceItem = {
   status: string;
   description: string;
   "category-id": string;
-  // thumbnail: string;
   "est-duration": string;
+  // Thêm field giả định sau này sẽ xoá
+  price?: number;
+  validityPeriod?: number;
+  usageTerms?: string;
 };
 
 type TransformedCategory = {
   name: string;
   id: string;
   description: string;
+  thumbnail ?: string;
   services: {
     name: string;
     id: string;
@@ -78,6 +83,4 @@ type SelectedService = {
   id: string;
   description: string;
   // thumbnail: string;
-  
 };
-

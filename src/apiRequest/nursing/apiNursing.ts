@@ -1,6 +1,7 @@
 import http from "@/lib/http";
 import {
   DetailNurseListResType,
+  infoNurseRes,
   NurseListResType,
 } from "@/types/nurse";
 
@@ -19,6 +20,10 @@ const nurseApiRequest = {
 
   getDetailNurse: (id: string) =>
     http.get<DetailNurseListResType>(`/nurse/api/v1/nurses/${id}`),
+
+  getInfoNurseMe: () =>
+    http.get<infoNurseRes>("/nurse/api/v1/nurses/me"),
+
 };
 
 export default nurseApiRequest;

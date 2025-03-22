@@ -4,15 +4,7 @@ import { Info, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-
-interface ServiceItem{
-  name: string;
-  price: number;
-  time: string;
-  description?: string;
-  validityPeriod?: number;
-  usageTerms?: string;
-}
+import { ServiceItem } from "@/types/service";
 
 interface Step2Props {
   selectedServiceType: "oneTime" | "subscription";
@@ -40,8 +32,8 @@ interface Step2Props {
   ) => void;
   setServiceQuantities: React.Dispatch<
     React.SetStateAction<{ [key: string]: number }>
-  >; 
-  onNext: () => void
+  >;
+  onNext: () => void;
   onPrevious: () => void;
 }
 
@@ -109,8 +101,12 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                   setSelectedServices(
                     servicesByType[selectedServiceType][packageName].map(
                       (service) => ({
-                        ...service,
-                        time: String(service.time), // Convert number to string
+                        name: service.name,
+                        price: service.price ?? 0, // Ensure price is never undefined
+                        time: String(service["est-duration"]),
+                        description: service.description,
+                        // validityPeriod: service.validityPeriod,
+                        // usageTerms: service.usageTerms,
                       })
                     )
                   );
@@ -127,7 +123,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                           servicesByType[selectedServiceType][packageName].map(
                             (service) => ({
                               ...service,
-                              time: String(service.time),
+                              time: String(service["est-duration"]),
                             })
                           )
                         )}{" "}
@@ -159,23 +155,23 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                           Dịch vụ bao gồm:
                         </h4>
                         <ul className="list-disc list-inside space-y-1 ml-2">
-                          {servicesByType[selectedServiceType][
-                            packageName
-                          ].map((service) => (
-                            <li key={service.name} className="text-gray-700">
-                              {service.name}{" "}
-                              <span className="text-gray-500">
-                                ({service.time} phút)
-                              </span>
-                              {/* Show usage terms for subscription packages */}
-                              {selectedServiceType === "subscription" &&
-                                service.usageTerms && (
-                                  <span className="text-green-600 ml-1">
-                                    • {service.usageTerms}
-                                  </span>
-                                )}
-                            </li>
-                          ))}
+                          {servicesByType[selectedServiceType][packageName].map(
+                            (service) => (
+                              <li key={service.name} className="text-gray-700">
+                                {service.name}{" "}
+                                <span className="text-gray-500">
+                                  ({service["est-duration"]} phút)
+                                </span>
+                                {/* Show usage terms for subscription packages */}
+                                {selectedServiceType === "subscription" &&
+                                  service.usageTerms && (
+                                    <span className="text-green-600 ml-1">
+                                      • {service.usageTerms}
+                                    </span>
+                                  )}
+                              </li>
+                            )
+                          )}
                         </ul>
                       </div>
                     </div>
@@ -188,7 +184,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                               packageName
                             ].map((service) => ({
                               ...service,
-                              time: String(service.time),
+                              time: String(service.price),
                             }))
                           )
                         )}

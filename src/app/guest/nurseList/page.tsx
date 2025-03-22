@@ -49,17 +49,27 @@ const ServicesPage = () => {
 
   // Category icons mapping
   const categoryIcons: { [key: string]: React.ReactNode } = {
-    "Chăm sóc cho bé yêu": <Baby className="w-7 h-7 text-pink-500" />,
-    "Chăm sóc cơ bản": <Heart className="w-7 h-7 text-blue-500" />,
-    "Y tế tại nhà": <Home className="w-7 h-7 text-green-500" />,
+    "Chăm sóc cho bé yêu": (
+      <Baby className="w-7 h-7 text-pink-500 ring-2 ring-pink-500 rounded-full p-1" />
+    ),
+    "Chăm sóc cơ bản": (
+      <Heart className="w-7 h-7 text-blue-500 ring-2 ring-blue-500 rounded-full p-1" />
+    ),
+    "Y tế tại nhà": (
+      <Home className="w-7 h-7 text-green-500 ring-2 ring-green-500 rounded-full p-1" />
+    ),
     "Phục hồi chức năng": (
-      <ActivitySquare className="w-7 h-7 text-purple-500" />
+      <ActivitySquare className="w-7 h-7 text-purple-500 ring-2 ring-purple-500 rounded-full p-1" />
     ),
     "Hỗ trợ dinh dưỡng và vệ sinh": (
-      <Utensils className="w-7 h-7 text-amber-500" />
+      <Utensils className="w-7 h-7 text-amber-500 ring-2 ring-amber-500 rounded-full p-1" />
     ),
-    "Chăm sóc đặc biệt": <ShieldAlert className="w-7 h-7 text-red-500" />,
-    "Tư vấn sức khỏe": <Clipboard className="w-7 h-7 text-teal-500" />,
+    "Chăm sóc đặc biệt": (
+      <ShieldAlert className="w-7 h-7 text-red-500 ring-2 ring-red-500 rounded-full p-1" />
+    ),
+    "Tư vấn sức khỏe": (
+      <Clipboard className="w-7 h-7 text-teal-500 ring-2 ring-teal-500 rounded-full p-1" />
+    ),
   };
 
   useEffect(() => {
@@ -78,6 +88,7 @@ const ServicesPage = () => {
               name: item["category-info"].name,
               id: item["category-info"].id,
               description: item["category-info"].description,
+              thumbnail: item["category-info"].thumbnail,
               services: item["list-services"].map((service: ServiceItem) => ({
                 name: service.name,
                 id: service.id,
@@ -89,7 +100,7 @@ const ServicesPage = () => {
         setServices(transformedServices);
         setCurrentPage(1);
       } catch (error) {
-        console.error("Failed to fetch filtered services:", error);
+        console.error("Failed to fetch services in guest role:", error);
       }
     };
 
@@ -296,36 +307,50 @@ const ServicesPage = () => {
             <div className="space-y-6">
               {currentServices.length > 0 ? (
                 currentServices.map((category, index) => (
-                  <div key={index} className="w-full">
-                    <CardHeader className="p-6 ">
-                      <CardTitle className="flex items-center gap-3 text-3xl">
-                        {categoryIcons[category.name] || (
-                          <Users className="w-7 h-7 text-gray-500" />
-                        )}
-                        {category.name}
-                      </CardTitle>
-                    </CardHeader>
+                  <div
+                    key={index}
+                    className="w-full relative rounded-lg overflow-hidden"
+                    style={{
+                      backgroundImage: `url(${category.thumbnail})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  >
+                    {/* Overlay để làm mờ background */}
+                    <div className="absolute inset-0 bg-white opacity-80"></div>
 
-                    <CardContent className="p-6">
-                      <div className="flex flex-wrap gap-4">
-                        {category.services.map((service) => (
-                          <Button
-                            key={service.id}
-                            variant="outline"
-                            className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
-                            onClick={() =>
-                              handleServiceClick(
-                                category.name,
-                                service.name,
-                                service.id
-                              )
-                            }
-                          >
-                            {service.name}
-                          </Button>
-                        ))}
-                      </div>
-                    </CardContent>
+                    {/* Content wrapper - đặt lên trên background */}
+                    <div className="relative z-10">
+                      <CardHeader className="p-6">
+                        <CardTitle className="flex items-center gap-3 text-3xl">
+                          {categoryIcons[category.name] || (
+                            <Users className="w-7 h-7 text-gray-500" />
+                          )}
+                          {category.name}
+                        </CardTitle>
+                      </CardHeader>
+
+                      <CardContent className="p-6">
+                        <div className="flex flex-wrap gap-4">
+                          {category.services.map((service) => (
+                            <Button
+                              key={service.id}
+                              variant="outline"
+                              className="rounded-full h-auto py-2 px-6 text-xl hover:bg-gray-100"
+                              onClick={() =>
+                                handleServiceClick(
+                                  category.name,
+                                  service.name,
+                                  service.id
+                                )
+                              }
+                            >
+                              {service.name}
+                            </Button>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </div>
                   </div>
                 ))
               ) : (

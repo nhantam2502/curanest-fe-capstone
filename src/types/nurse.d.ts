@@ -1,11 +1,4 @@
-// Interface cho một service
-// export interface NurseService {
-//   name: string;
-//   time?: string;
-//   price?: number;
-// }
-
-// Interface chính cho Nurse
+// Interface chính cho Nurse (sẽ bỏ)
 export interface Nurse {
   id: number;
   name: string;
@@ -160,70 +153,33 @@ export interface NurseService {
   major_id: number; // ID of the major they belong to
 }
 
-// Profile data
-interface Address {
-  street: string;
+// Type for api get nurse profile
+export type infoNurse = {
+  id: string;
+  role: string;
+  "full-name": string;
+  email: string;
+  "phone-number": string;
+  "created-at": string;
+  "nurse-id": string;
+  "nurse-picture": string;
+  "nurse-name": string;
+  dob: string;
+  address: string;
   ward: string;
   district: string;
   city: string;
-}
-
-interface PersonalInfo {
-  full_name: string;
-  avatar_url: string;
-  dob: string;
-  gender: string;
+  "current-work-place": string;
+  "education-level": string;
+  experience: string;
+  certificate: string;
+  "google-drive-url": string;
   slogan: string;
-  about: string;
-}
+  rate: number;
+};
 
-interface ProfessionalInfo {
-  position: string;
-  department: string;
-  workplace: string;
-  medical_license: string;
-  specializations: string[];
-}
-
-interface ContactInfo {
-  phone: string;
-  email: string;
-  citizen_id: string;
-  address: Address;
-}
-
-interface SkillsLanguages {
-  skills: string[];
-}
-
-interface Experience {
-  position: string;
-  department: string;
-  workplace: string;
-  duration: string;
-  responsibilities: string[];
-}
-
-interface Education {
-  degree: string;
-  major: string;
-  university: string;
-  duration: string;
-}
-
-interface Certificate {
-  name: string;
-  issuer: string;
-  year: string;
-  expiry: string;
-}
-
-export interface ProfileData {
-  personal_info: PersonalInfo;
-  professional_info: ProfessionalInfo;
-  contact_info: ContactInfo;
-  skills_languages: SkillsLanguages;
-  experience: Experience[];
-  education: Education[];
-  certificates: Certificate[];
-}
+export type infoNurseRes = {
+  status: number;
+  message: string;
+  data: infoNurse;
+};

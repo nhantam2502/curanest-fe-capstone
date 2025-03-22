@@ -139,7 +139,6 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
       currentDate.getFullYear() === today.getFullYear()
     );
   };
-  
 
   const renderCalendar = () => {
     const days: React.ReactNode[] = [];
@@ -163,32 +162,32 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
       const hasAppt = hasAppointment(currentDay);
       const isSelected = isInSelectedWeek(currentDay);
 
-    days.push(
-  <div
-    key={day}
-    onClick={() => handleDateClick(currentDay)}
-    className={`
+      days.push(
+        <div
+          key={day}
+          onClick={() => handleDateClick(currentDay)}
+          className={`
       w-12 h-12 flex items-center justify-center rounded-lg cursor-pointer
       transition-all duration-200 hover:bg-blue-100
       ${hasAppt ? "bg-yellow-100 hover:bg-yellow-200" : ""}
       ${isSelected ? "bg-[#71DDD7] text-white hover:bg-[#71DDD7]/90" : ""}
-      ${isToday(currentDay) ? "border-2 border-teal-500" : ""}
+      ${isToday(currentDay) ? "border-2 border-red-500" : ""}
     `}
-  >
-    <div className="flex flex-col items-center">
-      <span className="text-xs">
-        {getDayOfWeek(
-          new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            currentDay
-          ).getDay()
-        )}
-      </span>
-      <span className="font-semibold">{currentDay}</span>
-    </div>
-  </div>
-);
+        >
+          <div className="flex flex-col items-center">
+            <span className="text-xs">
+              {getDayOfWeek(
+                new Date(
+                  currentDate.getFullYear(),
+                  currentDate.getMonth(),
+                  currentDay
+                ).getDay()
+              )}
+            </span>
+            <span className="font-semibold">{currentDay}</span>
+          </div>
+        </div>
+      );
 
       day++;
     }

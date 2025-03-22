@@ -22,6 +22,26 @@ interface MedicalReportCardProps {
   report: MedicalReport;
 }
 
+// Dữ liệu mẫu cho báo cáo y tế
+const medical_report: MedicalReport = {
+  id: '1',
+  appointment_id: '1',
+  nurse_name: 'Nguyễn Thị Minh',
+  avatar: '/avatars/nurse.jpg',
+  report_date: '10/03/2025',
+  report_time: '14:30',
+  techniques: 'Vật lý trị liệu - Massage trị liệu - Châm cứu - Kéo giãn cột sống',
+  report: 'Bệnh nhân đến với tình trạng đau vùng thắt lưng kéo dài 2 tuần. Sau khi thăm khám, phát hiện có hiện tượng co cứng cơ vùng lưng dưới và hạn chế vận động. Đã tiến hành điều trị bằng phương pháp vật lý trị liệu kết hợp với massage và kéo giãn nhẹ cột sống.\n\nSau buổi điều trị đầu tiên, bệnh nhân đã có cảm giác dễ chịu hơn, giảm đau khoảng 30% và có thể di chuyển dễ dàng hơn. Tuy nhiên, vẫn còn hiện tượng đau khi cúi gập người hoặc ngồi lâu.',
+  advice: [
+    'Tránh ngồi một chỗ quá lâu, nên đứng dậy và đi lại nhẹ nhàng sau mỗi 30 phút ngồi',
+    'Áp dụng các bài tập kéo giãn nhẹ nhàng tại nhà theo hướng dẫn đã cung cấp',
+    'Sử dụng túi chườm ấm 15-20 phút mỗi ngày vào vùng lưng dưới',
+    'Uống đủ nước và duy trì chế độ ăn giàu canxi và vitamin D'
+  ],
+  status: 'Đã hoàn thành'
+};
+
+
 export const MedicalReportCard: React.FC<MedicalReportCardProps> = ({ report }) => {
   return (
     <Card className="h-full shadow-md">
