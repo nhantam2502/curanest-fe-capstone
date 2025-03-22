@@ -9,10 +9,8 @@ export type ServiceCate = {
 };
 
 export type CreateServiceCate = {
-  "category-id": string;
   name: string;
   description: string;
-  thumbnail: string;
   "est-duration": string;
 };
 
