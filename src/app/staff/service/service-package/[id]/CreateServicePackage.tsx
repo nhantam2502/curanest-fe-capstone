@@ -37,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
-  description: z.string().optional(),
+  description: z.string(),
   "combo-days": z.coerce.number().default(0),
   discount: z.coerce.number().default(0),
   "time-interval": z.coerce.number().default(0),
@@ -104,7 +104,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="col-span-2"> {/* Full width for name */}
+                <FormItem className="col-span-2">
                   <FormLabel>Tên gói dịch vụ</FormLabel>
                   <FormControl>
                     <Input placeholder="Nhập tên gói dịch vụ" {...field} />
@@ -117,11 +117,11 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="col-span-2"> {/* Full width for description */}
+                <FormItem className="col-span-2"> 
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nhập mô tả (không bắt buộc)"
+                      placeholder="Nhập mô tả"
                       {...field}
                     />
                   </FormControl>
@@ -142,7 +142,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Số ngày mà gói dịch vụ này có hiệu lực (mặc định 0).
+                    Số ngày mà gói dịch vụ này có hiệu lực.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -158,7 +158,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Mức giảm giá cho gói dịch vụ (%) (mặc định 0).
+                    Mức giảm giá cho gói dịch vụ (%).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -175,7 +175,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
                   </FormControl>
                   <FormDescription>
                     Khoảng thời gian tối thiểu giữa các lần sử dụng dịch vụ
-                    trong gói (phút) (mặc định 0).
+                    trong gói (phút).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
