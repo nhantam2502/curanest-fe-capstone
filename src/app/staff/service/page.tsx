@@ -89,14 +89,17 @@ function Page() {
     return <div>Error: {error}</div>;
   }
 
-  const handleServiceClick = (serviceId: string) => {
-    router.push(`/staff/service/service-package/${serviceId}`); // Navigate to the service package page
+  const handleServiceClick = (serviceId: string, serviceName: string) => {
+    const encodedName = encodeURIComponent(serviceName); // Encode name for URL safety
+    router.push(`/staff/service/service-package/${serviceId}?name=${encodedName}`);
   };
+  
 
   return (
     <div>
+      <h1 className="font-bold text-2xl mb-4">Chọn 1 dịch vụ để tiếp tục</h1>
       {categoriesWithServices.map((categoryItem, index) => (
-        <div key={index} className="mb-8">
+        <div key={index} className="mb-4">
           <h2 className="text-xl font-bold mb-2">{categoryItem.categoryInfo.name}</h2>
           <div className="flex flex-wrap gap-2">
             {categoryItem.listServices.length > 0 ? (
@@ -104,7 +107,7 @@ function Page() {
                 <ServiceChip
                   key={service.id}
                   service={service}
-                  onClick={() => handleServiceClick(service.id)}
+                  onClick={() => handleServiceClick(service.id,service.name)}
                 />
               ))
             ) : (
