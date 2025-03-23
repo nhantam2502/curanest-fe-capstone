@@ -5,14 +5,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 
-interface Service {
+/*service task*/
+export type Service = {
   name: string;
-  price: number;
-  time: string;
+  "est-duration": number;
+  cost: number;
   description?: string;
   validityPeriod?: number;
   usageTerms?: string;
-}
+};
 
 interface Step3Props {
   selectedServices: Service[];
@@ -58,7 +59,7 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
                       <div className="space-y-2 flex-1">
                         <h3 className="text-xl font-semibold">{service.name}</h3>
                         <div className="text-gray-600">
-                          {service.time} phút • {formatCurrency(service.price)}
+                          {service["est-duration"]} phút • {formatCurrency(service.cost)}
                           /lần
                         </div>
                         {service.description && (
@@ -108,7 +109,7 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
 
                         <span className="font-bold text-xl">
                           {formatCurrency(
-                            service.price *
+                            service.cost *
                               (serviceQuantities[service.name] || 1)
                           )}
                         </span>

@@ -1,9 +1,20 @@
 // middleware.ts
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+
+// Định nghĩa kiểu dữ liệu cho NextAuthRequest
+type NextAuthRequest = NextRequest & {
+  nextauth: {
+    token: {
+      role?: string;
+      [key: string]: any;
+    } | null;
+  };
+};
 
 export default withAuth(
-  function middleware(req) {
+  function middleware(req: NextAuthRequest) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
@@ -25,7 +36,7 @@ export default withAuth(
       return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
 
-    // Protect staff routes
+    // Protect relatives routes
     if (path.startsWith("/relatives") && token?.role !== "relatives") {
       return NextResponse.redirect(new URL("/auth/unauthorized", req.url));
     }
@@ -33,6 +44,9 @@ export default withAuth(
   {
     callbacks: {
       authorized: ({ token }) => !!token,
+    },
+    pages: {
+      signIn: "/auth/signIn",  // Đặt trang đăng nhập tùy chỉnh
     },
   }
 );

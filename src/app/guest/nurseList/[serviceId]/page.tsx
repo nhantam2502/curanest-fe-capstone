@@ -231,7 +231,7 @@ const NurseList = () => {
   ]);
 
   return (
-    <div className="hero_section">
+    <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
       <Breadcrumb className="px-10 py-10">
         <BreadcrumbList>
           <BreadcrumbItem>

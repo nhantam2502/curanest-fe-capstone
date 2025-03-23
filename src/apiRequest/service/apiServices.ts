@@ -1,6 +1,6 @@
 import http from "@/lib/http";
 import { ServiceListResType } from "@/schemaValidation/service.schema";
-import { CreateServiceCate, Res, ServiceFilter } from "@/types/service";
+import { CreateServiceCate, Res, ServiceFilter, ServicePackageTypeRes, ServiceTaskTypeRes } from "@/types/service";
 
 const serviceApiRequest = {
   getService: (cateId: string, filter: ServiceFilter | null) => {
@@ -17,6 +17,12 @@ const serviceApiRequest = {
         serviceName ? `?service-name=${serviceName}` : ""
       }`
     ),
+
+    getListServicePackage: (serviceId: string) =>
+        http.get<ServicePackageTypeRes>(`/appointment/api/v1/services/${serviceId}/svcpackage`),
+
+    getListServiceTask: (svcpackageId: string) =>
+      http.get<ServiceTaskTypeRes>(`/appointment/api/v1/svcpackage/${svcpackageId}/svctask`),
 
   createService: (body: CreateServiceCate) =>
     http.post<Res>("/appointment/api/v1/services", body),

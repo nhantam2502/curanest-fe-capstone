@@ -201,7 +201,7 @@ const NurseList = () => {
   };
 
   useEffect(() => {
-    if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
+    // if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
 
     const fetchNurses = async () => {
       setLoading(true);
@@ -485,6 +485,7 @@ const NurseList = () => {
                         key={nurse["nurse-id"]}
                         nurse={nurse}
                         service={serviceId}
+                        serviceID={serviceID}
                       />
                     ))}
                   </div>

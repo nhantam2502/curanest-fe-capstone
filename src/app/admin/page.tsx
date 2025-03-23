@@ -7,7 +7,7 @@ const AdminPage = async () => {
   const session = await getServerSession(options);
 
   if (!session) {
-    redirect("/api/auth/signin?callbackUrl=/admin");
+    redirect("/auth/signIn?role=admin");
   }
 
   return (
