@@ -1,9 +1,13 @@
 import http from "@/lib/http";
-import { CreateServicePackage, Res } from "@/types/servicesPack";
-import { CreateServiceTask } from "@/types/servicesTask";
+import {
+  CreateServicePackage,
+  Res,
+  UpdateServicePackage,
+} from "@/types/servicesPack";
+import { CreateServiceTask, UpdateServiceTask } from "@/types/servicesTask";
 
 const servicePackageApiRequest = {
-    // Service Package
+  // Service Package
   getServicePackage: (serviceId: string) =>
     http.get<Res>(`/appointment/api/v1/services/${serviceId}/svcpackage`),
 
@@ -13,13 +17,30 @@ const servicePackageApiRequest = {
       body
     ),
 
+  updateServicePackage: (
+    serviceId: string,
+    packageId: string,
+    body: UpdateServicePackage
+  ) =>
+    http.put<Res>(
+      `/appointment/api/v1/services/${serviceId}/svcpackage/${packageId}`,
+      body
+    ),
+
   // Service Task
   getServiceTask: (packageId: string) =>
     http.get<Res>(`/appointment/api/v1/svcpackage/${packageId}/svctask`),
 
   createServiceTask: (packageId: string, body: CreateServiceTask) =>
-    http.post<Res>(
-      `/appointment/api/v1/svcpackage/${packageId}/svctask`,
+    http.post<Res>(`/appointment/api/v1/svcpackage/${packageId}/svctask`, body),
+
+  updateServiceTask: (
+    packageId: string,
+    taskId: string,
+    body: UpdateServiceTask
+  ) =>
+    http.put<Res>(
+      `/appointment/api/v1/svcpackage/${packageId}/svctask/${taskId}`,
       body
     ),
 };

@@ -27,39 +27,45 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { ServicePackage } from "@/types/servicesPack"; // Import ServicePackage interface
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface ServicePackageCreationFormProps {
-  serviceId: string; // Prop to receive serviceId
-  onPackageCreated?: () => void; // Optional callback after package creation
+interface EditServicePackageProps {
+  serviceId: string;
+  servicePackage: ServicePackage; // Prop to receive existing service package data
+  onPackageUpdated?: () => void; // Optional callback after update
 }
 
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
   }),
-  description: z.string(),
+  description: z.string().optional(),
   "combo-days": z.coerce.number().default(0),
   discount: z.coerce.number().default(0),
   "time-interval": z.coerce.number().default(0),
+  status: z.string().default("available"), // Assuming status is editable, add to schema
 });
 
-const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
+const EditServicePackage: React.FC<EditServicePackageProps> = ({
   serviceId,
-  onPackageCreated,
+  servicePackage,
+  onPackageUpdated,
 }) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      "combo-days": 0,
-      discount: 0,
-      "time-interval": 0,
+      name: servicePackage.name, // Pre-fill with existing data
+      description: servicePackage.description || "",
+      "combo-days": servicePackage["combo-days"],
+      discount: servicePackage.discount,
+      "time-interval": servicePackage["time-interval"],
+      status: servicePackage.status || "available", // Pre-fill status
     },
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [open, setOpen] = useState(false); // State to control AlertDialog visibility
+  const [open, setOpen] = useState(false);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
@@ -68,19 +74,22 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
         ...values,
         description: values.description || "",
       };
-      const response = await servicePackageApiRequest.createServicePackage(
+
+      const response = await servicePackageApiRequest.updateServicePackage(
         serviceId,
+        servicePackage.id, 
         packageData
       );
-      if (response.status === 201 && response.payload) {
+
+      if (response.status === 200 && response.payload) {
         form.reset();
-        onPackageCreated?.();
+        onPackageUpdated?.(); 
         setOpen(false);
       } else {
-        console.error("Service package creation failed:", response);
+        console.error("Service package update failed:", response);
       }
     } catch (error) {
-      console.error("Service package creation error:", error);
+      console.error("Service package update error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -89,27 +98,28 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button>Tạo gói dịch vụ mới</Button>
+        <Button variant="secondary" size="sm">
+          Sửa
+        </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-4xl">
+      <AlertDialogContent className="max-w-3xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>Tạo gói dịch vụ mới</AlertDialogTitle>
+          <AlertDialogTitle>Chỉnh sửa gói dịch vụ</AlertDialogTitle>{" "}
+          {/* Modal title changed to "Chỉnh sửa" */}
           <AlertDialogDescription>
-            Điền vào các thông tin dưới đây để tạo một gói dịch vụ mới.
+            Cập nhật thông tin gói dịch vụ.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 grid grid-cols-3 sm:grid-cols-3 gap-4"
+            className="space-y-4 grid grid-cols-2 sm:grid-cols-1 gap-4"
           >
-            {" "}
-            {/* Added grid layout */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="col-span-3">
+                <FormItem className="col-span-2">
                   <FormLabel>Tên gói dịch vụ</FormLabel>
                   <FormControl>
                     <Input placeholder="Nhập tên gói dịch vụ" {...field} />
@@ -122,10 +132,13 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="col-span-3">
+                <FormItem className="col-span-2">
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập mô tả" {...field} />
+                    <Input
+                      placeholder="Nhập mô tả (không bắt buộc)"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
                     Mô tả ngắn gọn về gói dịch vụ này.
@@ -144,12 +157,13 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Số ngày mà gói dịch vụ này có hiệu lực.
+                    Số ngày mà gói dịch vụ này có hiệu lực (mặc định 0).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="discount"
@@ -160,33 +174,61 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Mức giảm giá cho gói dịch vụ (%).
+                    Mức giảm giá cho gói dịch vụ (%) (mặc định 0).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="time-interval"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="sm:col-span-2">
                   <FormLabel>Thời gian giữa các lần sử dụng (phút)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
                     Khoảng thời gian tối thiểu giữa các lần sử dụng dịch vụ
-                    trong gói (phút).
+                    trong gói (phút) (mặc định 0).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <AlertDialogFooter className="col-span-3 flex justify-end gap-4">
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="sm:col-span-2">
+                  <FormLabel>Trạng thái</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn trạng thái"/>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>Trạng thái gói dịch vụ.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <AlertDialogFooter className="col-span-2">
               <AlertDialogCancel>Hủy</AlertDialogCancel>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Đang tạo..." : "Tạo gói dịch vụ"}
+                {isSubmitting ? "Đang cập nhật..." : "Cập nhật"}
               </Button>
             </AlertDialogFooter>
           </form>
@@ -196,4 +238,4 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
   );
 };
 
-export default ServicePackageCreationForm;
+export default EditServicePackage;

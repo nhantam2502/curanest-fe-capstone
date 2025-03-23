@@ -6,7 +6,7 @@ import CreateServicePackage from "./CreateServicePackage"; // Assuming this is t
 import ServiceTaskComponent from "./ServiceTask";
 import CreateServiceTask from "./CreateServiceTask"; // Assuming this is the correct path
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 function MainPage() {
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
@@ -36,13 +36,17 @@ function MainPage() {
     router.back(); // Navigate back in history
   };
 
+  const searchParams = useSearchParams();
+  const serviceName = searchParams.get("name");
+
   return (
     <div className="flex h-screen">
       <div className="w-1/2 p-3 border-r border-gray-200">
+      <h1 className="text-xl font-semibold mb-4">Quản lý cho dịch vụ: {serviceName}</h1>
       <Button variant="secondary" size="sm" onClick={handleBack} className="mb-4">
           Quay lại
         </Button>
-        <h2 className="text-xl font-semibold mb-4">Gói dịch vụ</h2>
+        
         <ServicePackageComponent
           serviceId={selectedServiceId}
           onPackageClick={handleServicePackageClick}
@@ -52,7 +56,7 @@ function MainPage() {
       </div>
 
       <div className="w-1/2 p-3 mt-12">
-        <h2 className="text-xl font-semibold mb-4">Công việc gói dịch vụ</h2>
+
         {selectedServicePackageId && (
           <>
             <ServiceTaskComponent

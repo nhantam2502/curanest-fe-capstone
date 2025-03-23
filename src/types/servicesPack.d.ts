@@ -1,13 +1,12 @@
 export type ServicePackage = {
   id: string;
-  serviceId: string;
+  "service-id": string;
   name: string;
   description: string;
-  comboDays: number;
+  "combo-days": number;
   discount: number;
-  timeInterval: number;
+  "time-interval": number;
   status: string;
-  createdAt: string;
 };
 
 export type CreateServicePackage = {
@@ -16,6 +15,15 @@ export type CreateServicePackage = {
   discount: number;
   name: string;
   "time-interval": number;
+};
+
+export type UpdateServicePackage = {
+  "combo-days": number;
+  description: string;
+  discount: number;
+  name: string;
+  "time-interval": number;
+  status: string;
 };
 
 export interface Res {
