@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import ServiceForm from "./ServiceForm";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -27,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
 import { ServiceCate, ServiceFilter } from "@/types/service";
 import { Search } from "lucide-react";
+import ServiceForm from "./ServiceForm";
 
 interface ServiceManagementProps {
   selectedCategoryId: string;
@@ -37,12 +37,16 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
 }) => {
   const { toast } = useToast();
   const [services, setServices] = useState<ServiceCate[]>([]);
-  const [openCreateServiceModal, setOpenCreateServiceModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState<ServiceFilter | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  const [openCreateServiceModal, setOpenCreateServiceModal] = useState(false);
+  const handleCloseForm = () => {
+    setOpenCreateServiceModal(false);
+  };
 
   const fetchServices = useCallback(async () => {
     try {
@@ -60,8 +64,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
         console.error("Error fetching services:", response);
         toast({
           title: "Lỗi tải dịch vụ",
-          description:
-            response.payload?.message || "Không thể tải dịch vụ.",
+          description: response.payload?.message || "Không thể tải dịch vụ.",
           variant: "destructive",
         });
       }
@@ -94,14 +97,6 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
     currentPage * itemsPerPage
   );
 
-  const handleCreateService = () => {
-    fetchServices();
-  };
-
-  const handleCloseForm = () => {
-    setOpenCreateServiceModal(false);
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery({ "service-name": e.target.value });
   };
@@ -113,7 +108,6 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
         <ServiceForm
           open={openCreateServiceModal}
           onOpenChange={setOpenCreateServiceModal}
-          onCreateService={handleCreateService}
           onCancel={handleCloseForm}
         />
       </div>
@@ -164,7 +158,8 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Bạn có chắc chắn muốn xoá dịch vụ này? Hành động này không thể hoàn tác.
+                          Bạn có chắc chắn muốn xoá dịch vụ này? Hành động này
+                          không thể hoàn tác.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -187,9 +182,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
         <div className="flex justify-end items-center space-x-2 mt-4">
           <Button
             variant="outline"
-            onClick={() =>
-              setCurrentPage((prev) => Math.max(prev - 1, 1))
-            }
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             Previous
@@ -200,9 +193,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
           <Button
             variant="outline"
             onClick={() =>
-              setCurrentPage((prev) =>
-                Math.min(prev + 1, totalPages)
-              )
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
             disabled={currentPage === totalPages}
           >

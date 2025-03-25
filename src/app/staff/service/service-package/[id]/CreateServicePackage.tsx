@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ServicePackageCreationFormProps {
   serviceId: string; // Prop to receive serviceId
@@ -125,7 +126,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
                 <FormItem className="col-span-3">
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nhập mô tả" {...field} />
+                    <Textarea placeholder="Nhập mô tả" {...field} />
                   </FormControl>
                   <FormDescription>
                     Mô tả ngắn gọn về gói dịch vụ này.

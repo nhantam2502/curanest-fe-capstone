@@ -27,13 +27,20 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ServicePackage } from "@/types/servicesPack"; // Import ServicePackage interface
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ServicePackage } from "@/types/servicesPack";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Edit } from "lucide-react";
 
 interface EditServicePackageProps {
   serviceId: string;
-  servicePackage: ServicePackage; // Prop to receive existing service package data
-  onPackageUpdated?: () => void; // Optional callback after update
+  servicePackage: ServicePackage;
+  onPackageUpdated?: () => void;
 }
 
 const formSchema = z.object({
@@ -44,7 +51,7 @@ const formSchema = z.object({
   "combo-days": z.coerce.number().default(0),
   discount: z.coerce.number().default(0),
   "time-interval": z.coerce.number().default(0),
-  status: z.string().default("available"), // Assuming status is editable, add to schema
+  status: z.string().default("available"),
 });
 
 const EditServicePackage: React.FC<EditServicePackageProps> = ({
@@ -55,12 +62,12 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: servicePackage.name, // Pre-fill with existing data
+      name: servicePackage.name,
       description: servicePackage.description || "",
       "combo-days": servicePackage["combo-days"],
       discount: servicePackage.discount,
       "time-interval": servicePackage["time-interval"],
-      status: servicePackage.status || "available", // Pre-fill status
+      status: servicePackage.status || "available",
     },
   });
 
@@ -77,13 +84,13 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
 
       const response = await servicePackageApiRequest.updateServicePackage(
         serviceId,
-        servicePackage.id, 
+        servicePackage.id,
         packageData
       );
 
       if (response.status === 200 && response.payload) {
         form.reset();
-        onPackageUpdated?.(); 
+        onPackageUpdated?.();
         setOpen(false);
       } else {
         console.error("Service package update failed:", response);
@@ -99,27 +106,26 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="secondary" size="sm">
-          Sửa
+          <Edit className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent className="max-w-3xl">
+      <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>Chỉnh sửa gói dịch vụ</AlertDialogTitle>{" "}
-          {/* Modal title changed to "Chỉnh sửa" */}
+          <AlertDialogTitle>Chỉnh sửa gói dịch vụ</AlertDialogTitle>
           <AlertDialogDescription>
-            Cập nhật thông tin gói dịch vụ.
+            Cập nhật thông tin chi tiết cho gói dịch vụ này.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 grid grid-cols-2 sm:grid-cols-1 gap-4"
+            className="grid gap-4 py-4"
           >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem>
                   <FormLabel>Tên gói dịch vụ</FormLabel>
                   <FormControl>
                     <Input placeholder="Nhập tên gói dịch vụ" {...field} />
@@ -132,7 +138,7 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem>
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Input
@@ -141,69 +147,66 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
                     />
                   </FormControl>
                   <FormDescription>
-                    Mô tả ngắn gọn về gói dịch vụ này.
+                    Mô tả ngắn gọn về gói dịch vụ.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="combo-days"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Số ngày combo</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Số ngày mà gói dịch vụ này có hiệu lực (mặc định 0).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="combo-days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Số ngày combo</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormDescription>Ngày có hiệu lực.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="discount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Giảm giá (%)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Mức giảm giá cho gói dịch vụ (%) (mặc định 0).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="discount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Giảm giá (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormDescription>Mức giảm giá.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="time-interval"
-              render={({ field }) => (
-                <FormItem className="sm:col-span-2">
-                  <FormLabel>Thời gian giữa các lần sử dụng (phút)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Khoảng thời gian tối thiểu giữa các lần sử dụng dịch vụ
-                    trong gói (phút) (mặc định 0).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="time-interval"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Thời gian giữa các lần (phút)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="0" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Khoảng thời gian tối thiểu giữa các lần sử dụng.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
               name="status"
               render={({ field }) => (
-                <FormItem className="sm:col-span-2">
+                <FormItem>
                   <FormLabel>Trạng thái</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -211,21 +214,25 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Chọn trạng thái"/>
+                        <SelectValue placeholder="Chọn trạng thái" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
-                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                      <SelectItem value="available">Khả dụng</SelectItem>
+                      <SelectItem value="unavailable">
+                        Không khả dụng
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormDescription>Trạng thái gói dịch vụ.</FormDescription>
+                  <FormDescription>
+                    Trạng thái hiện tại của gói dịch vụ.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <AlertDialogFooter className="col-span-2">
+            <AlertDialogFooter>
               <AlertDialogCancel>Hủy</AlertDialogCancel>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Đang cập nhật..." : "Cập nhật"}

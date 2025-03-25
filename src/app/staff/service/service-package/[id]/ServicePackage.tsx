@@ -1,15 +1,21 @@
-// ServicePackageComponent.tsx (updated)
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ServicePackage } from "@/types/servicesPack";
 import servicePackageApiRequest from "@/apiRequest/servicePackage/apiServicePackage";
 import CreateServicePackage from "./CreateServicePackage";
 import { Button } from "@/components/ui/button";
-import EditServicePackage from "./EditServicePackage"; // Import EditServicePackage
+import EditServicePackage from "./EditServicePackage"; 
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ServicePackageComponentProps {
   onPackageClick: (packageId: string) => void;
@@ -27,7 +33,6 @@ function ServicePackageComponent({
   const serviceId = params.id;
   const [servicePackages, setServicePackages] = useState<ServicePackage[]>([]);
   const [loadingPackages, setLoadingPackages] = useState(false);
-  const [editingPackage, setEditingPackage] = useState<ServicePackage | null>(null); // State for editing package
 
   const fetchPackages = useCallback(async () => {
     if (!serviceId) {
@@ -60,82 +65,116 @@ function ServicePackageComponent({
     fetchPackages();
   }, [fetchPackages, refresh]);
 
-  const handleEditClick = (packageData: ServicePackage) => {
-    setEditingPackage(packageData); // Set the package to be edited
-  };
-
-  const handleCancelEdit = () => {
-    setEditingPackage(null); // Clear editing package state
-  };
-
   const handlePackageUpdated = () => {
-    setEditingPackage(null); // Clear editing package state
-    fetchPackages(); // Refresh package list
+    fetchPackages(); 
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "available":
+        return "bg-green-500 text-white";
+      case "unavailable":
+        return "bg-red-500 text-white";
+      case "pending":
+        return "bg-yellow-500 text-white";
+      default:
+        return "bg-gray-500 text-white";
+    }
+  };
+
+  if (loadingPackages) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle><Skeleton className="h-6 w-32" /></CardTitle>
+            <CardDescription><Skeleton className="h-4 w-64" /></CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle><Skeleton className="h-6 w-32" /></CardTitle>
+            <CardDescription><Skeleton className="h-4 w-64" /></CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {loadingPackages && (
-        <div className="flex items-center justify-center h-full">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-      <h2 className="text-xl font-bold mb-4">Gói dịch vụ</h2>
-      {serviceId && (
-        <div className="my-4">
-          <CreateServicePackage
-            serviceId={serviceId}
-            onPackageCreated={onPackageCreated}
-          />
-        </div>
-      )}
-      {servicePackages.length > 0 ? (
-        servicePackages.map((servicePackage) => (
-          <Card
-            key={servicePackage.id}
-            className="h-min w-full cursor-pointer hover:shadow-md transition-shadow duration-150 rounded-none"
-            onClick={() => onPackageClick(servicePackage.id)}
-          >
-            <CardContent className="p-4 space-y-2 flex justify-between items-center">
-              <div className="text-left">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-500">Tên gói</h4>
-                  <p className="text-gray-700 font-bold">{servicePackage.name}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-500">Mô tả</h4>
-                  <p className="text-gray-700">{servicePackage.description}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-500">
-                    Trạng thái
-                  </h4>
-                  <Badge variant="outline" className="text-sm">
-                    {servicePackage.status}
-                  </Badge>
-                </div>
-              </div>
-              <EditServicePackage
-                serviceId={serviceId}
-                servicePackage={servicePackage}
-                onPackageUpdated={handlePackageUpdated} // Pass refresh callback
-              />
-            </CardContent>
-          </Card>
-        ))
-      ) : (
-        <p className="text-gray-500">Hiện chưa có gói dịch vụ.</p>
-      )}
-
-      {/* Render EditServicePackage Modal */}
-      {editingPackage && (
-        <EditServicePackage
-          serviceId={serviceId}
-          servicePackage={editingPackage}
-          onPackageUpdated={handlePackageUpdated}
-        />
-      )}
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="flex justify-between">
+          <CardTitle className="text-xl">Gói dịch vụ</CardTitle>
+          {serviceId && (
+            <CreateServicePackage
+              serviceId={serviceId}
+              onPackageCreated={onPackageCreated}
+            />
+          )}
+        </CardHeader>
+        <CardContent>
+          {servicePackages.length > 0 ? (
+            <div className="grid gap-4">
+              {servicePackages.map((servicePackage) => (
+                <Card
+                  key={servicePackage.id}
+                  className="border-2 hover:shadow-md transition-shadow duration-150 cursor-pointer"
+                  onClick={() => onPackageClick(servicePackage.id)}
+                >
+                  <CardContent className="p-6 space-y-4 flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">
+                          Tên gói
+                        </h4>
+                        <p className="text-lg font-bold">{servicePackage.name}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">
+                          Mô tả
+                        </h4>
+                        <p className="text-sm text-gray-700">{servicePackage.description}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">
+                          Trạng thái
+                        </h4>
+                        <Badge className={getStatusColor(servicePackage.status)}>
+                          {servicePackage.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-2 items-end">
+                      <EditServicePackage
+                        serviceId={serviceId}
+                        servicePackage={servicePackage}
+                        onPackageUpdated={handlePackageUpdated}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Hiện chưa có gói dịch vụ.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

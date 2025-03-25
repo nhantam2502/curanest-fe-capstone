@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Edit } from "lucide-react";
 
 interface EditServiceTaskProps {
   svcpackageId: string;
@@ -123,7 +124,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button variant="secondary" size="sm">
-          Sửa
+          <Edit className="w-4 h-4" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
@@ -138,13 +139,13 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 grid grid-cols-2 sm:grid-cols-1 gap-6"
+            className="space-y-6 grid grid-cols-6 sm:grid-cols-1 gap-6"
           >
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-6">
                   <FormLabel>
                     Tên Task<span className="text-red-500">*</span>
                   </FormLabel>
@@ -159,7 +160,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="col-span-2">
+                <FormItem className="col-span-6">
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Textarea
@@ -177,9 +178,25 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
             />
             <FormField
               control={form.control}
+              name="cost"
+              render={({ field }) => (
+                <FormItem className="col-span-6">
+                  <FormLabel>Chi phí</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Chi phí cơ bản cho task này (mặc định 0).
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="task-order"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Thứ tự Task</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -195,7 +212,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
               control={form.control}
               name="est-duration"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-5">
                   <FormLabel>Thời lượng ước tính (phút)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -207,27 +224,12 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="cost"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chi phí</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Chi phí cơ bản cho task này (mặc định 0).
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
             <FormField
               control={form.control}
               name="additional-cost"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-6">
                   <FormLabel>Chi phí phát sinh</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -243,10 +245,10 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
               control={form.control}
               name="additional-cost-desc"
               render={({ field }) => (
-                <FormItem className="col-span-2 sm:col-span-1">
+                <FormItem className="col-span-6">
                   <FormLabel>Mô tả chi phí phát sinh</FormLabel>
                   <FormControl>
-                    <Input
+                    <Textarea
                       placeholder="Nhập mô tả chi phí phát sinh (không bắt buộc)"
                       {...field}
                     />
@@ -262,7 +264,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
               control={form.control}
               name="price-of-step"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-2">
                   <FormLabel>Giá theo bước</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -276,29 +278,9 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
             />
             <FormField
               control={form.control}
-              name="staff-advice"
-              render={({ field }) => (
-                <FormItem className="col-span-2 sm:col-span-1">
-                  <FormLabel>Lời khuyên cho nhân viên</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Nhập lời khuyên cho nhân viên (không bắt buộc)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Lời khuyên hoặc hướng dẫn cho nhân viên thực hiện task.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="unit"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-4">
                   <FormLabel>Đơn vị tính</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -321,12 +303,32 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="staff-advice"
+              render={({ field }) => (
+                <FormItem className="col-span-6">
+                  <FormLabel>Lời khuyên cho nhân viên</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Nhập lời khuyên cho nhân viên (không bắt buộc)"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Lời khuyên hoặc hướng dẫn cho nhân viên thực hiện task.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}
               name="status"
               render={({ field }) => (
-                <FormItem className="sm:col-span-2">
+                <FormItem className="col-span-6">
                   <FormLabel>Trạng thái</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -348,7 +350,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
               )}
             />
 
-            <AlertDialogFooter className="col-span-2">
+            <AlertDialogFooter className="col-span-6">
               <AlertDialogCancel>Hủy</AlertDialogCancel>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Đang cập nhật..." : "Cập nhật Task dịch vụ"}

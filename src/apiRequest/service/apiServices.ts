@@ -19,6 +19,13 @@ const serviceApiRequest = {
       }`
     ),
 
+    getListServiceOfStaff: (serviceName: string | null) =>
+      http.get<ServiceListResType>(
+        `/appointment/api/v1/staff/services${
+          serviceName ? `?service-name=${serviceName}` : ""
+        }`
+      ),
+
   createService: (cateId: string, body: CreateServiceCate) =>
     http.post<Res>(`/appointment/api/v1/categories/${cateId}/services`, body),
 
