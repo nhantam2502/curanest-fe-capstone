@@ -449,7 +449,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         );
 
       case 5:
-      case 5:
         if (nurseSelectionMethod === "manual") {
           const handleNurseSelect = (nurseId: string) => {
             console.log(`Selected nurse ID: ${nurseId}`);
