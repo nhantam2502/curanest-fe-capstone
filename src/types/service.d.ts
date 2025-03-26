@@ -32,6 +32,9 @@ export interface Services {
   major_id: number;
   duration: string;
   fee: number;
+  // sẽ xoá sau
+  time?: number;
+  price?: number;
 }
 // --------------------------------------------------
 

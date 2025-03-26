@@ -2,7 +2,7 @@
 import { Calendar, Check, Clock, Info } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { calculateAdvancedPricing, cn } from "@/lib/utils";
 import {
   PackageServiceItem,
   ServicePackageType,
@@ -11,7 +11,7 @@ import {
 import TimeSelection, {
   TimeSlot,
 } from "@/app/components/Relatives/TimeSelection";
-import { Nurse } from "@/types/nurse";
+import { Nurse, NurseItemType } from "@/types/nurse";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,6 +70,10 @@ const BookingNurse = () => {
   >([]);
 
   const [selectedTime, setSelectedTime] = useState<SelectedTime | null>(null);
+  const [selectedNurse, setSelectedNurse] = useState<NurseItemType | null>(
+    null
+  );
+
   const [serviceQuantities, setServiceQuantities] = useState<{
     [key: string]: number;
   }>({});
@@ -89,8 +93,7 @@ const BookingNurse = () => {
     { id: 5, title: "Xác nhận & thanh toán" },
   ];
 
-  const selectedNurse: Nurse | null =
-    dummyNursing.find((nurse: Nurse) => String(nurse.id) === params.id) ?? null;
+  
   //  Compare as strings
   // console.log("selectedNurse: ", selectedNurse);
 
@@ -328,7 +331,8 @@ const BookingNurse = () => {
       case 3:
         return (
           <ServiceAdjustment
-            selectedServices={selectedServicesTask}
+          calculateAdvancedPricing={calculateAdvancedPricing}
+          selectedServiceTask={selectedServicesTask}
             serviceQuantities={serviceQuantities}
             updateServiceQuantity={updateServiceQuantity}
             removeService={removeService}
@@ -498,7 +502,7 @@ const BookingNurse = () => {
                         Điều dưỡng đã chọn
                       </h3>
                       <div className="text-lg text-gray-600">
-                        {selectedNurse.name}
+                        {selectedNurse["nurse-name"]}
                       </div>
                     </div>
                   )}
