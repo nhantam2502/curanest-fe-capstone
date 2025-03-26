@@ -147,10 +147,10 @@ export default function NurseTable({ Nurses }: NurseTableProps) {
                   >
                     <Trash className="h-4 w-4 text-red-500" />
                   </Button> */}
-                  <Switch  onClick={(e) => {
+                  {/* <Switch  onClick={(e) => {
                       e.stopPropagation();
                       // handleDeleteNurse(nurse.id);
-                    }} />
+                    }} /> */}
                 </div>
               </TableCell>
             </TableRow>

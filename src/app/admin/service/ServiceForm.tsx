@@ -28,14 +28,12 @@ import { Category, CategoryFilter } from "@/types/category";
 interface ServiceFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateService: () => void;
   onCancel: () => void;
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
   open,
   onOpenChange,
-  onCreateService,
 }) => {
   const [newService, setNewService] = useState<CreateServiceCate>({
     name: "",
@@ -116,7 +114,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
           title: "Thành công",
           description: "Danh mục dịch vụ đã được tạo thành công.",
         });
-        onCreateService();
         console.log(response);
         setNewService({
           name: "",

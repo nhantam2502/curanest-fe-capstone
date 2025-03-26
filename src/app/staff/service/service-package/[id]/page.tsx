@@ -40,32 +40,39 @@ function MainPage() {
   const serviceName = searchParams.get("name");
 
   return (
-    <div className="flex h-screen">
-      <div className="w-1/2 p-3 border-r border-gray-200">
-      <h1 className="text-xl font-semibold mb-4">Quản lý cho dịch vụ: {serviceName}</h1>
-      <Button variant="secondary" size="sm" onClick={handleBack} className="mb-4">
-          Quay lại
-        </Button>
-        
-        <ServicePackageComponent
-          serviceId={selectedServiceId}
-          onPackageClick={handleServicePackageClick}
-          refresh={refreshPackages}
-          onPackageCreated={handlePackageCreated} // Pass the callback here
-        />
-      </div>
+    <div>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={handleBack}
+        className="mb-4"
+      >
+        Quay lại
+      </Button>
+      <h1 className="text-xl font-semibold mb-4">
+        Quản lý cho dịch vụ: {serviceName}
+      </h1>
+      <div className="flex">
+        <div className="w-1/2 p-3 border-r border-gray-200">
+          <ServicePackageComponent
+            serviceId={selectedServiceId}
+            onPackageClick={handleServicePackageClick}
+            refresh={refreshPackages}
+            onPackageCreated={handlePackageCreated}
+          />
+        </div>
 
-      <div className="w-1/2 p-3 mt-12">
-
-        {selectedServicePackageId && (
-          <>
-            <ServiceTaskComponent
-              servicePackageId={selectedServicePackageId}
-              refresh={refreshTasks}
-              onTaskCreated={handleTaskCreated} // Pass the callback here
-            />
-          </>
-        )}
+        <div className="w-1/2 p-3">
+          {selectedServicePackageId && (
+            <>
+              <ServiceTaskComponent
+                servicePackageId={selectedServicePackageId}
+                refresh={refreshTasks}
+                onTaskCreated={handleTaskCreated}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

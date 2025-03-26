@@ -1,114 +1,132 @@
 "use client";
 
-import categoryApiRequest from "@/apiRequest/category/apiCategory";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
 import React, { useEffect, useState } from "react";
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 function Page() {
   interface ServiceCategory {
     id: string;
     name: string;
   }
+
   interface Service {
-    id: string; // Changed to string to match payload id type
+    id: string;
     name: string;
     category_id: string;
-    description?: string; // Optional description
-    est_duration?: string; // Optional duration
-    status?: string; // Optional status
+    description?: string;
+    est_duration?: string;
+    status?: string;
   }
 
-  interface ServiceChipProps {
-    service: Service;
-    onClick: () => void; // Add onClick prop
-  }
-  const ServiceChip: React.FC<ServiceChipProps> = ({ service, onClick }) => {
-    return (
-      <button
-        type="button"
-        className="px-3 py-1 rounded-full text-sm transition-colors border bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
-        onClick={onClick} // Attach onClick handler
-      >
-        {service.name}
-      </button>
-    );
-  };
-
-  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
-  const [categoriesWithServices, setCategoriesWithServices] = useState<
+  const [staffServices, setStaffServices] = useState<
     { categoryInfo: ServiceCategory; listServices: Service[] }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter(); // Initialize useRouter
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchCategoriesAndServices = async () => {
+    const fetchServices = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await serviceApiRequest.getListService(null);
+        const response = await serviceApiRequest.getListServiceOfStaff(null);
+
         if (response.payload && response.payload.data) {
-          const processedData = response.payload.data.map((item: any) => ({
-            categoryInfo: {
-              id: item["category-info"].id,
-              name: item["category-info"].name,
+          const data = response.payload.data;
+          const processedData = [
+            {
+              categoryInfo: {
+                id: data["category-info"].id,
+                name: data["category-info"].name,
+              },
+              listServices: (data["list-services"] || []).map(
+                (serviceItem: any) => ({
+                  id: serviceItem.id,
+                  category_id: serviceItem["category-id"],
+                  name: serviceItem.name,
+                  description: serviceItem.description,
+                  est_duration: serviceItem["est-duration"],
+                  status: serviceItem.status,
+                })
+              ),
             },
-            listServices: (item["list-services"] as any[]).map((serviceItem) => ({ // Ensure type safety
-              id: serviceItem.id,
-              category_id: serviceItem["category-id"],
-              name: serviceItem.name,
-              description: serviceItem.description,
-              est_duration: serviceItem["est-duration"],
-              status: serviceItem.status,
-            })),
-          }));
-          setCategoriesWithServices(processedData);
+          ];
+
+          setStaffServices(processedData);
         } else {
           setError("Failed to load service categories and services.");
         }
       } catch (err) {
         console.error("Failed to fetch categories and services:", err);
-        setError(
-          "Failed to load service categories and services. Please try again later."
-        );
+        setError("Failed to load service categories and services. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCategoriesAndServices();
+    fetchServices();
   }, []);
 
   if (loading) {
-    return <div>Loading categories and services...</div>;
+    return (
+      <div className="grid gap-4">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-lg" />
+        ))}
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="text-red-500">Error: {error}</div>;
   }
 
   const handleServiceClick = (serviceId: string, serviceName: string) => {
-    const encodedName = encodeURIComponent(serviceName); // Encode name for URL safety
+    const encodedName = encodeURIComponent(serviceName);
     router.push(`/staff/service/service-package/${serviceId}?name=${encodedName}`);
   };
-  
 
   return (
     <div>
       <h1 className="font-bold text-2xl mb-4">Chọn 1 dịch vụ để tiếp tục</h1>
-      {categoriesWithServices.map((categoryItem, index) => (
-        <div key={index} className="mb-4">
-          <h2 className="text-xl font-bold mb-2">{categoryItem.categoryInfo.name}</h2>
-          <div className="flex flex-wrap gap-2">
+      {staffServices.map((categoryItem, index) => (
+        <div key={index} className="mb-6">
+          <h2 className="text-xl font-semibold mb-3">{categoryItem.categoryInfo.name}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {categoryItem.listServices.length > 0 ? (
               categoryItem.listServices.map((service) => (
-                <ServiceChip
+                <motion.div
                   key={service.id}
-                  service={service}
-                  onClick={() => handleServiceClick(service.id,service.name)}
-                />
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleServiceClick(service.id, service.name)}
+                  className="cursor-pointer"
+                >
+                  <Card className="p-2 shadow-lg hover:shadow-xl transition-shadow">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
+                      <Badge
+                        className={
+                          service.status === "available"
+                            ? "bg-green-300 text-white"
+                            : "bg-gray-400 text-white"
+                        }
+                      >
+                        {service.status === "available" ? "Available" : "Unavailable"}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 mb-2">{service.description}</p>
+                      <p className="text-xs text-gray-500">⏳ {service.est_duration || "N/A"}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))
             ) : (
               <p className="text-gray-500 text-sm">No services available in this category.</p>

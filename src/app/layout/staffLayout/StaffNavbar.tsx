@@ -7,12 +7,11 @@ import {
   User,
   Menu,
   X,
-  Briefcase,
   Calendar,
   Hand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -73,11 +72,16 @@ interface StaffNavbarProps {
   onToggleSidebar: (collapsed: boolean) => void;
 }
 
-const StaffNavbar: React.FC<StaffNavbarProps> = ({
-  isCollapsed,
-}) => {
+const StaffNavbar: React.FC<StaffNavbarProps> = ({ isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  if (!session?.user) {
+    return null;
+  }
+
+  const { name, email, image: avatar } = session.user;
 
   const toggleMobileMenu = () => {
     setIsOpen(!isOpen);
@@ -124,10 +128,15 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({
               >
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src="/placeholder.png" alt="User Name" />
-                    <AvatarFallback>UN</AvatarFallback>
+                    <AvatarImage src={avatar || "/placeholder.png"} alt={name || "User"} />
+                    <AvatarFallback>{name ? name.charAt(0).toUpperCase() : "U"}</AvatarFallback>
                   </Avatar>
-                  {!isCollapsed && <span>Current User</span>}
+                  {!isCollapsed && (
+                    <div className="flex flex-col text-left">
+                      <span className="font-medium">{name}</span>
+                      <span className="text-sm text-gray-500">{email}</span>
+                    </div>
+                  )}
                 </div>
               </Button>
             </DropdownMenuTrigger>

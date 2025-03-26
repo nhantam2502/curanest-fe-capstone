@@ -2,12 +2,21 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ServiceTask as ServiceTaskType } from "@/types/servicesTask";
 import servicePackageApiRequest from "@/apiRequest/servicePackage/apiServicePackage";
 import CreateServiceTask from "./CreateServiceTask";
-import EditServiceTask from "./EditServiceTask"; // Ensure EditServiceTask is imported
+import EditServiceTask from "./EditServiceTask";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Edit } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface ServiceTaskComponentProps {
   servicePackageId: string | null;
@@ -22,7 +31,7 @@ function ServiceTaskComponent({
 }: ServiceTaskComponentProps) {
   const [serviceTasks, setServiceTasks] = useState<ServiceTaskType[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
-  const [editingTask, setEditingTask] = useState<ServiceTaskType | null>(null); // State for editing task
+  const [editingTask, setEditingTask] = useState<ServiceTaskType | null>(null);
 
   const fetchTasks = useCallback(async () => {
     if (!servicePackageId) {
@@ -51,82 +60,132 @@ function ServiceTaskComponent({
     } finally {
       setLoadingTasks(false);
     }
-  }, [servicePackageId, refresh]); // refresh dependency added here
+  }, [servicePackageId, refresh]);
 
   useEffect(() => {
     fetchTasks();
   }, [fetchTasks]);
 
   const handleTaskUpdated = useCallback(() => {
-    setEditingTask(null); // Close edit modal
-    fetchTasks(); // Refresh tasks list
+    setEditingTask(null);
+    fetchTasks();
   }, [fetchTasks]);
 
-  const handleEditClick = (task: ServiceTaskType) => {
-    setEditingTask(task); // Open edit modal for this task
+  const getTaskStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "available":
+        return "bg-green-500 text-white";
+      default:
+        return "bg-gray-500 text-black";
+    }
   };
 
-  const handleCancelEdit = () => {
-    setEditingTask(null); // Close edit modal
-  };
-
+  if (loadingTasks) {
+    return (
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <Skeleton className="h-6 w-32" />
+            </CardTitle>
+            <CardDescription>
+              <Skeleton className="h-4 w-64" />
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <Skeleton className="h-6 w-32" />
+            </CardTitle>
+            <CardDescription>
+              <Skeleton className="h-4 w-64" />
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {loadingTasks && (
-        <div className="flex items-center justify-center h-full">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-      <h2 className="text-xl font-semibold mb-4">Công việc gói dịch vụ</h2>
-      {servicePackageId && (
-        <div className="my-4">
-          <CreateServiceTask
-            svcpackageId={servicePackageId}
-            onTaskCreated={onTaskCreated}
-          />
-        </div>
-      )}
-      {serviceTasks.length > 0 ? (
-        serviceTasks.map((serviceTask) => (
-          <Card key={serviceTask.id} className="h-min w-full rounded-none">
-            <CardContent className="p-4 space-y-2 flex justify-between items-center"> {/* Flex for edit button */}
-              <div className="text-left">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-500">
-                    Tên công việc
-                  </h4>
-                  <p className="text-gray-700 font-bold">{serviceTask.name}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-500">Mô tả</h4>
-                  <p className="text-gray-700">{serviceTask.description}</p>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-500">
-                    Trạng thái
-                  </h4>
-                  <Badge variant="outline" className="text-sm">
-                    {serviceTask.status}
-                  </Badge>
-                </div>
-              </div>
-              {/* Edit button integration */}
-              {servicePackageId && (
-                <EditServiceTask
-                  serviceTask={serviceTask}
-                  svcpackageId={servicePackageId}
-                  onTaskUpdated={handleTaskUpdated}
-                />
-              )}
-            </CardContent>
-          </Card>
-        ))
-      ) : (
-        <p className="text-gray-500">Chưa có task nào</p>
-      )}
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="flex justify-between">
+          <CardTitle className="text-xl">Công việc gói dịch vụ</CardTitle>
+          {servicePackageId && (
+            <CreateServiceTask
+              svcpackageId={servicePackageId}
+              onTaskCreated={onTaskCreated}
+            />
+          )}
+        </CardHeader>
+        <CardContent>
+          {serviceTasks.length > 0 ? (
+            <div className="grid gap-4">
+              {serviceTasks.map((serviceTask) => (
+                <Card
+                  key={serviceTask.id}
+                  className="border-2 hover:shadow-md transition-shadow duration-150"
+                >
+                  <CardContent className="p-6 space-y-4 flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">
+                          Tên công việc
+                        </h4>
+                        <p className="text-lg font-bold">{serviceTask.name}</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">
+                          Mô tả
+                        </h4>
+                        <p className="text-sm text-gray-700">
+                          {serviceTask.description}
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-muted-foreground">
+                          Trạng thái
+                        </h4>
+                        <Badge
+                          className={getTaskStatusColor(serviceTask.status)}
+                        >
+                          {serviceTask.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    {servicePackageId && (
+                      <EditServiceTask
+                        serviceTask={serviceTask}
+                        svcpackageId={servicePackageId}
+                        onTaskUpdated={handleTaskUpdated}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Chưa có task nào</p>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Conditionally render EditServiceTask Modal */}
+      {/* Modal for Editing Task */}
       {editingTask && servicePackageId && (
         <EditServiceTask
           svcpackageId={servicePackageId}

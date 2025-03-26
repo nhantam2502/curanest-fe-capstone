@@ -47,7 +47,6 @@ export default function UserTable({ users }: UserTableProps) {
             <TableHead className="px-4 py-2">Email</TableHead>
             <TableHead className="px-4 py-2">SĐT</TableHead>
             <TableHead className="px-4 py-2">Avatar</TableHead>
-            <TableHead className="px-4 py-2">Trạng thái</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -64,9 +63,6 @@ export default function UserTable({ users }: UserTableProps) {
                   alt="Avatar"
                   className="rounded-full object-cover border"
                 />
-              </TableCell>
-              <TableCell className="py-4 px-4 space-x-2 flex items-center">
-                <Switch />
               </TableCell>
             </TableRow>
           ))}

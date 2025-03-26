@@ -9,12 +9,10 @@ import {
   User,
   Menu,
   X,
-  // CircleDollarSign,
-  BookUser,
   BriefcaseBusiness,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -40,8 +38,6 @@ const menuItems: MenuItem[] = [
   { title: "Điều dưỡng", link: "/nurse", icon: <User /> },
   { title: "Dịch vụ", link: "/service", icon: <BriefcaseBusiness /> },
   { title: "Bài đăng", link: "/post", icon: <BookA /> },
-  // { title: "Lương", link: "/salary", icon: <CircleDollarSign /> },
-  { title: "Tuyển dụng", link: "/recruit", icon: <BookUser /> },
 ];
 
 const DesktopMenuItem: React.FC<{ item: MenuItem; isCollapsed: boolean }> = ({
@@ -56,9 +52,7 @@ const DesktopMenuItem: React.FC<{ item: MenuItem; isCollapsed: boolean }> = ({
       href={`/admin${item.link}`}
       className={`flex items-center p-3 my-2 rounded-lg transition-all duration-200 ease-in-out ${
         isCollapsed ? "justify-center" : ""
-      } ${
-        isActive ? `${ACTIVE_BG_COLOR} ${PRIMARY_COLOR}` : "hover:bg-sky-50"
-      }`}
+      } ${isActive ? `${ACTIVE_BG_COLOR} ${PRIMARY_COLOR}` : "hover:bg-sky-50"}`}
       aria-label={item.title}
     >
       <span className={`${ICON_COLOR} ${isCollapsed ? "" : "mr-3"}`}>
@@ -71,14 +65,19 @@ const DesktopMenuItem: React.FC<{ item: MenuItem; isCollapsed: boolean }> = ({
 
 interface AdminNavbarProps {
   isCollapsed: boolean;
-  onToggleSidebar: (collapsed: boolean) => void;
+  onToggleSidebar?: (collapsed: boolean) => void;
 }
 
-const AdminNavbar: React.FC<AdminNavbarProps> = ({
-  isCollapsed,
-}) => {
+const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
+
+  if (!session?.user) {
+    return null;
+  }
+
+  const { name, email, image: avatar } = session.user;
 
   const toggleMobileMenu = () => {
     setIsOpen(!isOpen);
@@ -95,11 +94,14 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
         <div className="mb-8 flex items-center justify-center">
           <Link href="/" className="flex flex-col items-center">
             {isCollapsed ? (
-              <Image src="/logo.png" alt="Curanest Logo" width={40} height={40} />
+              <Image
+                src="/logo.png"
+                alt="Curanest Logo"
+                width={40}
+                height={40}
+              />
             ) : (
-              <>
-                <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>CURANEST</p>
-              </>
+              <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>CURANEST</p>
             )}
           </Link>
         </div>
@@ -123,11 +125,21 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({
                 className="w-full flex items-center justify-between p-2"
               >
                 <div className="flex items-center space-x-4">
-                <Avatar className="w-8 h-8">
-                    <AvatarImage src="/placeholder.png" alt="User Name" />
-                    <AvatarFallback>UN</AvatarFallback>
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage
+                      src={avatar || "/placeholder.png"}
+                      alt={name || "User"}
+                    />
+                    <AvatarFallback>
+                      {name ? name.charAt(0).toUpperCase() : "U"}
+                    </AvatarFallback>
                   </Avatar>
-                  {!isCollapsed && <span>Current User</span>}
+                  {!isCollapsed && (
+                    <div className="flex flex-col text-left">
+                      <span className="font-medium">{name}</span>
+                      <span className="text-sm text-gray-500">{email}</span>
+                    </div>
+                  )}
                 </div>
               </Button>
             </DropdownMenuTrigger>
