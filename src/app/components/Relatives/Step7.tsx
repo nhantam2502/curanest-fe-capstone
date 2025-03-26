@@ -3,6 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock } from "lucide-react";
+import { NurseItemType } from "@/types/nurse";
 
 interface OrderConfirmationProps {
   nurseSelectionMethod: "manual" | "auto";
@@ -17,11 +18,8 @@ interface OrderConfirmationProps {
   }>;
   serviceQuantities: { [key: string]: number };
   formatCurrency: (value: number) => string;
-  selectedNurse: {
-    id: number;
-    name: string;
-    specialization: string;
-  } | null;
+  selectedNurse: NurseItemType | null;
+
   selectedTime: {
     timeSlot: { display: string; value: string };
     date: string;
@@ -83,7 +81,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
             <h3 className="text-xl font-be-vietnam-pro font-semibold">
               Điều dưỡng đã chọn
             </h3>
-            <div className="text-lg text-gray-600">{selectedNurse.name}</div>
+            <div className="text-lg text-gray-600">{selectedNurse["nurse-name"]}</div>
           </div>
         )}
         {/* Hiển thị thời gian đã chọn */}

@@ -64,7 +64,7 @@ type PackageServiceItem = {
   description: string;
   "service-id": string;
   "time-interval": number;
-  "combo-days"?: string;
+  "combo-days"?: number;
   discount: number;
   // Thêm field giả định sau này sẽ xoá
   price?: number;
@@ -100,7 +100,7 @@ export type ServicePackageType = {
   "service-id": string;
   name: string;
   description: string;
-  "combo-days": string;
+  "combo-days": number;
   discount: string;
   "time-interval": number;
   status: string;

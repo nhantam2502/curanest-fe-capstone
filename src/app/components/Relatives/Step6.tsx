@@ -1,5 +1,6 @@
 import React from "react";
 import { OrderConfirmationComponent } from "./Step7";
+import { NurseItemType } from "@/types/nurse";
 
 interface SelectedTime {
   timeSlot: { display: string; value: string };
@@ -22,11 +23,8 @@ interface Step6Props {
   calculateTotalTime: () => number;
   setSelectedTime: (time: SelectedTime) => void;
 
-  selectedNurse: {
-    id: number;
-    name: string;
-    specialization: string;
-  } | null;
+  selectedNurse: NurseItemType | null;
+
   selectedTime: {
     timeSlot: { display: string; value: string };
     date: string;
