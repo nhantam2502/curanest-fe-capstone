@@ -98,7 +98,7 @@ const ServicesPage = () => {
           );
 
         setServices(transformedServices);
-        console.log("transformedServices: ", transformedServices);
+        // console.log("transformedServices: ", transformedServices);
         setCurrentPage(1);
       } catch (error) {
         console.error("Failed to fetch filtered services:", error);

@@ -1,15 +1,14 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Service } from "@/types/service";
-import exp from "constants";
+import { Services } from "@/types/service";
 import { Check } from "lucide-react";
 
 type ServiceCardProps = {
     packageName: string;
-    services: Service[];
+    services: Services[];
     selectedMajor: string;
     handleMajorChange: (packageName: string) => void;
-    setSelectedServices: (services: Service[]) => void;
+    setSelectedServices: (services: Services[]) => void;
   };
 
 const ServiceCard: React.FC<ServiceCardProps> = ({
@@ -19,19 +18,20 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   handleMajorChange,
   setSelectedServices,
 }) => {
-  const calculatePackagePrice = (services: Service[]): number => {
+  const calculatePackagePrice = (services: Services[]): number => {
     return services.reduce(
-      (total: number, service: Service) => total + service.price,
+      (total: number, service: Services) => total + (service.price ?? 0),
       0
     );
   };
-
-  const calculatePackageTotalTime = (services: Service[]): number => {
+  
+  const calculatePackageTotalTime = (services: Services[]): number => {
     return services.reduce(
-      (total: number, service: Service) => total + parseInt(service.time),
+      (total: number, service: Services) => total + parseInt(String(service.time) || "0", 10),
       0
     );
-  };
+  }; 
+  
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("vi-VN", {

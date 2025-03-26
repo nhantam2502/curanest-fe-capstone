@@ -3,37 +3,35 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, Clock } from "lucide-react";
+import { NurseItemType } from "@/types/nurse";
 
 interface OrderConfirmationProps {
   nurseSelectionMethod: "manual" | "auto";
 
-  selectedServices: Array<{
+  selectedServicesTask: Array<{
     name: string;
-    price: number;
-    time: string;
+    "est-duration": number;
+    cost: number;
     description?: string;
     validityPeriod?: number;
     usageTerms?: string;
   }>;
   serviceQuantities: { [key: string]: number };
   formatCurrency: (value: number) => string;
-  selectedNurse: {
-    id: number;
-    name: string;
-    specialization: string;
-  } | null;
+  selectedNurse: NurseItemType | null;
+
   selectedTime: {
     timeSlot: { display: string; value: string };
     date: string;
   } | null;
-  calculateTotalPrice: () => number; 
+  calculateTotalPrice: () => number;
   setCurrentStep: (step: number) => void;
   toast: any;
   router: any;
 }
 
 export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
-  selectedServices,
+  selectedServicesTask,
   serviceQuantities,
   formatCurrency,
   selectedNurse,
@@ -42,7 +40,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
   nurseSelectionMethod,
   setCurrentStep,
   toast,
-  router
+  router,
 }) => {
   return (
     <div className="space-y-6 text-lg">
@@ -50,8 +48,8 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
         <h3 className="text-3xl font-semibold mb-4">Dịch vụ đã chọn</h3>
         {/* Hiển thị dịch vụ đã chọn */}
         <div className="space-y-2">
-          {selectedServices.length > 0 ? (
-            selectedServices.map((service, index) => (
+          {selectedServicesTask.length > 0 ? (
+            selectedServicesTask.map((service, index) => (
               <div
                 key={index}
                 className="flex justify-between items-center p-2"
@@ -66,7 +64,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
                 </div>
                 <span className="font-semibold text-xl text-red-600">
                   {formatCurrency(
-                    service.price * (serviceQuantities[service.name] || 1)
+                    service.cost * (serviceQuantities[service.name] || 1)
                   )}
                 </span>
               </div>
@@ -83,7 +81,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
             <h3 className="text-xl font-be-vietnam-pro font-semibold">
               Điều dưỡng đã chọn
             </h3>
-            <div className="text-lg text-gray-600">{selectedNurse.name}</div>
+            <div className="text-lg text-gray-600">{selectedNurse["nurse-name"]}</div>
           </div>
         )}
         {/* Hiển thị thời gian đã chọn */}

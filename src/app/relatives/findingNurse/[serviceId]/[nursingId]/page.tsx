@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import DetailNurse from "@/app/components/Nursing/DetailNurse";
 import { DetailNurseItemType } from "@/types/nurse";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
+import { useSearchParams } from "next/navigation";
 
-const DetailNursePage = ({ params }: { params: { serviceId: string; nursingId: string } }) => {
+const DetailNursePage = ({ params }: { params: { nursingId: string } }) => {
   const { nursingId } = params;
+  const searchParams = useSearchParams();
+  const serviceID = searchParams.get("serviceID"); 
+
   const [detailNurse, setDetailNurse] = useState<DetailNurseItemType | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +37,7 @@ const DetailNursePage = ({ params }: { params: { serviceId: string; nursingId: s
 
   return (
     <div>
-      <DetailNurse nurse={detailNurse} />
+    <DetailNurse nurse={detailNurse} serviceID={serviceID ?? ""} />
     </div>
   );
 };

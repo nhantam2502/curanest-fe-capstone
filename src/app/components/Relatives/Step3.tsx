@@ -1,24 +1,23 @@
 import React from "react";
-import { Info } from "lucide-react";
+import { Info, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-
-interface Service {
-  name: string;
-  price: number;
-  time: string;
-  description?: string;
-  validityPeriod?: number;
-  usageTerms?: string;
-}
+import { ServiceTaskType } from "@/types/service";
 
 interface Step3Props {
-  selectedServices: Service[];
+  selectedServiceTask: ServiceTaskType[];
   serviceQuantities: { [key: string]: number };
   updateServiceQuantity: (serviceName: string, newQuantity: number) => void;
   removeService: (serviceName: string) => void;
+  calculateAdvancedPricing: (
+    service: ServiceTaskType,
+    quantity: number
+  ) => {
+    totalCost: number;
+    totalDuration: number;
+  };
   formatCurrency: (value: number) => string;
   calculateTotalTime: () => number;
   calculateTotalPrice: () => number;
@@ -28,10 +27,11 @@ interface Step3Props {
 }
 
 export const ServiceAdjustment: React.FC<Step3Props> = ({
-  selectedServices,
+  selectedServiceTask,
   serviceQuantities,
   updateServiceQuantity,
   removeService,
+  calculateAdvancedPricing,
   formatCurrency,
   calculateTotalTime,
   calculateTotalPrice,
@@ -39,6 +39,8 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
   onNext,
   onPrevious,
 }) => {
+  // New function to calculate advanced pricing
+
   return (
     <div className="space-y-6 text-lg">
       <h2 className="text-3xl font-bold">Điều chỉnh gói dịch vụ</h2>
@@ -47,99 +49,110 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
         Bạn có thể điều chỉnh số lượng hoặc loại bỏ các dịch vụ không cần thiết
       </p>
 
-      {selectedServices.length > 0 ? (
+      {selectedServiceTask.length > 0 ? (
         <div className="space-y-6">
           <ScrollArea className="h-96">
             <div className="flex flex-col gap-6">
-              {selectedServices.map((service) => (
-                <Card key={service.name} className="overflow-hidden shadow-lg">
-                  <CardContent className="p-5">
-                    <div className="flex justify-between items-center">
-                      <div className="space-y-2 flex-1">
-                        <h3 className="text-xl font-semibold">{service.name}</h3>
-                        <div className="text-gray-600">
-                          {service.time} phút • {formatCurrency(service.price)}
-                          /lần
+              {selectedServiceTask.map((service) => {
+                const currentQuantity = serviceQuantities[service.name] || 1;
+                const { totalCost, totalDuration } = calculateAdvancedPricing(
+                  service,
+                  currentQuantity
+                );
+
+                return (
+                  <Card
+                    key={service.name}
+                    className="overflow-hidden shadow-lg"
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-2 flex-1">
+                          <h3 className="text-xl font-semibold">
+                            {service.name}
+                          </h3>
+                          <div className="text-gray-600">
+                            {service["est-duration"]} phút •{" "}
+                            {formatCurrency(service.cost)}
+                            {service.unit === "quantity" ? "/ lần" : ""}
+                          </div>
+                          {service.description && (
+                            <p className="text-gray-500 mt-1">
+                              {service.description}
+                            </p>
+                          )}
+
+                          {currentQuantity > 1 &&
+                            service["additional-cost-desc"] && (
+                              <p className="text-yellow-500 mt-1 italic font-semibold">
+                                {service["additional-cost-desc"]}
+                              </p>
+                            )}
                         </div>
-                        {service.description && (
-                          <p className="text-gray-500 mt-1">
-                            {service.description}
-                          </p>
+
+                        {!(
+                          service["additional-cost"] === 0 &&
+                          service["additional-cost-desc"] === "" &&
+                          service.unit === "quantity" &&
+                          service["price-of-step"] === 0
+                        ) && (
+                          <div className="flex items-center gap-6">
+                            <div className="flex items-center space-x-3">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
+                                onClick={() =>
+                                  updateServiceQuantity(
+                                    service.name,
+                                    currentQuantity - 1
+                                  )
+                                }
+                                disabled={currentQuantity <= 1}
+                              >
+                                <span className="text-lg">-</span>
+                              </Button>
+
+                              <span className="w-8 text-center text-lg">
+                                {currentQuantity}
+                              </span>
+
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
+                                onClick={() =>
+                                  updateServiceQuantity(
+                                    service.name,
+                                    currentQuantity + 1
+                                  )
+                                }
+                              >
+                                <span className="text-lg">+</span>
+                              </Button>
+                            </div>
+
+                            <span className="font-bold text-xl">
+                              {formatCurrency(totalCost)}
+                            </span>
+
+                            {!service["is-must-have"] && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                                onClick={() => removeService(service.name)}
+                              >
+                                <Trash size={24} />
+                              </Button>
+                            )}
+                          </div>
                         )}
                       </div>
-
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center space-x-3">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 rounded-full"
-                            onClick={() =>
-                              updateServiceQuantity(
-                                service.name,
-                                (serviceQuantities[service.name] || 1) - 1
-                              )
-                            }
-                            disabled={
-                              (serviceQuantities[service.name] || 1) <= 1
-                            }
-                          >
-                            <span className="text-lg">-</span>
-                          </Button>
-
-                          <span className="w-8 text-center text-lg">
-                            {serviceQuantities[service.name] || 1}
-                          </span>
-
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8 rounded-full"
-                            onClick={() =>
-                              updateServiceQuantity(
-                                service.name,
-                                (serviceQuantities[service.name] || 1) + 1
-                              )
-                            }
-                          >
-                            <span className="text-lg">+</span>
-                          </Button>
-                        </div>
-
-                        <span className="font-bold text-xl">
-                          {formatCurrency(
-                            service.price *
-                              (serviceQuantities[service.name] || 1)
-                          )}
-                        </span>
-
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => removeService(service.name)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                          </svg>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </ScrollArea>
 

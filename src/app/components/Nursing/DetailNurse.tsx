@@ -30,7 +30,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
+const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; serviceID: string }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -81,9 +81,10 @@ const DetailNurse = ({ nurse }: { nurse: DetailNurseItemType }) => {
       router.push("/api/auth/signin?callbackUrl=/relatives/booking");
       return;
     }
-    // Điều hướng tới trang tìm kiếm y tá
+    // Điều hướng tới trang đặt lịch
     router.push(
-      `/relatives/findingNurse/${serviceId}/${nurse["nurse-id"]}/bookingNurse`
+      `/relatives/findingNurse/${serviceId}/${nurse["nurse-id"]}/bookingNurse?serviceID=${serviceID}`
+      
     );
   };
 

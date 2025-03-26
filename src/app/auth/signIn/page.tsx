@@ -10,7 +10,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const LoginPage = () => {
   const searchParams = useSearchParams();
-  const role = searchParams.get("role");
+  const callbackUrl = searchParams.get("callbackUrl") || "";
+  // Xác định role từ callbackUrl
+  let roleFromCallback = "";
+  if (callbackUrl.includes("/admin")) roleFromCallback = "admin";
+  else if (callbackUrl.includes("/nurse")) roleFromCallback = "nurse";
+  else if (callbackUrl.includes("/staff")) roleFromCallback = "staff";
+  else if (callbackUrl.includes("/relatives")) roleFromCallback = "relatives";
+  
+  // Ưu tiên role từ tham số URL, nếu không có thì dùng role từ callbackUrl
+  const role = searchParams.get("role") || roleFromCallback;
   const mode = searchParams.get("mode");
   const [isLogin, setIsLogin] = useState(true);
 
@@ -26,7 +35,7 @@ const LoginPage = () => {
   const getRoleTitle = () => {
     if (!isLogin) return "Đăng ký tài khoản mới";
 
-    return role === "business"
+    return role === "admin"
       ? "Đăng nhập dành cho quản trị viên"
       : "Đăng nhập dành cho khách hàng";
   };
@@ -35,7 +44,9 @@ const LoginPage = () => {
     // Update URL when toggling between login and register
     const baseUrl = window.location.pathname;
     const newMode = isLogin ? "register" : "login";
-    const newUrl = `${baseUrl}?${role ? `role=${role}&` : ''}mode=${newMode}`;
+    // Giữ lại callbackUrl khi chuyển form
+    const callbackUrlParam = callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : '';
+    const newUrl = `${baseUrl}?${role ? `role=${role}` : ''}${callbackUrlParam}&mode=${newMode}`;
     window.history.pushState({}, '', newUrl);
     setIsLogin(!isLogin);
   };
@@ -97,7 +108,7 @@ const LoginPage = () => {
                 transition={{ duration: 0.3 }}
               >
                 {isLogin ? (
-                  role === "business" ? (
+                  role === "admin" ? (
                     <AdminLoginForm />
                   ) : (
                     <LoginForm />

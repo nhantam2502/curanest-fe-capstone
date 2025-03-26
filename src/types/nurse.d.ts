@@ -1,4 +1,4 @@
-// Interface chính cho Nurse (sẽ bỏ)
+// Interface  cho Nurse (sẽ bỏ)
 export interface Nurse {
   id: number;
   name: string;

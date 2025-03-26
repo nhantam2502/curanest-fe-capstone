@@ -1,15 +1,12 @@
-import { StarIcon } from "lucide-react";
+import { Hospital, Star } from "lucide-react";
 import React from "react";
-import { Nurse } from "@/types/nurse";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Nurse, NurseItemType } from "@/types/nurse";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface NursingCardProps {
-  nurse: Nurse;
-  onSelect: (nurseId: number) => void;
+  nurse: NurseItemType;
+  onSelect: (nurseId: string) => void;
   isSelected?: boolean;
 }
 
@@ -18,49 +15,56 @@ const NursingCard: React.FC<NursingCardProps> = ({
   onSelect,
   isSelected = false,
 }) => {
+  // Get nurse initials for avatar fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
   return (
     <Card
-      className={`cursor-pointer transition-all duration-300 hover:shadow-xl
-      ${isSelected ? "border-2 border-blue-500" : "border border-gray-200"}
-    `}
-      onClick={() => onSelect(nurse.id)}
+      className={`w-[300px] min-h-[300px] overflow-hidden relative transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl cursor-pointer 
+      ${isSelected ? "border-2 border-blue-500" : "border border-gray-200"}`}
+      onClick={() => onSelect(nurse["nurse-id"])}
     >
-      <CardHeader className="p-0">
-        <img src={nurse.photo} className="w-full rounded-t-xl" alt="" />
-      </CardHeader>
+      {/* Top gradient background */}
+      <div className="h-32 bg-gradient-to-r from-cyan-200 to-yellow-200" />
 
-      <CardContent>
-        <h2 className="text-[18px] leading-[30px] lg:text-[26px] lg:leading-9 text-headingColor font-[700] mt-3">
-          {nurse.name}
+      <div className="absolute top-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+        {/* Avatar */}
+        <Avatar className="h-32 w-32 border-4 border-white">
+          <AvatarImage src={nurse["nurse-picture"]} alt={nurse["nurse-name"]} />
+          <AvatarFallback className="text-2xl bg-blue-100 text-blue-800">
+            {getInitials(nurse["nurse-name"])}
+          </AvatarFallback>
+        </Avatar>
+
+        {/* Rating Badge */}
+        {nurse.rate && (
+          <div className="absolute top-28 left-1/2 transform -translate-x-1/2 bg-white rounded-full py-1 px-3 shadow-sm border border-gray-100 flex items-center">
+            <span className="font-bold text-gray-800 text-base mr-1">
+              {nurse.rate.toFixed(1)}
+            </span>
+            <Star className="w-4 h-4 fill-yellow-400 text-yellow-200 flex-shrink-0" />
+          </div>
+        )}
+      </div>
+
+      <CardContent className="pt-20 pb-4 px-4 bg-white">
+        <h2 className="text-xl font-bold text-gray-800 truncate text-center mb-3">
+          {nurse["nurse-name"]}
         </h2>
 
-        <div className="mt-2 lg:mt-4 flex items-center justify-between">
-          <span className="bg-[#CCF0F3] text-irisBlueColor py-1 px-2 leading-4 lg:text-[16px] lg:leading-7 font-bold">
-            {nurse.specialization}
-          </span>
-
-          <div className="flex items-center gap-[6px]">
-            <span className="flex items-center gap-[6px] text-[14px] lg:text-[16px] leading-7 font-semibold text-headingColor">
-              <StarIcon className="w-5 h-5 fill-yellow-400 text-yellow-200" />{" "}
-              {nurse.avgRating}
-            </span>
-
-            <span className="text-[14px] lg:text-[16px] leading-7 font-[400] text-textColor">
-              ({nurse.totalRating})
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-[18px] lg:mt-5 flex items-center justify-between">
-          <div>
-            <h3 className="text-[16px] leading-7 lg:text-[18px] lg:leading-[30px] font-semibold text-headingColor">
-              + {nurse.totalPatients} bệnh nhân
-            </h3>
-
-            <p className="text-[14px] leading-6 font-[400] text-textColor">
-              Làm việc tại {nurse.hospital}
-            </p>
-          </div>
+        {/* Workplace */}
+        <div className="flex items-center justify-center">
+          <Hospital className="w-5 h-5 mr-2 text-red-500 flex-shrink-0" />
+          <p className="text-base text-gray-600">
+            {nurse["current-work-place"]}
+          </p>
         </div>
       </CardContent>
     </Card>
