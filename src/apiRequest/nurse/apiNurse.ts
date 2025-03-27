@@ -34,7 +34,6 @@ const nurseApiRequest = {
 
   mapNurseToService: (nurseId: string, body: { "service-ids": string[] }) =>
     http.post<CreateRes>(`/nurse/api/v1/nurses/${nurseId}/services`, body),
-  
 
 };
 

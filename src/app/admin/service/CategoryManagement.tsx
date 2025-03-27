@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import CategoryForm from "./CategoryForm";
+// Assuming useToast is correctly defined in hooks/use-toast
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -28,8 +29,8 @@ import categoryApiRequest, {
   addStaffToCate,
   removeStaffToCate,
 } from "@/apiRequest/category/apiCategory";
-import { Search } from "lucide-react";
-import { Category, CategoryFilter, StaffInfo } from "@/types/category";
+import { Search, Trash2 } from "lucide-react";
+import { Category, CategoryFilter, StaffInfo } from "@/types/category"; // Assuming these types are correct
 import {
   Dialog,
   DialogContent,
@@ -38,8 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { RelativesFilter } from "@/types/relatives";
-import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
+// Removed unused Relatives imports
 import {
   Select,
   SelectContent,
@@ -48,6 +48,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
+// Import the specific NurseItemType
+import { NurseItemType } from "@/types/nurse"; // Assuming path is correct
 
 interface CategoryManagementProps {
   onCategorySelect: (categoryId: string) => void;
@@ -58,7 +61,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
 }) => {
   const { toast } = useToast();
   const [categories, setCategories] = useState<Category[]>([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false); // State for CategoryForm dialog
   const [isDeleting, setIsDeleting] = useState(false);
   const [categoryToDeleteId, setCategoryToDeleteId] = useState<string | null>(
     null
@@ -71,13 +74,14 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   const [selectedNurseInfo, setSelectedNurseInfo] = useState<StaffInfo | null>(
     null
   );
-  const [users, setUsers] = useState<RelativesFilter[]>([]);
-  // State to hold the staff selected from the dropdown.
+  // State to hold the list of nurses fetched from the API
+  const [users, setUsers] = useState<NurseItemType[]>([]);
+  // State to hold the ID of the nurse selected in the dropdown
   const [selectedStaffId, setSelectedStaffId] = useState<string>("");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Change this to adjust items per page
+  const itemsPerPage = 5;
   const totalPages = Math.ceil(categories.length / itemsPerPage);
 
   const paginatedCategories = categories.slice(
@@ -90,7 +94,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       const response = await categoryApiRequest.getCategory(searchQuery);
       if (response.status === 200 && response.payload) {
         setCategories(response.payload.data || []);
-        // Reset page to 1 on new search/fetch
         setCurrentPage(1);
       } else {
         console.error("Error fetching categories:", response);
@@ -111,60 +114,119 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     }
   }, [searchQuery, toast]);
 
+  // Fetch nurses once on component mount
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const response = await relativesApiRequest.getRelativesFilter({
-          filter: { role: "staff" },
-          paging: { page: 1, size: 10, total: 0 },
-        });
-        setUsers(response.payload.data || []);
+        // Adjust pagination/filter parameters as needed for getListNurse
+        const response = await nurseApiRequest.getListNurse(
+          "",
+          null, // status
+          1,    // page
+          null
+        );
+        if (response.status === 200 && response.payload?.data) {
+            setUsers(response.payload.data);
+        } else {
+            console.error("Failed to fetch staff:", response);
+            setUsers([]);
+        }
+
       } catch (error) {
         console.error("Error fetching users:", error);
+        setUsers([]); // Ensure users is an empty array on error
+        toast({
+            title: "Lỗi tải danh sách y tá",
+            description: "Không thể tải danh sách y tá để lựa chọn.",
+            variant: "destructive"
+        })
       }
     };
     fetchStaff();
-  }, []);
+  }, [toast]); // Added toast as dependency
 
+  // Fetch categories when search query changes
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
 
+  // Callback for after creating a category
   const handleCreateCategory = () => {
-    fetchCategories();
+    fetchCategories(); // Refetch categories list
   };
 
-  const handleDeleteCategory = async (categoryId: string) => {
-    setIsDeleting(true);
+  // Sets state to prepare for deletion confirmation
+  const prepareDeleteCategory = (categoryId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent row click event
     setCategoryToDeleteId(categoryId);
-    // Delete logic here
+    // The actual deletion happens in confirmDeleteCategory
   };
+
+  // Performs the actual deletion after confirmation
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDeleteId) return;
+
+    setIsDeleting(true);
+    // try {
+    //   // Assuming you have a deleteCategory function in your API request module
+    //   // const response = await categoryApiRequest.deleteCategory(categoryToDeleteId);
+
+    //   if (response.status === 200) { // Check for success status
+    //     toast({
+    //       title: "Thành công",
+    //       description: "Đã xoá danh mục dịch vụ thành công.",
+    //     });
+    //     setCategoryToDeleteId(null); // Clear ID after deletion
+    //     fetchCategories(); // Refetch the list
+    //   } else {
+    //     console.error("Error deleting category:", response);
+    //     toast({
+    //       title: "Lỗi xoá danh mục",
+    //       description: response.payload?.message || "Không thể xoá danh mục.",
+    //       variant: "destructive",
+    //     });
+    //   }
+    // } catch (error: any) {
+    //   console.error("Error deleting category:", error);
+    //   toast({
+    //     title: "Lỗi xoá danh mục",
+    //     description: error.message || "Đã xảy ra lỗi khi xoá danh mục.",
+    //     variant: "destructive",
+    //   });
+    // } finally {
+    //   setIsDeleting(false);
+    // }
+  };
+
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery({ name: e.target.value });
   };
 
   const handleRowClick = (categoryId: string) => {
-    setSelectedCategoryId(categoryId);
-    onCategorySelect(categoryId);
+    setSelectedCategoryId(categoryId); // Keep track of selected category for API calls
+    onCategorySelect(categoryId); // Notify parent component
   };
 
-  // Open nurse info dialog regardless of whether staff info exists.
+  // Opens the dialog to view/add/remove nurse
   const handleNurseInfoClick = (
     staffInfo: StaffInfo | null,
+    categoryId: string, // Pass categoryId to know which category we're working with
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
+    setSelectedCategoryId(categoryId); // Set the current category ID
     setSelectedNurseInfo(staffInfo);
+    setSelectedStaffId(""); // Reset dropdown selection when opening
     setNurseInfoDialogOpen(true);
   };
 
-  // When adding staff, use the selectedStaffId from the dropdown.
+  // Adds the selected nurse to the currently selected category
   const handleAddStaff = async () => {
     if (!selectedCategoryId || !selectedStaffId) {
       toast({
-        title: "Lỗi",
-        description: "Chưa chọn đủ thông tin.",
+        title: "Thiếu thông tin",
+        description: "Vui lòng chọn danh mục và y tá cần thêm.",
         variant: "destructive",
       });
       return;
@@ -173,34 +235,43 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       await addStaffToCate(selectedCategoryId, selectedStaffId);
       toast({
         title: "Thành công",
-        description: "Y tá đã được thêm thành công.",
+        description: "Y tá đã được thêm vào danh mục.",
       });
-      fetchCategories();
-      setNurseInfoDialogOpen(false);
-    } catch (error) {
+      fetchCategories(); // Refetch to show the updated staff info
+      setNurseInfoDialogOpen(false); // Close dialog
+    } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: "Không thể thêm y tá. Vui lòng thử lại.",
+        title: "Lỗi thêm y tá",
+        description: error.message || "Không thể thêm y tá. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error("Error adding staff:", error);
     }
   };
 
+  // Removes the currently assigned nurse from the selected category
   const handleRemoveStaff = async () => {
-    if (!selectedCategoryId) return;
+    if (!selectedCategoryId || !selectedNurseInfo) {
+         toast({
+            title: "Thông tin không hợp lệ",
+            description: "Không có y tá nào được chỉ định cho danh mục này.",
+            variant: "destructive",
+         });
+        return;
+    }
     try {
+      // Assuming removeStaffToCate just needs the categoryId
       await removeStaffToCate(selectedCategoryId);
       toast({
         title: "Thành công",
-        description: "Y tá đã được xoá thành công.",
+        description: "Y tá đã được xoá khỏi danh mục.",
       });
-      fetchCategories();
-      setNurseInfoDialogOpen(false);
-    } catch (error) {
+      fetchCategories(); // Refetch to update the UI
+      setNurseInfoDialogOpen(false); // Close dialog
+    } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: "Không thể xoá y tá. Vui lòng thử lại.",
+        title: "Lỗi xoá y tá",
+        description: error.message || "Không thể xoá y tá. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error("Error removing staff:", error);
@@ -208,9 +279,10 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-4 flex justify-between items-center">
-        <Label className="text-lg font-bold">Quản lý danh mục dịch vụ</Label>
+    <div className="w-full p-4 border rounded-lg shadow-sm">
+      <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <Label className="text-xl font-semibold">Quản lý danh mục dịch vụ</Label>
+        {/* Ensure CategoryForm handles its own open state via props */}
         <CategoryForm
           open={open}
           onOpenChange={setOpen}
@@ -222,147 +294,140 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       <div className="mb-4 relative">
         <Input
           type="text"
-          placeholder="Tìm kiếm theo tên hoặc mô tả..."
+          placeholder="Tìm kiếm theo tên danh mục..."
           value={searchQuery?.name || ""}
           onChange={handleSearchChange}
-          className="pr-10"
+          className="pr-10" // Padding for the icon
         />
-        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+        <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       </div>
 
-      <Table>
-        <TableHeader className="space-x-2">
-          <TableRow>
-            <TableHead>Tên danh mục</TableHead>
-            <TableHead>Mô tả</TableHead>
-            <TableHead>Người phụ trách</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedCategories.length === 0 ? (
+      {/* Table */}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell
-                colSpan={4}
-                className="text-center italic text-gray-500"
-              >
-                Không có danh mục nào.
-              </TableCell>
+              <TableHead className="w-[25%]">Tên danh mục</TableHead>
+              <TableHead className="w-[40%]">Mô tả</TableHead>
+              <TableHead className="w-[15%] text-center">Người phụ trách</TableHead>
+              <TableHead className="w-[20%] text-right">Hành động</TableHead>
             </TableRow>
-          ) : (
-            paginatedCategories.map((category) => (
-              <TableRow
-                key={category.id}
-                onClick={() => handleRowClick(category.id)}
-                className={`hover:bg-gray-100/50 cursor-pointer ${
-                  selectedCategoryId === category.id ? "bg-gray-100" : ""
-                }`}
-              >
-                <TableCell>{category.name}</TableCell>
-                <TableCell className="max-w-xs line-clamp-5">
-                  {category.description}
-                </TableCell>
-                <TableCell>
-                  {category["staff-info"] ? (
-                    <div
-                      className="cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNurseInfoClick(category["staff-info"], e);
-                      }}
-                    >
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage
-                          src={
-                            category["staff-info"]["nurse-picture"] ||
-                            "/placeholder-avatar.png"
-                          }
-                          alt={category["staff-info"]["nurse-name"]}
-                        />
-                        <AvatarFallback>
-                          {category["staff-info"]["nurse-name"].charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  ) : (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNurseInfoClick(null, e);
-                      }}
-                    >
-                      Thêm
-                    </Button>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Add edit logic here if needed
-                    }}
-                  >
-                    Sửa
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        disabled={isDeleting}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Xoá
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Bạn có chắc chắn muốn xoá danh mục dịch vụ này? Hành
-                          động này không thể hoàn tác.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() =>
-                            categoryToDeleteId === category.id &&
-                            handleDeleteCategory(category.id)
-                          }
-                          disabled={isDeleting}
-                        >
-                          {isDeleting ? "Đang xoá..." : "Xoá"}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+          </TableHeader>
+          <TableBody>
+            {paginatedCategories.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  Không tìm thấy danh mục nào.
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              paginatedCategories.map((category) => (
+                <TableRow
+                  key={category.id}
+                  onClick={() => handleRowClick(category.id)}
+                  className={`hover:bg-accent cursor-pointer ${
+                    selectedCategoryId === category.id ? "bg-muted" : "" // Use muted for selection
+                  }`}
+                  data-state={selectedCategoryId === category.id ? "selected" : undefined}
+                >
+                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground"> {/* Limit lines */}
+                    {category.description}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {category["staff-info"] ? (
+                      <div
+                        className="flex justify-center items-center cursor-pointer group"
+                        onClick={(e) => handleNurseInfoClick(category["staff-info"], category.id, e)}
+                      >
+                        <Avatar className="w-8 h-8 group-hover:ring-2 group-hover:ring-primary">
+                          <AvatarImage
+                            src={ category["staff-info"]["nurse-picture"] || undefined } // Use undefined for missing src
+                            alt={category["staff-info"]["nurse-name"]}
+                          />
+                          <AvatarFallback>
+                             {/* Simple fallback */}
+                            {category["staff-info"]["nurse-name"]?.charAt(0)?.toUpperCase() || 'N'}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    ) : (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0"
+                        onClick={(e) => handleNurseInfoClick(null, category.id, e)}
+                      >
+                        Thêm y tá
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right space-x-1">
+                    {/* Placeholder for Edit Button */}
+                    {/* <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
+                         <Edit className="h-4 w-4" />
+                    </Button> */}
+                    <AlertDialog onOpenChange={(isOpen) => { if (!isOpen) setCategoryToDeleteId(null); }}>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => prepareDeleteCategory(category.id, e)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                       {/* Ensure content only renders if categoryToDeleteId matches */}
+                      {categoryToDeleteId === category.id && (
+                          <AlertDialogContent>
+                          <AlertDialogHeader>
+                              <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
+                              <AlertDialogDescription>
+                              Bạn có chắc chắn muốn xoá danh mục "{category.name}"? Hành động này sẽ xoá vĩnh viễn danh mục và không thể hoàn tác.
+                              </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                              <AlertDialogCancel onClick={() => setCategoryToDeleteId(null)}>Hủy</AlertDialogCancel>
+                              <AlertDialogAction
+                                  onClick={confirmDeleteCategory}
+                                  disabled={isDeleting}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90" // Destructive styling
+                              >
+                              {isDeleting ? "Đang xoá..." : "Xoá vĩnh viễn"}
+                              </AlertDialogAction>
+                          </AlertDialogFooter>
+                          </AlertDialogContent>
+                      )}
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex justify-end items-center space-x-2 mt-4">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
           >
             Trước
           </Button>
-          <span>
+          <span className="text-sm font-medium">
             Trang {currentPage} / {totalPages}
           </span>
           <Button
             variant="outline"
+            size="sm"
             onClick={() =>
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
@@ -373,75 +438,81 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         </div>
       )}
 
-      {/* Nurse Info Dialog */}
       <Dialog
         open={nurseInfoDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) setNurseInfoDialogOpen(false);
-        }}
+        onOpenChange={setNurseInfoDialogOpen} // Direct state setter is fine here
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Thông tin y tá</DialogTitle>
+            <DialogTitle>Thông tin người phụ trách</DialogTitle>
             <DialogDescription>
-              Dưới đây là thông tin chi tiết của y tá phụ trách.
+              {selectedNurseInfo
+                ? "Xem hoặc xoá y tá phụ trách hiện tại."
+                : "Thêm y tá phụ trách cho danh mục này."}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
+            {/* Display current nurse info OR show Add form */}
             {selectedNurseInfo ? (
-              <>
-                <p>
-                  <strong>Tên y tá: </strong>
-                  {selectedNurseInfo["nurse-name"]}
-                </p>
-                {selectedNurseInfo["nurse-picture"] && (
-                  <img
-                    src={selectedNurseInfo["nurse-picture"]}
-                    alt={selectedNurseInfo["nurse-name"]}
-                    className="w-32 h-32 object-cover mt-2"
-                  />
-                )}
-              </>
+              <div className="space-y-2">
+                 <div className="flex items-center gap-4">
+                     <Avatar className="w-16 h-16">
+                          <AvatarImage src={ selectedNurseInfo["nurse-picture"] || undefined } alt={selectedNurseInfo["nurse-name"]} />
+                          <AvatarFallback> {selectedNurseInfo["nurse-name"]?.charAt(0)?.toUpperCase() || 'N'} </AvatarFallback>
+                     </Avatar>
+                    <p className="font-medium">{selectedNurseInfo["nurse-name"]}</p>
+                 </div>
+                {/* Add more details if available in StaffInfo */}
+                {/* <p><strong>ID:</strong> {selectedNurseInfo["nurse-id"]}</p> */}
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleRemoveStaff}
+                >
+                  Xoá khỏi danh mục này
+                </Button>
+              </div>
             ) : (
-              <p>Không có thông tin y tá.</p>
-            )}
-          </div>
-          <div className="py-4">
-            {selectedNurseInfo === null ? (
-              <div>
-                <Label className="block mb-2">Chọn y tá cần thêm:</Label>
+              <div className="space-y-2">
+                <Label htmlFor="nurse-select">Chọn y tá để thêm:</Label>
                 <Select
                   value={selectedStaffId}
-                  onValueChange={(value) => setSelectedStaffId(value)}
+                  onValueChange={setSelectedStaffId} // Directly set the state
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Chọn y tá" />
+                  <SelectTrigger id="nurse-select" className="w-full">
+                    <SelectValue placeholder="-- Chọn y tá --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {users.map((user) => (
-                      <SelectItem
-                        key={user.id || ""}
-                        value={(user.id || "").toString()}
-                      >
-                        {user["full-name"]}
-                      </SelectItem>
-                    ))}
+                    {users.length > 0 ? (
+                       // --- CORRECTED SELECT OPTIONS ---
+                      users.map((user) => (
+                        <SelectItem
+                          key={user["nurse-id"]} // Use correct ID for key
+                          value={user["nurse-id"]} // Use correct ID for value
+                        >
+                          {user["nurse-name"]} {/* Display correct name */}
+                        </SelectItem>
+                      ))
+                      // ---------------------------------
+                    ) : (
+                      <div className="p-4 text-center text-sm text-muted-foreground">
+                        Không có y tá nào.
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
                 <Button
                   onClick={handleAddStaff}
-                  className="my-2 w-full"
-                  variant="secondary"
+                  className="w-full"
+                  disabled={!selectedStaffId} // Disable if no nurse is selected
                 >
-                  Xác nhận thêm y tá
+                  Thêm y tá vào danh mục
                 </Button>
               </div>
-            ) : (
-              <Button onClick={handleRemoveStaff}>Xoá y tá</Button>
             )}
           </div>
           <DialogFooter>
-            <Button onClick={() => setNurseInfoDialogOpen(false)}>Đóng</Button>
+            <Button variant="ghost" onClick={() => setNurseInfoDialogOpen(false)}>Đóng</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

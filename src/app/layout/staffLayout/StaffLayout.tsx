@@ -27,7 +27,7 @@ export default function AdminLayout({
         }`}
       >
         {/* Header Container */}
-        <header className="sticky top-0 z-99 w-full bg-white border-b border-gray-200 p-3 flex items-center justify-between">
+        <header className="sticky top-0 z-99 w-full bg-grey-200 border-b border-gray-200 p-2 flex items-center justify-between">
           <Button
             onClick={() => handleToggleSidebar(!isCollapsed)}
             className="p-2 rounded-sm hover:bg-gray-200 text-gray-600"

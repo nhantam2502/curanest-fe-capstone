@@ -14,7 +14,7 @@ import { ServicePackage } from "@/types/servicesPack";
 import servicePackageApiRequest from "@/apiRequest/servicePackage/apiServicePackage";
 import CreateServicePackage from "./CreateServicePackage";
 import { Button } from "@/components/ui/button";
-import EditServicePackage from "./EditServicePackage"; 
+import EditServicePackage from "./EditServicePackage";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ServicePackageComponentProps {
@@ -66,19 +66,15 @@ function ServicePackageComponent({
   }, [fetchPackages, refresh]);
 
   const handlePackageUpdated = () => {
-    fetchPackages(); 
+    fetchPackages();
   };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "available":
-        return "bg-green-500 text-white";
-      case "unavailable":
-        return "bg-red-500 text-white";
-      case "pending":
-        return "bg-yellow-500 text-white";
+        return "bg-green-300 text-white hover:bg-green-400";
       default:
-        return "bg-gray-500 text-white";
+        return "bg-gray-500 text-white hover:bg-gray-600";
     }
   };
 
@@ -87,8 +83,12 @@ function ServicePackageComponent({
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle><Skeleton className="h-6 w-32" /></CardTitle>
-            <CardDescription><Skeleton className="h-4 w-64" /></CardDescription>
+            <CardTitle>
+              <Skeleton className="h-6 w-32" />
+            </CardTitle>
+            <CardDescription>
+              <Skeleton className="h-4 w-64" />
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
@@ -100,8 +100,12 @@ function ServicePackageComponent({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle><Skeleton className="h-6 w-32" /></CardTitle>
-            <CardDescription><Skeleton className="h-4 w-64" /></CardDescription>
+            <CardTitle>
+              <Skeleton className="h-6 w-32" />
+            </CardTitle>
+            <CardDescription>
+              <Skeleton className="h-4 w-64" />
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4">
@@ -118,14 +122,19 @@ function ServicePackageComponent({
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex justify-between">
-          <CardTitle className="text-xl">Gói dịch vụ</CardTitle>
-          {serviceId && (
-            <CreateServicePackage
-              serviceId={serviceId}
-              onPackageCreated={onPackageCreated}
-            />
-          )}
+        <CardHeader className="flex justify-between flex-row items-center">
+          <div>
+            <CardTitle className="text-xl">Gói dịch vụ</CardTitle>
+            <CardDescription>Quản lý các gói.</CardDescription>
+          </div>
+          <div className="flex items-center">
+            {serviceId && (
+              <CreateServicePackage
+                serviceId={serviceId}
+                onPackageCreated={onPackageCreated}
+              />
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {servicePackages.length > 0 ? (
@@ -142,19 +151,25 @@ function ServicePackageComponent({
                         <h4 className="text-sm font-semibold text-muted-foreground">
                           Tên gói
                         </h4>
-                        <p className="text-lg font-bold">{servicePackage.name}</p>
+                        <p className="text-lg font-bold">
+                          {servicePackage.name}
+                        </p>
                       </div>
                       <div>
                         <h4 className="text-sm font-semibold text-muted-foreground">
                           Mô tả
                         </h4>
-                        <p className="text-sm text-gray-700">{servicePackage.description}</p>
+                        <p className="text-sm text-gray-700">
+                          {servicePackage.description}
+                        </p>
                       </div>
                       <div>
                         <h4 className="text-sm font-semibold text-muted-foreground">
                           Trạng thái
                         </h4>
-                        <Badge className={getStatusColor(servicePackage.status)}>
+                        <Badge
+                          className={getStatusColor(servicePackage.status)}
+                        >
                           {servicePackage.status}
                         </Badge>
                       </div>

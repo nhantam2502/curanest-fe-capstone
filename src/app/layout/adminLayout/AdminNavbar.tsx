@@ -87,8 +87,8 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`h-screen p-4 fixed hidden lg:flex flex-col transition-all duration-300 ease-in-out bg-white ${
-          isCollapsed ? "w-20" : "w-64"
+        className={`h-screen p-4 fixed hidden lg:flex flex-col transition-all duration-300 ease-in-out bg-white border-r ${
+          isCollapsed ? "w-18" : "w-64"
         }`}
       >
         <div className="mb-8 flex items-center justify-center">
