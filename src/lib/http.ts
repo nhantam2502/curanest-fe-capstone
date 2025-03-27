@@ -60,11 +60,15 @@ async function request<T>(
     options?.body instanceof FormData
       ? options.body
       : options?.body
-      ? JSON.stringify(options.body)
-      : undefined;
+        ? JSON.stringify(options.body)
+        : undefined;
 
   const baseHeaders: { [key: string]: string } =
-    body instanceof FormData ? {} : { "Content-Type": "application/json" };
+    body instanceof FormData
+      ? {}
+      : {
+          "Content-Type": "application/json",
+        };
 
   if (typeof window !== "undefined") {
     const sessionToken = localStorage.getItem("sessionToken");
@@ -115,6 +119,14 @@ const http = {
   },
   patch<T>(url: string, options?: Omit<CustomOptions, "body">) {
     return request<T>("PATCH", url, options);
+  },
+
+  patchWithBody<T>(
+    url: string,
+    body: any,
+    options?: Omit<CustomOptions, "body">
+  ) {
+    return request<T>("PATCH", url, { ...options, body });
   },
 };
 

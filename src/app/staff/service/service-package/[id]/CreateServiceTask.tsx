@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface ServiceTaskCreationFormProps {
   svcpackageId: string;
@@ -70,6 +71,7 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
   svcpackageId,
   onTaskCreated,
 }) => {
+  const { toast } = useToast(); // <--- 2. Gọi hook useToast
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -104,27 +106,45 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
         svcpackageId,
         taskData
       );
+
       if (response.status === 201 && response.payload) {
+        // --- 3. Toast Thành Công ---
+        toast({
+          title: "Thành công",
+          description: `Đã tạo task "${taskData.name}" thành công.`,
+        });
         form.reset();
         onTaskCreated?.();
-        setOpen(false);
+        setOpen(false); // Đóng dialog
       } else {
         console.error("Service task creation failed:", response);
+        // --- 3. Toast Lỗi API ---
+        toast({
+          variant: "destructive",
+          title: "Tạo thất bại",
+          description: response?.payload.message || "Không thể tạo task dịch vụ. Vui lòng thử lại.",
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Service task creation error:", error);
+      // --- 3. Toast Lỗi Ngoại Lệ ---
+      toast({
+        variant: "destructive",
+        title: "Đã xảy ra lỗi",
+        description: error?.message || "Có lỗi không mong muốn xảy ra khi tạo task.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  // Phần JSX giữ nguyên cấu trúc, chỉ cần đảm bảo đã import và gọi hook
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <Button>Tạo Task dịch vụ mới</Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
-        {" "}
         <AlertDialogHeader>
           <AlertDialogTitle>Tạo Task dịch vụ mới</AlertDialogTitle>
           <AlertDialogDescription>
@@ -136,12 +156,12 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {/* Name (spans 2 columns) */}
+            {/* Name (spans 3 columns) */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="col-span-3">
+                <FormItem className="col-span-1 sm:col-span-2 lg:col-span-3">
                   <FormLabel>
                     Tên Task<span className="text-red-500">*</span>
                   </FormLabel>
@@ -158,12 +178,12 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               control={form.control}
               name="task-order"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Thứ tự Task</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
-                  <FormDescription>Thứ tự hiển thị của task.</FormDescription>
+                  <FormDescription>Thứ tự hiển thị.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -174,13 +194,13 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               control={form.control}
               name="est-duration"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Thời lượng ước tính (phút)</FormLabel>
+                <FormItem className="col-span-1">
+                  <FormLabel>Thời lượng (phút)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Thời gian ước tính để hoàn thành task.
+                    Ước tính hoàn thành.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -192,7 +212,7 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               control={form.control}
               name="cost"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Chi phí</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -202,22 +222,20 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               )}
             />
 
+            {/* Description (spans 3 columns) */}
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="col-span-3">
+                <FormItem className="col-span-1 sm:col-span-2 lg:col-span-3">
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Nhập mô tả task (không bắt buộc)"
                       {...field}
-                      className="min-h-[100px]"
+                      className="min-h-[80px]" // Giảm chiều cao một chút
                     />
                   </FormControl>
-                  <FormDescription>
-                    Mô tả chi tiết về task dịch vụ này.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -228,7 +246,7 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               control={form.control}
               name="additional-cost"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Chi phí phát sinh</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -243,7 +261,7 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               control={form.control}
               name="price-of-step"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Giá theo bước</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
@@ -258,7 +276,7 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               control={form.control}
               name="unit"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1">
                   <FormLabel>Đơn vị tính</FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -266,15 +284,14 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue
-                          placeholder="Chọn đơn vị tính"
-                          className="opacity-0 focus:opacity-100 cursor-pointer"
-                        />
+                        {/* Hiển thị giá trị đã chọn */}
+                        <SelectValue placeholder="Chọn đơn vị" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="quantity">Lần</SelectItem>
                       <SelectItem value="time">Phút</SelectItem>
+                      {/* Thêm các đơn vị khác nếu cần */}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -282,16 +299,16 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               )}
             />
 
-            {/* Staff Advice */}
-            <FormField
+             {/* Staff Advice (spans 3 columns) */}
+             <FormField
               control={form.control}
               name="staff-advice"
               render={({ field }) => (
-                <FormItem className="col-span-3">
-                  <FormLabel>Lời khuyên cho nhân viên</FormLabel>
+                <FormItem className="col-span-1 sm:col-span-2 lg:col-span-3">
+                  <FormLabel>Lời khuyên NV</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nhập lời khuyên cho nhân viên (không bắt buộc)"
+                      placeholder="Nhập lời khuyên (không bắt buộc)"
                       {...field}
                     />
                   </FormControl>
@@ -300,16 +317,16 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               )}
             />
 
-            {/* Additional Cost Description */}
+            {/* Additional Cost Description (spans 3 columns) */}
             <FormField
               control={form.control}
               name="additional-cost-desc"
               render={({ field }) => (
-                <FormItem className="col-span-3">
-                  <FormLabel>Mô tả chi phí phát sinh</FormLabel>
+                <FormItem className="col-span-1 sm:col-span-2 lg:col-span-3">
+                  <FormLabel>Mô tả chi phí PS</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Nhập mô tả chi phí phát sinh (không bắt buộc)"
+                      placeholder="Nhập mô tả chi phí PS (không bắt buộc)"
                       {...field}
                     />
                   </FormControl>
@@ -318,16 +335,16 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
               )}
             />
 
-            {/* Is Must-Have */}
+             {/* Is Must-Have (spans 1 column, maybe adjust layout if needed) */}
             <FormField
               control={form.control}
               name="is-must-have"
               render={({ field }) => (
-                <FormItem className="col-span-2 border-2 rounded-lg  p-2">
+                <FormItem className="col-span-1 sm:col-span-2 lg:col-span-3 flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Bắt buộc</FormLabel>
                     <FormDescription>
-                      Task này có bắt buộc phải có trong gói dịch vụ không?
+                      Task này có bắt buộc trong gói không?
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -336,13 +353,13 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
 
+
             {/* Form Actions */}
-            <AlertDialogFooter className="col-span-3 flex justify-end gap-4">
+            <AlertDialogFooter className="col-span-1 sm:col-span-2 lg:col-span-3 flex justify-end gap-4 mt-4">
               <AlertDialogCancel>Hủy</AlertDialogCancel>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Đang tạo..." : "Tạo Task dịch vụ"}

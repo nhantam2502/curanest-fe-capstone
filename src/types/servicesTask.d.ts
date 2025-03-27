@@ -12,7 +12,7 @@ export type ServiceTask = {
   "additional-cost-desc": string;
   unit: string;
   "price-of-step": number;
-  status: "available" | "unavailable";
+  status: string;
 };
 
 export type CreateServiceTask = {
@@ -40,6 +40,27 @@ export type UpdateServiceTask = {
   "price-of-step": number;
   "staff-advice": string;
   status: string;
+  unit: string;
+};
+
+export type UpdateServiceOrderPayload = {
+  svctasks: UpdateServiceOrder[]; // Array of the single task update objects
+};
+
+export type UpdateServiceOrder = {
+  "additional-cost": number;
+  "additional-cost-desc": string;
+  cost: number;
+  description: string;
+  "est-duration": number;
+  id: string;
+  "is-must-have": boolean;
+  name: string;
+  "price-of-step": number;
+  "staff-advice": string;
+  status: string;
+  "svcpackage-id": string;
+  "task-order": number;
   unit: string;
 };
 

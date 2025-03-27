@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Edit } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditServicePackageProps {
   serviceId: string;
@@ -45,7 +46,7 @@ interface EditServicePackageProps {
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Tên phải có ít nhất 2 ký tự.", // Tiếng Việt
   }),
   description: z.string().optional(),
   "combo-days": z.coerce.number().default(0),
@@ -59,6 +60,7 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
   servicePackage,
   onPackageUpdated,
 }) => {
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -89,21 +91,55 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
       );
 
       if (response.status === 200 && response.payload) {
-        form.reset();
+        // --- 3. Toast Thành Công ---
+        toast({
+          title: "Thành công",
+          description: `Đã cập nhật gói dịch vụ "${packageData.name}" thành công.`,
+        });
+        // Không reset form ngay để người dùng có thể xem lại, chỉ đóng dialog
         onPackageUpdated?.();
-        setOpen(false);
+        setOpen(false); // Đóng dialog
       } else {
         console.error("Service package update failed:", response);
+        // --- 3. Toast Lỗi API ---
+        toast({
+          variant: "destructive",
+          title: "Cập nhật thất bại",
+          description: response?.payload.message || "Không thể cập nhật gói dịch vụ. Vui lòng thử lại.",
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Service package update error:", error);
+      // --- 3. Toast Lỗi Ngoại Lệ ---
+      toast({
+        variant: "destructive",
+        title: "Đã xảy ra lỗi",
+        description: error?.message || "Có lỗi không mong muốn xảy ra khi cập nhật.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  // Xử lý khi dialog mở ra để đảm bảo form có giá trị mới nhất nếu servicePackage prop thay đổi
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      // Reset form về giá trị của prop khi mở dialog
+      form.reset({
+        name: servicePackage.name,
+        description: servicePackage.description || "",
+        "combo-days": servicePackage["combo-days"],
+        discount: servicePackage.discount,
+        "time-interval": servicePackage["time-interval"],
+        status: servicePackage.status || "available",
+      });
+    }
+    setOpen(isOpen);
+  };
+
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}> {/* Sử dụng handleOpenChange */}
       <AlertDialogTrigger asChild>
         <Button variant="secondary" size="sm">
           <Edit className="h-4 w-4" />
@@ -113,7 +149,7 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Chỉnh sửa gói dịch vụ</AlertDialogTitle>
           <AlertDialogDescription>
-            Cập nhật thông tin chi tiết cho gói dịch vụ này.
+            Cập nhật thông tin chi tiết cho gói dịch vụ "{servicePackage.name}".
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Form {...form}>
@@ -163,7 +199,7 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
                     <FormControl>
                       <Input type="number" placeholder="0" {...field} />
                     </FormControl>
-                    <FormDescription>Ngày có hiệu lực.</FormDescription>
+                    <FormDescription>Ngày hiệu lực.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -189,12 +225,12 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
                 name="time-interval"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thời gian giữa các lần (phút)</FormLabel>
+                    <FormLabel>Giãn cách (phút)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="0" {...field} />
                     </FormControl>
                     <FormDescription>
-                      Khoảng thời gian tối thiểu giữa các lần sử dụng.
+                      Giữa các lần dùng.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

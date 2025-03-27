@@ -28,6 +28,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 interface ServicePackageCreationFormProps {
   serviceId: string; // Prop to receive serviceId
@@ -36,7 +37,7 @@ interface ServicePackageCreationFormProps {
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
+    message: "Tên phải có ít nhất 2 ký tự.", // Tiếng Việt
   }),
   description: z.string(),
   "combo-days": z.coerce.number().default(0),
@@ -48,6 +49,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
   serviceId,
   onPackageCreated,
 }) => {
+  const { toast } = useToast(); // <--- Gọi hook useToast
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,7 +62,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [open, setOpen] = useState(false); // State to control AlertDialog visibility
+  const [open, setOpen] = useState(false);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
@@ -74,14 +76,31 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
         packageData
       );
       if (response.status === 201 && response.payload) {
+        // --- Toast Thành Công ---
+        toast({
+          title: "Thành công",
+          description: "Đã tạo gói dịch vụ mới thành công.",
+        });
         form.reset();
         onPackageCreated?.();
-        setOpen(false);
+        setOpen(false); // Đóng dialog
       } else {
         console.error("Service package creation failed:", response);
+        // --- Toast Lỗi API ---
+        toast({
+          variant: "destructive",
+          title: "Tạo thất bại",
+          description: response?.payload.message || "Không thể tạo gói dịch vụ. Vui lòng thử lại.",
+        });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Service package creation error:", error);
+      // --- Toast Lỗi Ngoại Lệ ---
+      toast({
+        variant: "destructive",
+        title: "Đã xảy ra lỗi",
+        description: error?.message || "Có lỗi không mong muốn xảy ra trong quá trình tạo gói dịch vụ.",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -102,15 +121,13 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 grid grid-cols-3 sm:grid-cols-3 gap-4"
+            className="space-y-4 grid grid-cols-1 sm:grid-cols-3 gap-4" // Adjusted grid for smaller screens
           >
-            {" "}
-            {/* Added grid layout */}
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem className="col-span-3">
+                <FormItem className="col-span-1 sm:col-span-3"> {/* Full width on small, full on larger */}
                   <FormLabel>Tên gói dịch vụ</FormLabel>
                   <FormControl>
                     <Input placeholder="Nhập tên gói dịch vụ" {...field} />
@@ -123,7 +140,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="description"
               render={({ field }) => (
-                <FormItem className="col-span-3">
+                <FormItem className="col-span-1 sm:col-span-3"> {/* Full width */}
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Nhập mô tả" {...field} />
@@ -139,13 +156,13 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="combo-days"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1"> {/* One column */}
                   <FormLabel>Số ngày combo</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Số ngày mà gói dịch vụ này có hiệu lực.
+                    Số ngày hiệu lực.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -155,13 +172,13 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="discount"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-1"> {/* One column */}
                   <FormLabel>Giảm giá (%)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Mức giảm giá cho gói dịch vụ (%).
+                    Mức giảm giá (%).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -171,20 +188,19 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
               control={form.control}
               name="time-interval"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Thời gian giữa các lần sử dụng (phút)</FormLabel>
+                <FormItem className="col-span-1"> {/* One column */}
+                  <FormLabel>Giãn cách (phút)</FormLabel>
                   <FormControl>
                     <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Khoảng thời gian tối thiểu giữa các lần sử dụng dịch vụ
-                    trong gói (phút).
+                    Giữa các lần dùng (phút).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <AlertDialogFooter className="col-span-3 flex justify-end gap-4">
+            <AlertDialogFooter className="col-span-1 sm:col-span-3 flex justify-end gap-4 mt-4"> {/* Ensure footer spans full width and has margin */}
               <AlertDialogCancel>Hủy</AlertDialogCancel>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Đang tạo..." : "Tạo gói dịch vụ"}
