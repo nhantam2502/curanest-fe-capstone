@@ -81,22 +81,15 @@ const NurseList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6; // Hiển thị 6 điều dưỡng mỗi trang
 
-  const filteredNurses = useMemo(() => {
-    return nurses.filter((nurse) => {
-      // Không cần filter theo tên và rating ở đây vì đã filter từ API
-      return true;
-    });
-  }, [nurses]);
-
   // Tính toán tổng số trang
-  const totalPages = Math.ceil(filteredNurses.length / itemsPerPage);
+  const totalPages = Math.ceil(nurses.length / itemsPerPage);
 
   // Lấy danh sách điều dưỡng cho trang hiện tại
   const currentNurses = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return filteredNurses.slice(startIndex, endIndex);
-  }, [filteredNurses, currentPage, itemsPerPage]);
+    return nurses.slice(startIndex, endIndex);
+  }, [nurses, currentPage, itemsPerPage]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
@@ -201,7 +194,7 @@ const NurseList = () => {
   };
 
   useEffect(() => {
-    if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
+    // if (!serviceId) return; // Chỉ gọi khi nhấn tìm kiếm
 
     const fetchNurses = async () => {
       setLoading(true);
@@ -485,6 +478,7 @@ const NurseList = () => {
                         key={nurse["nurse-id"]}
                         nurse={nurse}
                         service={serviceId}
+                        serviceID={serviceID}
                       />
                     ))}
                   </div>
@@ -548,9 +542,9 @@ const NurseList = () => {
                       Trang {currentPage} / {totalPages} • Hiển thị{" "}
                       {Math.min(
                         itemsPerPage,
-                        filteredNurses.length - (currentPage - 1) * itemsPerPage
+                        nurses.length - (currentPage - 1) * itemsPerPage
                       )}{" "}
-                      trên tổng số {filteredNurses.length} điều dưỡng
+                      trên tổng số {nurses.length} điều dưỡng
                     </div>
                   </div>
                 )}

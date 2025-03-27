@@ -33,7 +33,7 @@ const DetailNursePage = ({ params }: { params: { serviceId: string; nursingId: s
 
   return (
     <div>
-      <DetailNurse nurse={detailNurse} />
+      <DetailNurse nurse={detailNurse} serviceID={params.serviceId} />
     </div>
   );
 };

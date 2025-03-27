@@ -1,5 +1,6 @@
 import React from "react";
 import { OrderConfirmationComponent } from "./Step7";
+import { NurseItemType } from "@/types/nurse";
 
 interface SelectedTime {
   timeSlot: { display: string; value: string };
@@ -8,10 +9,10 @@ interface SelectedTime {
 
 interface Step6Props {
   nurseSelectionMethod: "manual" | "auto";
-  selectedServices: Array<{
+  selectedServicesTask: Array<{
     name: string;
-    price: number;
-    time: string;
+    "est-duration": number;
+    cost: number;
     description?: string;
     validityPeriod?: number;
     usageTerms?: string;
@@ -22,11 +23,8 @@ interface Step6Props {
   calculateTotalTime: () => number;
   setSelectedTime: (time: SelectedTime) => void;
 
-  selectedNurse: {
-    id: number;
-    name: string;
-    specialization: string;
-  } | null;
+  selectedNurse: NurseItemType | null;
+
   selectedTime: {
     timeSlot: { display: string; value: string };
     date: string;
@@ -38,7 +36,7 @@ interface Step6Props {
 
 export const Step6Component: React.FC<Step6Props> = ({
   nurseSelectionMethod,
-  selectedServices,
+  selectedServicesTask,
   serviceQuantities,
   formatCurrency,
   calculateTotalPrice,
@@ -50,7 +48,7 @@ export const Step6Component: React.FC<Step6Props> = ({
 }) => {
   return (
     <OrderConfirmationComponent
-      selectedServices={selectedServices}
+      selectedServicesTask={selectedServicesTask}
       serviceQuantities={serviceQuantities}
       formatCurrency={formatCurrency}
       selectedNurse={selectedNurse}

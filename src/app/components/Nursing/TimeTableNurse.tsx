@@ -137,16 +137,16 @@ const TimeTableNurse = () => {
                 {hour}
               </td>
               {weekDays.map((day) => {
-                console.log("Checking day:", day);
+                // console.log("Checking day:", day);
 
                 const hasWork = workList.find(
                   ({ shift_date, shift_from, shift_to }) => {
-                    console.log(
-                      "Comparing with:",
-                      shift_date,
-                      shift_from,
-                      shift_to
-                    ); // Log dữ liệu trong workList
+                    // console.log(
+                    //   "Comparing with:",
+                    //   shift_date,
+                    //   shift_from,
+                    //   shift_to
+                    // ); // Log dữ liệu trong workList
 
                     const isSameDay = shift_date === formatShiftDate(day);
                     const [start, end] = hour
@@ -159,7 +159,7 @@ const TimeTableNurse = () => {
                     );
                   }
                 );
-                console.log("hasWork", hasWork);
+                // console.log("hasWork", hasWork);
 
                 const isAppointment = hasWork?.appointment_id !== null;
 

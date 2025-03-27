@@ -22,16 +22,7 @@ export interface Res {
   status: number;
   message: string;
 }
-
-/**/
-export type Service = {
-  name: string;
-  time: string;
-  price: number;
-  description?: string;
-  validityPeriod?: number;
-  usageTerms?: string;
-};
+;
 
 export interface Services {
   id: number;
@@ -39,6 +30,9 @@ export interface Services {
   major_id: number;
   duration: string;
   fee: number;
+  // sẽ xoá sau
+  time?: number;
+  price?: number;
 }
 // --------------------------------------------------
 
@@ -47,7 +41,7 @@ type CategoryInfo = {
   id: string;
   name: string;
   description: string;
-  thumbnail ?: string;
+  thumbnail?: string;
 };
 
 type ServiceItem = {
@@ -61,13 +55,29 @@ type ServiceItem = {
   price?: number;
   validityPeriod?: number;
   usageTerms?: string;
+  discount?: number;
+};
+
+type PackageServiceItem = {
+  id: string;
+  name: string;
+  status: string;
+  description: string;
+  "service-id": string;
+  "time-interval": number;
+  "combo-days"?: number;
+  discount: number;
+  // Thêm field giả định sau này sẽ xoá
+  price?: number;
+  validityPeriod?: number;
+  usageTerms?: string;
 };
 
 type TransformedCategory = {
   name: string;
   id: string;
   description: string;
-  thumbnail ?: string;
+  thumbnail?: string;
   services: {
     name: string;
     id: string;
@@ -83,4 +93,45 @@ type SelectedService = {
   id: string;
   description: string;
   // thumbnail: string;
+};
+
+// Type cho api get list serivces package
+export type ServicePackageType = {
+  id: string;
+  "service-id": string;
+  name: string;
+  description: string;
+  "combo-days": number;
+  discount: string;
+  "time-interval": number;
+  status: string;
+  "created-at": number;
+};
+
+export type ServicePackageTypeRes = {
+  data: ServicePackageType[];
+  success: boolean;
+};
+
+// Type cho api get list serivces task
+export type ServiceTaskType = {
+  id: string;
+  "svcpackage-id": string;
+  "is-must-have": boolean;
+  "task-order": number;
+  name: string;
+  description: string;
+  "staff-advice": string;
+  "est-duration": number;
+  cost: number;
+  "additional-cost": number;
+  "additional-cost-desc": string;
+  unit: string;
+  "price-of-step": number;
+  status: string;
+};
+
+export type ServiceTaskTypeRes = {
+  data: ServiceTaskType[];
+  success: boolean;
 };

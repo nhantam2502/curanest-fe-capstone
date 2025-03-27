@@ -33,10 +33,10 @@ const categoryIcons: { [key: string]: React.ReactNode } = {
 
 interface Step1Props {
   serviceCategories: TransformedCategory[];
-  selection: { categoryId: string; serviceId: string } | null;
-setSelection: (
-  selection: { categoryId: string; serviceId: string } | null
-) => void;
+  selection: { categoryId: string; serviceId: string; serviceName?: string } | null;
+  setSelection: (
+    selection: { categoryId: string; serviceId: string; serviceName?: string } | null
+  ) => void;
 
   onNext: () => void;
   isLoading?: boolean;
@@ -66,20 +66,20 @@ export const ServiceCategorySelection: React.FC<Step1Props> = ({
   };
 
   const filteredCategories = searchTerm
-    ? serviceCategories
-        .map(category => {
-          const filteredServices = category.services.filter(service =>
+    ? (serviceCategories
+        .map((category) => {
+          const filteredServices = category.services.filter((service) =>
             service.name.toLowerCase().includes(searchTerm.toLowerCase())
           );
-          
+
           return filteredServices.length > 0
             ? {
                 ...category,
-                services: filteredServices
+                services: filteredServices,
               }
             : null;
         })
-        .filter(Boolean) as TransformedCategory[]
+        .filter(Boolean) as TransformedCategory[])
     : serviceCategories;
 
   return (
@@ -183,11 +183,12 @@ export const ServiceCategorySelection: React.FC<Step1Props> = ({
                   {category.services.map((service, idx) => {
                     // Find the original index in the unfiltered category
                     const originalServiceIdx = (
-                      serviceCategories.find(c => c.id === category.id)
-                        ?.services.findIndex(s => s.name === service.name) ?? 0
+                      serviceCategories
+                        .find((c) => c.id === category.id)
+                        ?.services.findIndex((s) => s.name === service.name) ??
+                      0
                     ).toString();
-                    
-                    
+
                     return (
                       <button
                         key={idx}
@@ -201,7 +202,8 @@ export const ServiceCategorySelection: React.FC<Step1Props> = ({
                         onClick={() => {
                           setSelection({
                             categoryId: category.id,
-                            serviceId: service.id, 
+                            serviceId: service.id,
+                            serviceName: service.name, // Thêm service.name vào selection
                           });
                         }}
                         

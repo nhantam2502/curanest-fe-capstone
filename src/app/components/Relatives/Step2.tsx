@@ -1,209 +1,366 @@
-// Step2Component.tsx
-import React from "react";
-import { Info, Check } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Info, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { ServiceItem } from "@/types/service";
+import { PackageServiceItem, ServiceTaskType } from "@/types/service";
 
 interface Step2Props {
-  selectedServiceType: "oneTime" | "subscription";
-  setSelectedServiceType: (type: "oneTime" | "subscription") => void;
-  selectedMajor: string | null;
-  setSelectedMajor: (major: string | null) => void;
   servicesByType: {
-    [key: string]: {
-      [packageName: string]: ServiceItem[];
-    };
+    oneTime: { [categoryName: string]: PackageServiceItem[] };
+    subscription: { [categoryName: string]: PackageServiceItem[] };
   };
-  handleMajorChange: (packageName: string) => void;
   formatCurrency: (value: number) => string;
-  calculatePackageTotalTime: (services: ServiceItem[]) => number;
-  calculatePackagePrice: (services: ServiceItem[]) => number;
-  setSelectedServices: (
-    services: Array<{
-      name: string;
-      price: number;
-      time: string;
-      description?: string;
-      validityPeriod?: number;
-      usageTerms?: string;
-    }>
-  ) => void;
-  setServiceQuantities: React.Dispatch<
-    React.SetStateAction<{ [key: string]: number }>
+  calculatePackageTotalTime: (services: PackageServiceItem[]) => number;
+  calculatePackagePrice: (services: PackageServiceItem[]) => number;
+  setSelectedServicesTask: (services: ServiceTaskType[]) => void;
+
+  isLoading?: boolean;
+  selectedPackage: string | null;
+  setSelectedPackage: (packageName: string | null) => void;
+  fetchServiceTasks: (packageId: string) => Promise<ServiceTaskType[]>;
+  serviceTasks: Record<string, ServiceTaskType[]>;
+  setServiceTasks: React.Dispatch<
+    React.SetStateAction<Record<string, ServiceTaskType[]>>
   >;
-  onNext: () => void;
-  onPrevious: () => void;
+  isTasksLoading?: boolean;
 }
 
 export const ServicePackageSelection: React.FC<Step2Props> = ({
-  selectedServiceType,
-  setSelectedServiceType,
-  selectedMajor,
   servicesByType,
-  handleMajorChange,
   formatCurrency,
   calculatePackageTotalTime,
   calculatePackagePrice,
-  setSelectedServices,
-  setServiceQuantities,
-  onNext,
-  onPrevious,
+  setSelectedServicesTask,
+  isLoading = false,
+  selectedPackage,
+  setSelectedPackage,
+  fetchServiceTasks,
+  serviceTasks,
+  setServiceTasks,
+  isTasksLoading = false,
 }) => {
+  const [selectedServiceType, setSelectedServiceType] = useState<
+    "oneTime" | "subscription"
+  >("oneTime");
+
+  const handleServiceTypeChange = (type: "oneTime" | "subscription") => {
+    setSelectedServiceType(type);
+    setSelectedPackage(null);
+  };
+
+  const handlePackageSelect = async (
+    packageName: string,
+    packageId: string
+  ) => {
+    setSelectedPackage(packageName);
+
+    // Đầu tiên tải tasks nếu chưa có
+    if (!serviceTasks[packageId]) {
+      const tasks = await fetchServiceTasks(packageId);
+      setServiceTasks((prev) => ({
+        ...prev,
+        [packageId]: tasks,
+      }));
+
+      // Sử dụng tasks để thiết lập selectedServices
+      if (tasks && tasks.length > 0) {
+        setSelectedServicesTask(
+          tasks.map((task) => ({
+            id: task.id,
+            name: task.name,
+            cost: task.cost || 0,
+            "est-duration": task["est-duration"] || 0,
+            description: task.description || "",
+            discount: 0, // Hoặc có thể thêm discount nếu task có
+            "additional-cost": task["additional-cost"] || 0,
+            "additional-cost-desc": task["additional-cost-desc"] || "",
+            "staff-advice": task["staff-advice"] || "",
+            "task-order": task["task-order"] || 0,
+            "is-must-have": task["is-must-have"] || false,
+            "price-of-step": task["price-of-step"] || 0,
+            unit: task.unit || "",
+            "svcpackage-id": task["svcpackage-id"] || "",
+            status: task.status || "",
+          }))
+        );
+      } else {
+        // Fallback nếu không có tasks
+        setSelectedServicesTask(
+          servicesByType[selectedServiceType][packageName].map((service) => ({
+            id: service.id,
+            name: service.name,
+            cost: service.price ?? 0,
+            "est-duration": service["time-interval"] || 0,
+            description: service.description,
+            discount: service.discount,
+            "additional-cost": 0,
+            "additional-cost-desc": "",
+            "staff-advice": "",
+            "task-order": 0,
+            "is-must-have": false,
+            "price-of-step": 0,
+            unit: "",
+            "svcpackage-id": packageId,
+            status: "",
+          }))
+        );
+      }
+    } else {
+      // Nếu đã có tasks, sử dụng tasks để thiết lập selectedServices
+      const tasks = serviceTasks[packageId];
+      if (tasks && tasks.length > 0) {
+        setSelectedServicesTask(
+          tasks.map((task) => ({
+            id: task.id,
+            name: task.name,
+            cost: task.cost || 0,
+            "est-duration": task["est-duration"] || 0,
+            description: task.description || "",
+            discount: 0, // Hoặc có thể thêm discount nếu task có
+            "additional-cost": task["additional-cost"] || 0,
+            "additional-cost-desc": task["additional-cost-desc"] || "",
+            "staff-advice": task["staff-advice"] || "",
+            "task-order": task["task-order"] || 0,
+            "is-must-have": task["is-must-have"] || false,
+            "price-of-step": task["price-of-step"] || 0,
+            unit: task.unit || "",
+            "svcpackage-id": task["svcpackage-id"] || "",
+            status: task.status || "",
+          }))
+        );
+      } else {
+        // Fallback nếu không có tasks
+        setSelectedServicesTask(
+          servicesByType[selectedServiceType][packageName].map((service) => ({
+            id: service.id,
+            name: service.name,
+            cost: service.price ?? 0,
+            "est-duration": service["time-interval"] || 0,
+            description: service.description,
+            discount: service.discount,
+            "additional-cost": 0,
+            "additional-cost-desc": "",
+            "staff-advice": "",
+            "task-order": 0,
+            "is-must-have": false,
+            "price-of-step": 0,
+            unit: "",
+            "svcpackage-id": packageId,
+            status: "",
+          }))
+        );
+      }
+    }
+  };
+
+  useEffect(() => {
+    Object.keys(servicesByType[selectedServiceType] || {}).forEach(
+      async (packageName) => {
+        const packageId =
+          servicesByType[selectedServiceType][packageName][0]?.id || "";
+        if (packageId && !serviceTasks[packageId]) {
+          const tasks = await fetchServiceTasks(packageId);
+          setServiceTasks((prev) => ({
+            ...prev,
+            [packageId]: tasks,
+          }));
+        }
+      }
+    );
+  }, [selectedServiceType]);
+
+  const calculatePackageDiscount = (services: PackageServiceItem[]) => {
+    if (services.length === 0) return 0;
+    const totalDiscount = services.reduce(
+      (sum, service) => sum + (service.discount || 0),
+      0
+    );
+    return Math.round(totalDiscount / services.length);
+  };
+
+  const calculateTasksTotalPrice = (tasks: ServiceTaskType[]) => {
+    return tasks.reduce((total, task) => {
+      return total + (task.cost || 0);
+    }, 0);
+  };
   return (
     <div className="space-y-6 text-lg">
       <h2 className="text-4xl font-bold">Chọn gói dịch vụ</h2>
       <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-red-500 mt-[18px]">
-        <Info className="mr-2" />
-        Mỗi đơn hàng chỉ được chọn một gói dịch vụ
+        <Info className="mr-2" /> Mỗi đơn hàng chỉ được chọn một gói dịch vụ
       </p>
 
-      {/* Tabs for service types */}
-      <div className="flex border-b border-gray-200 mb-6">
-        <button
-          className={`py-3 px-6 font-medium text-lg ${
-            selectedServiceType === "oneTime"
-              ? "border-b-2 border-primary text-primary"
-              : "text-gray-500"
-          }`}
-          onClick={() => setSelectedServiceType("oneTime")}
-        >
-          Gói dịch vụ sử dụng 1 lần
-        </button>
-        <button
-          className={`py-3 px-6 font-medium text-lg ${
-            selectedServiceType === "subscription"
-              ? "border-b-2 border-primary text-primary"
-              : "text-gray-500"
-          }`}
-          onClick={() => setSelectedServiceType("subscription")}
-        >
-          Gói dịch vụ áp dụng nhiều ngày
-        </button>
-      </div>
-
-      <ScrollArea className="w-full h-[800px]">
-        <div className="space-y-6 mr-4">
-          {Object.keys(servicesByType[selectedServiceType]).map(
-            (packageName) => (
-              <Card
-                key={packageName}
-                className={cn(
-                  "overflow-hidden transition-all cursor-pointer",
-                  selectedMajor === packageName
-                    ? "border-primary ring-2 ring-primary/30"
-                    : "border-gray-200 hover:border-primary/50"
-                )}
-                onClick={() => {
-                  handleMajorChange(packageName);
-                  // Auto-select all services in this package
-                  setSelectedServices(
-                    servicesByType[selectedServiceType][packageName].map(
-                      (service) => ({
-                        name: service.name,
-                        price: service.price ?? 0, // Ensure price is never undefined
-                        time: String(service["est-duration"]),
-                        description: service.description,
-                        // validityPeriod: service.validityPeriod,
-                        // usageTerms: service.usageTerms,
-                      })
-                    )
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="w-10 h-10 animate-spin text-gray-500" />
+        </div>
+      ) : (
+        <>
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              className={`py-3 px-6 font-medium text-lg ${
+                selectedServiceType === "oneTime"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-gray-500"
+              }`}
+              onClick={() => handleServiceTypeChange("oneTime")}
+            >
+              Gói dịch vụ sử dụng 1 lần
+            </button>
+            <button
+              className={`py-3 px-6 font-medium text-lg ${
+                selectedServiceType === "subscription"
+                  ? "border-b-2 border-primary text-primary"
+                  : "text-gray-500"
+              }`}
+              onClick={() => handleServiceTypeChange("subscription")}
+            >
+              Gói dịch vụ áp dụng nhiều ngày
+            </button>
+          </div>
+          <ScrollArea className="w-full h-[800px]">
+            <div className="space-y-6 mr-4">
+              {Object.keys(servicesByType[selectedServiceType] || {}).map(
+                (packageName) => {
+                  const packageDiscount = calculatePackageDiscount(
+                    servicesByType[selectedServiceType][packageName]
                   );
-                }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-2xl font-semibold mb-3">
-                        {packageName}
-                      </h3>
-                      <div className="text-lg text-gray-600 mb-4">
-                        {calculatePackageTotalTime(
-                          servicesByType[selectedServiceType][packageName].map(
-                            (service) => ({
-                              ...service,
-                              time: String(service["est-duration"]),
-                            })
-                          )
-                        )}{" "}
-                        phút •{" "}
-                        {
-                          servicesByType[selectedServiceType][packageName]
-                            .length
-                        }{" "}
-                        dịch vụ
-                        {/* Show validity period for subscription packages */}
-                        {selectedServiceType === "subscription" &&
-                          servicesByType[selectedServiceType][packageName][0]
-                            .validityPeriod && (
-                            <span className="ml-2 text-blue-600">
-                              • Áp dụng trong{" "}
-                              {
+                  const packageId =
+                    servicesByType[selectedServiceType][packageName][0]?.id ||
+                    "";
+                  const tasks = serviceTasks[packageId] || [];
+
+                  return (
+                    <Card
+                      key={packageName}
+                      className={cn(
+                        "overflow-hidden transition-all cursor-pointer",
+                        selectedPackage === packageName
+                          ? "border-primary ring-2 ring-primary/30"
+                          : "border-gray-200 hover:border-primary/50"
+                      )}
+                      onClick={() =>
+                        handlePackageSelect(packageName, packageId)
+                      }
+                    >
+                      <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div className="w-full">
+                            <h3 className="text-2xl font-semibold mb-3">
+                              {packageName}
+                            </h3>
+
+                            {/* Thông tin dịch vụ */}
+                            {servicesByType[selectedServiceType][
+                              packageName
+                            ].map((service, index) => (
+                              <div
+                                key={index}
+                                className="text-lg text-gray-600 mb-4"
+                              >
+                                {service.description && (
+                                  <span className="text-gray-500 ml-1">
+                                    {service.description}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+
+                            {/* Hiển thị tasks */}
+                            {tasks.length > 0 && (
+                              <div className="mt-4">
+                                <h4 className="text-xl font-semibold mb-2">
+                                  Trong gói bao gồm dịch vụ:
+                                </h4>
+                                <ul className="space-y-2">
+                                  {tasks.map((task) => (
+                                    <li
+                                      key={task.id}
+                                      className="text-xl text-gray-600"
+                                    >
+                                      <div className="flex items-center gap-8">
+                                        {task.name}
+                                        <span className="text-[#e5ab47] font-semibold">
+                                          {task["est-duration"]} phút
+                                          {/* {task.unit === "quantity"
+                                            ? "lần"
+                                            : "phút"} */}
+                                        </span>
+                                      </div>
+                                      {/* {task.description && (
+                                        <p className="text-[16px] text-gray-500">
+                                          {task.description}
+                                        </p>
+                                      )} */}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {isTasksLoading &&
+                              !tasks.length &&
+                              selectedPackage === packageName && (
+                                <div className="mt-4 flex items-center">
+                                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                  <span>Đang tải danh sách công việc...</span>
+                                </div>
+                              )}
+
+                            <div className="text-lg text-gray-600 mt-4">
+                              {calculatePackageTotalTime(
                                 servicesByType[selectedServiceType][
                                   packageName
-                                ][0].validityPeriod
-                              }{" "}
-                              ngày
+                                ].map((service) => ({
+                                  ...service,
+                                  time: String(service["time-interval"]),
+                                }))
+                              )}{" "}
+                              phút •{" "}
+                              {tasks && tasks.length > 0
+                                ? tasks.length
+                                : servicesByType[selectedServiceType][
+                                    packageName
+                                  ].length}{" "}
+                              dịch vụ
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-5 min-w-[150px]">
+                            {packageDiscount > 0 && (
+                              <div className="bg-red-100 text-red-700 px-2 py-2 rounded-full text-lg font-semibold min-w-[120px] text-center whitespace-nowrap">
+                                Giảm {packageDiscount}%
+                              </div>
+                            )}
+                            <span className="font-bold text-2xl text-red-600">
+                              {formatCurrency(
+                                tasks.length > 0
+                                  ? calculateTasksTotalPrice(tasks)
+                                  : calculatePackagePrice(
+                                      servicesByType[selectedServiceType][
+                                        packageName
+                                      ]
+                                    )
+                              )}
                             </span>
-                          )}
-                      </div>
-
-                      {/* List the included services */}
-                      <div className="space-y-2 mt-4">
-                        <h4 className="font-semibold text-lg">
-                          Dịch vụ bao gồm:
-                        </h4>
-                        <ul className="list-disc list-inside space-y-1 ml-2">
-                          {servicesByType[selectedServiceType][packageName].map(
-                            (service) => (
-                              <li key={service.name} className="text-gray-700">
-                                {service.name}{" "}
-                                <span className="text-gray-500">
-                                  ({service["est-duration"]} phút)
-                                </span>
-                                {/* Show usage terms for subscription packages */}
-                                {selectedServiceType === "subscription" &&
-                                  service.usageTerms && (
-                                    <span className="text-green-600 ml-1">
-                                      • {service.usageTerms}
-                                    </span>
-                                  )}
-                              </li>
-                            )
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-3">
-                      <span className="font-bold text-2xl text-red-600">
-                        {formatCurrency(
-                          calculatePackagePrice(
-                            servicesByType[selectedServiceType][
-                              packageName
-                            ].map((service) => ({
-                              ...service,
-                              time: String(service.price),
-                            }))
-                          )
-                        )}
-                      </span>
-
-                      {selectedMajor === packageName && (
-                        <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                          <Check className="w-5 h-5 text-white" />
+                            {selectedPackage === packageName && (
+                              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                                <Check className="w-5 h-5 text-white" />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          )}
-        </div>
-        <ScrollBar orientation="vertical" />
-      </ScrollArea>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+              )}
+            </div>
+            <ScrollBar orientation="vertical" />
+          </ScrollArea>
+        </>
+      )}
     </div>
   );
 };

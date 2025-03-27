@@ -54,7 +54,7 @@ const SelectRolePage = () => {
 
           <Card
             className="p-8 hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => handleRoleSelect("business")}
+            onClick={() => handleRoleSelect("admin")}
           >
             <div className="flex flex-col items-center text-center">
               <h2 className="text-2xl font-semibold mb-6">
