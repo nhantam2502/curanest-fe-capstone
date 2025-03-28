@@ -1,129 +1,320 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { GetAllNurseDetail } from "@/types/nurse";
-import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
-import { ChevronLeft, Star } from "lucide-react";
+import { GetAllNurseDetail } from "@/types/nurse"; // Assuming correct path
+import nurseApiRequest from "@/apiRequest/nurse/apiNurse"; // Assuming correct path
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 
-export default function NurseDetailPage() {
-  const { id } = useParams();
+import {
+  ChevronLeft,
+  Mail,
+  Phone,
+  Home,
+  MapPin,
+  Cake,
+  User as UserIcon, // Renamed to avoid conflict
+  Briefcase,
+  GraduationCap,
+  Award,
+  Link as LinkIcon, // Link icon
+  FileText, // Generic document icon
+} from "lucide-react";
+import { StarRating } from "../components/StarRatings";
+
+// Helper to format date
+const formatDate = (dateString: string | undefined) => {
+  if (!dateString) return "N/A";
+  try {
+    // Use ISO format for consistency if possible, or format as needed
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  } catch (e) {
+    return dateString;
+  }
+};
+
+// Helper for initials
+const getInitials = (name: string | undefined): string => {
+  if (!name) return "N";
+  const nameParts = name.split(" ");
+  return nameParts.length > 1
+    ? `${nameParts[0][0]}${nameParts[nameParts.length - 1][0]}`.toUpperCase()
+    : nameParts.length === 1 && nameParts[0].length > 0
+      ? nameParts[0][0].toUpperCase()
+      : "N";
+};
+
+// Helper component for rendering detail items consistently
+const InfoItem = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value?: string | number | null | React.ReactNode;
+}) => (
+  <div className="flex items-start gap-3">
+    <Icon className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
+    <div className="flex flex-col">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-sm font-medium">
+        {value || <span className="italic">N/A</span>}
+      </span>
+    </div>
+  </div>
+);
+
+export default function NurseDetailPageRenovated() {
+  const params = useParams();
+  const id = params?.id;
+  const nurseId = Array.isArray(id) ? id[0] : id; // Ensure string ID
   const router = useRouter();
+
   const [nurseDetail, setNurseDetail] = useState<GetAllNurseDetail | null>(
     null
   );
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchNurseDetail = async (): Promise<void> => {
-      if (!id) {
-        setError("Không thể tải thông tin điều dưỡng.");
+    const fetchNurseDetail = async () => {
+      setIsLoading(true);
+      setError(null);
+      if (!nurseId) {
+        setError("ID điều dưỡng không hợp lệ.");
+        setIsLoading(false);
         return;
       }
-      const nurse_id = Array.isArray(id) ? id[0] : id;
       try {
-        const response = await nurseApiRequest.getAllNurseDetail(nurse_id);
-        console.log("API response:", response);
-        setNurseDetail(response.payload.data);
-      } catch (err) {
+        const response = await nurseApiRequest.getAllNurseDetail(nurseId);
+        if (response.status === 200 && response.payload?.data) {
+          setNurseDetail(response.payload.data);
+        } else {
+          setError(
+            response.payload?.message || "Không tìm thấy thông tin điều dưỡng."
+          );
+          setNurseDetail(null); // Ensure state is null if not found
+        }
+      } catch (err: any) {
         console.error("Error fetching nurse detail:", err);
-        setError("Không thể tải thông tin điều dưỡng.");
+        setError(err.message || "Lỗi xảy ra khi tải dữ liệu.");
+        setNurseDetail(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchNurseDetail();
-  }, [id]);
+  }, [nurseId]); // Depend only on nurseId
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+        <Skeleton className="h-9 w-32 mb-6" /> {/* Back button */}
+        <div className="flex items-center gap-6 mb-6">
+          <Skeleton className="h-24 w-24 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+            <Skeleton className="h-5 w-32" />
+          </div>
+        </div>
+        <Separator />
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <Skeleton className="h-48 md:col-span-1" />
+          <Skeleton className="h-64 md:col-span-2" />
+        </div>
+      </div>
+    );
+  }
+
+  // --- Error State ---
   if (error) {
-    return <div>{error}</div>;
+    return (
+      <div className="container mx-auto p-4 md:p-6 lg:p-8 text-center">
+        <h1 className="text-2xl font-semibold mb-4 text-destructive">
+          Lỗi Tải Dữ Liệu
+        </h1>
+        <p className="text-muted-foreground mb-6">{error}</p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Quay lại
+        </Button>
+      </div>
+    );
   }
 
+  // --- Not Found State ---
   if (!nurseDetail) {
-    return <div>Loading...</div>;
+    return (
+      <div className="container mx-auto p-4 md:p-6 lg:p-8 text-center">
+        <h1 className="text-2xl font-semibold mb-4">Không tìm thấy</h1>
+        <p className="text-muted-foreground mb-6">
+          Không tìm thấy thông tin cho điều dưỡng này.
+        </p>
+        <Button variant="outline" onClick={() => router.back()}>
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Quay lại
+        </Button>
+      </div>
+    );
   }
 
+  // --- Render Details ---
   return (
-    <div className="mx-auto">
-      <Button className="mb-4" variant="outline" onClick={() => router.back()}>
+    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+      {/* Back Button */}
+      <Button variant="outline" onClick={() => router.back()} className="mb-2">
         <ChevronLeft className="mr-2 h-4 w-4" />
-        Trở lại
+        Trở lại danh sách
       </Button>
-      <div className="flex items-center space-x-4">
-        <img
-          src={nurseDetail["nurse-picture"] || "/placeholder-avatar.png"}
-          alt={nurseDetail["nurse-name"]}
-          className="w-24 h-24 rounded-full object-cover"
-        />
-        <div>
-          <h2 className="text-2xl font-bold">{nurseDetail["nurse-name"]}</h2>
-          <p className="text-gray-600">
-            Slogan: {nurseDetail.slogan || "No slogan"}
-          </p>
-          <div className="flex items-center mt-2">
-            {Array.from({ length: 5 }, (_, i) => (
-              <Star
-                key={i}
-                className={`h-5 w-5 ${
-                  i < nurseDetail.rate ? "text-yellow-500" : "text-gray-300"
-                }`}
-              />
-            ))}
-            <span className="ml-2 text-sm text-gray-500">
-              ({nurseDetail.rate} / 5)
+
+      {/* Header Section */}
+      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left sm:gap-6 mb-6">
+        <Avatar className="h-24 w-24 border">
+          <AvatarImage
+            src={nurseDetail["nurse-picture"] || undefined}
+            alt={nurseDetail["nurse-name"]}
+          />
+          <AvatarFallback>
+            {getInitials(nurseDetail["nurse-name"])}
+          </AvatarFallback>
+        </Avatar>
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold">{nurseDetail["nurse-name"]}</h1>
+          {nurseDetail.slogan && (
+            <p className="text-sm text-muted-foreground italic">
+              "{nurseDetail.slogan}"
+            </p>
+          )}
+          <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+            <StarRating rating={nurseDetail.rate || 0} size={18} />
+            <span className="text-xs text-muted-foreground">
+              ({nurseDetail.rate?.toFixed(1) || "0.0"} / 5)
             </span>
           </div>
         </div>
       </div>
 
-      {/* Profile Details */}
-      <div className="mt-6 border-t pt-4 grid grid-cols-2 gap-4 space-y-3">
-        <DetailItem label="Role" value={nurseDetail.role} />
-        <DetailItem label="Email" value={nurseDetail.email} />
-        <DetailItem label="Phone Number" value={nurseDetail["phone-number"]} />
-        <DetailItem label="Gender" value={nurseDetail.gender ? "Nam" : "Nữ"} />
-        <DetailItem label="DOB" value={nurseDetail.dob} />
-        <DetailItem label="Address" value={nurseDetail.address} />
-        <DetailItem label="Ward" value={nurseDetail.ward} />
-        <DetailItem label="District" value={nurseDetail.district} />
-        <DetailItem label="City" value={nurseDetail.city} />
-        <DetailItem
-          label="Current Work Place"
-          value={nurseDetail["current-work-place"]}
-        />
-        <DetailItem
-          label="Education Level"
-          value={nurseDetail["education-level"]}
-        />
-        <DetailItem label="Experience" value={nurseDetail.experience} />
-        <DetailItem label="Certificate" value={nurseDetail.certificate} />
-        <div className="col-span-2">
-          <h3 className="font-medium text-gray-700">Google Drive URL:</h3>
-          <a
-            href={nurseDetail["google-drive-url"]}
-            className="text-blue-600 underline"
-            target="_blank"
-            rel="noreferrer"
-          >
-            {nurseDetail["google-drive-url"]}
-          </a>
+      <Separator />
+
+      {/* Details Grid */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {/* Column 1: Personal & Contact */}
+        <div className="space-y-6 lg:col-span-1">
+          <Card className="h-[60vh]">
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Thông tin cá nhân & Liên hệ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <InfoItem
+                icon={UserIcon}
+                label="Vai trò"
+                value={nurseDetail.role}
+              />
+              <InfoItem
+                icon={UserIcon}
+                label="Giới tính"
+                value={nurseDetail.gender ? "Nam" : "Nữ"}
+              />
+              <InfoItem
+                icon={Cake}
+                label="Ngày sinh"
+                value={formatDate(nurseDetail.dob)}
+              />
+              <Separator />
+              <InfoItem
+                icon={Mail}
+                label="Email"
+                value={<span className="break-all">{nurseDetail.email}</span>}
+              />
+              <InfoItem
+                icon={Phone}
+                label="Số điện thoại"
+                value={nurseDetail["phone-number"]}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="h-[60vh]">
+            <CardHeader>
+              <CardTitle className="text-lg">Địa chỉ & Chuyên môn</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4">
+              <InfoItem
+                icon={Home}
+                label="Số nhà, Đường"
+                value={nurseDetail.address}
+              />
+              <InfoItem
+                icon={MapPin}
+                label="Phường/Xã"
+                value={nurseDetail.ward}
+              />
+              <InfoItem
+                icon={MapPin}
+                label="Quận/Huyện"
+                value={nurseDetail.district}
+              />
+              <InfoItem
+                icon={MapPin}
+                label="Tỉnh/Thành phố"
+                value={nurseDetail.city}
+              />
+              <Separator className="md:col-span-2" />
+              <InfoItem
+                icon={Briefcase}
+                label="Nơi làm việc"
+                value={nurseDetail["current-work-place"]}
+              />
+              <InfoItem
+                icon={GraduationCap}
+                label="Học vấn"
+                value={nurseDetail["education-level"]}
+              />
+              <InfoItem
+                icon={Award}
+                label="Kinh nghiệm"
+                value={nurseDetail.experience}
+              />
+              <InfoItem
+                icon={FileText}
+                label="Chứng chỉ"
+                value={nurseDetail.certificate}
+              />
+              <InfoItem
+                icon={LinkIcon}
+                label="Google Drive"
+                value={
+                  nurseDetail["google-drive-url"] ? (
+                    <a
+                      href={nurseDetail["google-drive-url"]}
+                      className="text-primary underline hover:text-primary/80 break-all"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                    >
+                      {nurseDetail["google-drive-url"]}
+                    </a>
+                  ) : null
+                }
+              />
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </div>
-  );
-}
-
-function DetailItem({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | boolean;
-}) {
-  return (
-    <div className="flex items-center">
-      <span className="font-medium text-gray-700 mr-2">{label}:</span>
-      <span className="text-gray-900">{String(value) || "N/A"}</span>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import http from "@/lib/http";
-import { CreateNurse, CreateRes, GetAllNurseFilter } from "@/types/nurse";
+import { CreateNurse, CreateRes, GetAllNurseFilter, NurseListResType } from "@/types/nurse";
 
 const nurseApiRequest = {
 
@@ -35,6 +35,13 @@ const nurseApiRequest = {
   mapNurseToService: (nurseId: string, body: { "service-ids": string[] }) =>
     http.post<CreateRes>(`/nurse/api/v1/nurses/${nurseId}/services`, body),
 
+  getListNurse: (
+    page: number,
+    size: number,
+  ) =>
+    http.get<NurseListResType>(
+      `/nurse/api/v1/nurses?page=${page}&size=${size}`
+    ),
 };
 
 export default nurseApiRequest;

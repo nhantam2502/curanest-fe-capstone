@@ -6,6 +6,7 @@ import Link from "next/link";
 const nurses: NurseForStaff[] = [
   {
     id: 1,
+    avatar: "https://example.com/avatar1.jpg",
     name: "Alice Johnson",
     email: "alice.johnson@example.com",
     department: "Pediatrics",
@@ -22,6 +23,7 @@ const nurses: NurseForStaff[] = [
   },
   {
     id: 2,
+    avatar: "https://example.com/avatar2.jpg",
     name: "Bob Smith",
     email: "bob.smith@example.com",
     department: "Emergency",
@@ -38,6 +40,7 @@ const nurses: NurseForStaff[] = [
   },
   {
     id: 3,
+    avatar: "https://example.com/avatar3.jpg",
     name: "Clara Lee",
     email: "clara.lee@example.com",
     department: "Oncology",
