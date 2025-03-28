@@ -48,9 +48,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
-// Import the specific NurseItemType
 import { NurseItemType } from "@/types/nurse"; // Assuming path is correct
+import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 
 interface CategoryManagementProps {
   onCategorySelect: (categoryId: string) => void;
@@ -120,10 +119,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       try {
         // Adjust pagination/filter parameters as needed for getListNurse
         const response = await nurseApiRequest.getListNurse(
-          "",
-          null, // status
-          1,    // page
-          null
+          1,
+          100,
         );
         if (response.status === 200 && response.payload?.data) {
             setUsers(response.payload.data);
@@ -143,7 +140,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
       }
     };
     fetchStaff();
-  }, [toast]); // Added toast as dependency
+  }, [toast]);
 
   // Fetch categories when search query changes
   useEffect(() => {
