@@ -84,8 +84,7 @@ export default function NurseManagementPage() {
         nurses={nurses}
         currentPage={currentPage}
         totalPages={totalPages}
-        onPageChange={(page) => setCurrentPage(page)}
-      />
+        onPageChange={(page) => setCurrentPage(page)} totalNurses={0}      />
     </div>
   );
 }
