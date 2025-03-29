@@ -58,7 +58,6 @@ const formSchema = z.object({
   "is-must-have": z.boolean().default(false),
   "price-of-step": z.coerce.number().min(0).default(0),
   "staff-advice": z.string().optional(),
-  "task-order": z.coerce.number().min(0).default(0),
   unit: z.string().default("quantity"),
   status: z.string().default("available"),
 });
@@ -89,7 +88,6 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
         "is-must-have": serviceTask["is-must-have"] ?? false,
         "price-of-step": serviceTask["price-of-step"] ?? 0,
         "staff-advice": serviceTask["staff-advice"] || "",
-        "task-order": serviceTask["task-order"] ?? 0,
         unit: serviceTask.unit || "quantity",
         status: serviceTask.status || "available",
       });
@@ -168,7 +166,6 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
             </AlertDialogDescription>
         </AlertDialogHeader>
         <Form {...form}>
-          {/* Lưu ý: Đã bỏ space-y-6 và grid bên trong form, sử dụng grid ở thẻ form */}
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-6 py-4" // Sử dụng grid layout ở form
@@ -185,22 +182,6 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
                   <FormControl>
                     <Input placeholder="Nhập tên task" {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Task Order */}
-             <FormField
-              control={form.control}
-              name="task-order"
-              render={({ field }) => (
-                <FormItem className="col-span-1">
-                  <FormLabel>Thứ tự</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
-                  </FormControl>
-                   <FormDescription>Thứ tự hiển thị.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -387,7 +368,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
               name="is-must-have"
               render={({ field }) => (
                 // Điều chỉnh col-span nếu cần
-                <FormItem className="col-span-1 sm:col-span-2 flex flex-row items-center justify-between rounded-lg border p-4">
+                <FormItem className="col-span-1 sm:col-span-2 flex flex-row items-center justify-between p-4">
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Bắt buộc</FormLabel>
                     <FormDescription>
