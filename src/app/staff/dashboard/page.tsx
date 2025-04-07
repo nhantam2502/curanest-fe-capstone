@@ -1,17 +1,14 @@
-// app/admin/dashboard/page.tsx
-import { Stethoscope, UserCheck, Clock, Activity } from "lucide-react";
-import { StatCard } from "./components/StatCard";
-import { AppointmentsChart } from "./components/AppointmentChart";
-import { NurseStatusChart } from "./components/NurseChart";
-import { ServicePopularityChart } from "./components/ServiceChart";
-import RevenueChart from "./components/RevenueChart";
+import React from 'react'
+import { StatCard } from './components/StatCard';
+import { Activity, Clock, Stethoscope, UserCheck } from 'lucide-react';
+import { AppointmentsChart } from './components/AppointmentChart';
+import RevenueChart from './components/RevenueChart';
+import { ServicePopularityChart } from './components/ServiceChart';
 
-export default function AdminDashboardPage() {
+function page() {
   return (
     <div className="flex-1 space-y-6 p-4 pt-4">
       <h2 className="text-3xl font-bold tracking-tight mb-4">Thống kê</h2>
-
-      {/* Stat Cards - 4 columns on large screens */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Các y tá đang làm việc"
@@ -39,18 +36,6 @@ export default function AdminDashboardPage() {
         />
       </div>
 
-      {/* Main Charts - 2 columns on large screens */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <div className="rounded-lg border shadow-sm p-4">
-          <h3 className="text-lg font-semibold mb-4">Lịch hẹn theo thời gian</h3>
-          <AppointmentsChart />
-        </div>
-        <div className="rounded-lg border shadow-sm p-4">
-          <h3 className="text-lg font-semibold mb-4">Doanh thu</h3>
-          <RevenueChart />
-        </div>
-      </div>
-
       {/* Full-width Charts */}
       <div className="grid gap-6 grid-cols-1">
         <div className="rounded-lg border shadow-sm p-4">
@@ -61,3 +46,5 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
+export default page

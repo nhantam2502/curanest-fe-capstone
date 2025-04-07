@@ -156,7 +156,7 @@ function ServicePackageComponent({
               placeholder="Tìm theo tên gói..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-xs flex-grow sm:flex-grow-0"
+              className="w-full flex-grow sm:flex-grow-0"
             />
           </div>
 

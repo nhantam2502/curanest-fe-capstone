@@ -20,19 +20,23 @@ export default function AdminLayout({
 
   return (
     <NurseProvider>
-      <main>
+      {/* Root container sets the absolute boundary */}
+      <main className="flex h-screen overflow-hidden bg-gray-100">
         <Toaster />
+        {/* Navbar (assumed fixed/absolute positioned, outside the main flow) */}
         <AdminNavbar
           onToggleSidebar={handleToggleSidebar}
           isCollapsed={isCollapsed}
         />
+
         <div
-          className={`relative flex-1 flex flex-col transition-all duration-300 ease-in-out ${
+          className={`flex flex-1 flex-col h-full overflow-hidden transition-all duration-300 ease-in-out ${ // Added h-full and ensure overflow-hidden
             isCollapsed ? "lg:ml-20" : "lg:ml-64"
           }`}
         >
-          {/* Header Container */}
-          <header className="sticky top-0 z-10 w-full bg-white border-b border-gray-200 p-2 flex items-center justify-between">
+          {/* Header: Fixed height, does not grow/shrink vertically */}
+          <header className="sticky top-0 z-40 w-full bg-white border-b border-gray-200 p-2 flex items-center justify-between"> {/* Removed sticky, ensure flex-shrink-0 */}
+            {/* Toggle Button - position independent of header content */}
             <Button
               onClick={() => handleToggleSidebar(!isCollapsed)}
               className="p-2 rounded-sm hover:bg-gray-200 text-gray-600"
@@ -42,8 +46,8 @@ export default function AdminLayout({
               {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
             </Button>
           </header>
-          <div className="flex-1 lg:p-2 bg-gray-100 min-h-[calc(100vh-3rem)]">
-            <div className="bg-white border rounded-md p-4 min-h-[calc(100vh-7rem)]">
+          <div className="flex-1 overflow-y-auto lg:p-4">
+            <div className="bg-white border rounded-md p-4 min-h-[80vh]"> 
               {children}
             </div>
           </div>

@@ -95,50 +95,28 @@ export default function RenovatedNurseFilterImmediate({
 
   return (
     <Card className="mb-6 shadow-sm">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Bộ lọc Điều dưỡng</CardTitle>
-      </CardHeader>
       <CardContent className="py-2">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
           {/* Major Select */}
           <div className="grid gap-1">
-            <Label htmlFor="major" className="text-sm">Chuyên môn</Label>
-            <Select
-              value={filters.major || "all"}
-              onValueChange={(value) => handleChange("major", value)}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="major" className="h-9"><SelectValue placeholder="Chọn chuyên môn" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả chuyên môn</SelectItem>
-                <SelectItem value="Cardiology">Tim mạch (Cardiology)</SelectItem>
-                <SelectItem value="Neurology">Thần kinh (Neurology)</SelectItem>
-                <SelectItem value="Pediatrics">Nhi khoa (Pediatrics)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Status Select */}
-          <div className="grid gap-1">
-            <Label htmlFor="status" className="text-sm">Trạng thái</Label>
-            <Select
-              value={filters.status || "all"}
-              onValueChange={(value) => handleChange("status", value)}
-              disabled={isLoading}
-            >
-              <SelectTrigger id="status" className="h-9"><SelectValue placeholder="Chọn trạng thái" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="Active">Hoạt động (Active)</SelectItem>
-                <SelectItem value="Inactive">Không hoạt động (Inactive)</SelectItem>
-                <SelectItem value="On Leave">Nghỉ phép (On Leave)</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search-1"
+                name="search-1"
+                type="search"
+                placeholder="Tìm theo chuyên môn"
+                // value={filters.search}
+                // // Directly use handleChange for Input onChange
+                // onChange={(e) => handleChange("search", e)}
+                className="h-9 pl-8"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           {/* Gender Select */}
           <div className="grid gap-1">
-            <Label htmlFor="gender" className="text-sm">Giới tính</Label>
             <Select
               value={filters.gender || "all"}
               onValueChange={(value) => handleChange("gender", value)}
@@ -154,15 +132,14 @@ export default function RenovatedNurseFilterImmediate({
           </div>
 
           {/* Search Input */}
-          <div className="grid gap-1 sm:col-span-2 lg:col-span-1 xl:col-span-2">
-            <Label htmlFor="search" className="text-sm">Tìm kiếm tổng quát</Label>
+          <div className="grid gap-1">
             <div className="relative">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search"
                 name="search"
                 type="search"
-                placeholder="Tìm tên, email, chuyên môn..."
+                placeholder="Tìm tên, email"
                 value={filters.search}
                 // Directly use handleChange for Input onChange
                 onChange={(e) => handleChange("search", e)}
@@ -174,7 +151,7 @@ export default function RenovatedNurseFilterImmediate({
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2 pt-2 pb-3">
-        {/* Reset button is always useful */}
+
         <Button variant="outline" size="sm" onClick={handleReset} disabled={isLoading}>
           <X className="h-4 w-4 mr-1" />
           Xóa bộ lọc

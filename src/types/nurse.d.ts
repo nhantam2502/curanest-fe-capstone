@@ -81,6 +81,7 @@ export interface NurseForStaff {
   slogan: string;
   department?: string; 
   email?: string;
+  "phone-number": string; 
 }
 export interface CreateNurse {
   address: string;

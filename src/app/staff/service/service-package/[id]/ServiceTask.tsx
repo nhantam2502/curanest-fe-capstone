@@ -277,7 +277,7 @@ function ServiceTaskComponent({
                 placeholder="Tìm theo tên công việc..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-9 max-w-xs flex-grow sm:flex-grow-0 order-1 sm:order-none" // Adjust width and order
+                className="h-9 w-full flex-grow sm:flex-grow-0 order-1 sm:order-none" // Adjust width and order
               />
             )}
 

@@ -96,7 +96,7 @@ export default function UserFilter({
             <Input
               id="filter-name"
               type="text"
-              placeholder="Tìm theo tên..."
+              placeholder="Tìm theo nơi làm việc..."
               value={filters.fullName}
               onChange={(e) =>
                 setFilters((prev) => ({ ...prev, fullName: e.target.value }))
@@ -105,6 +105,8 @@ export default function UserFilter({
               className="h-8" // Make input slightly shorter
             />
           </div>
+
+
 
           <div className="grid gap-1">
             <Input

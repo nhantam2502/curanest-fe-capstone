@@ -9,6 +9,9 @@ import {
   X,
   Calendar,
   Hand,
+  LayoutDashboard,
+  CalendarX2,
+  Calendar1,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
@@ -34,11 +37,26 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   {
+    title: "Thống kê",
+    link: "/dashboard",
+    icon: <LayoutDashboard className="h-4 w-4" />,
+  },
+
+  {
     title: "Quản lý điều dưỡng",
     link: "/nurse-management",
     icon: <User className="h-4 w-4" />,
   },
-  { title: "Lịch làm việc", link: "/schedule", icon: <Calendar className="h-4 w-4" /> },
+  {
+    title: "Thêm lịch hẹn",
+    link: "/map-schedule",
+    icon: <Calendar1 className="h-4 w-4" />,
+  },
+  {
+    title: "Lịch làm việc",
+    link: "/schedule",
+    icon: <Calendar className="h-4 w-4" />,
+  },
   { title: "Dịch vụ", link: "/service", icon: <Hand className="h-4 w-4" /> },
 ];
 
@@ -128,8 +146,13 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({ isCollapsed }) => {
               >
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={avatar || "/placeholder.png"} alt={name || "User"} />
-                    <AvatarFallback>{name ? name.charAt(0).toUpperCase() : "U"}</AvatarFallback>
+                    <AvatarImage
+                      src={avatar || "/placeholder.png"}
+                      alt={name || "User"}
+                    />
+                    <AvatarFallback>
+                      {name ? name.charAt(0).toUpperCase() : "U"}
+                    </AvatarFallback>
                   </Avatar>
                   {!isCollapsed && (
                     <div className="flex flex-col text-left">

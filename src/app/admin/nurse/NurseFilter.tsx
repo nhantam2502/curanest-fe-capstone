@@ -48,16 +48,18 @@ export default function RenovatedNurseFilter({
   };
 
   const handleSelectChange = (name: keyof GetAllNurseFilter, value: string) => {
-     // Handle the "All" case specifically by setting to empty string
+    // Handle the "All" case specifically by setting to empty string
     setFilters((prev) => ({ ...prev, [name]: value === "all" ? "" : value }));
   };
 
   const handleSearch = () => {
-     // Filter out empty strings before sending if needed by API
-     const activeFilters: Partial<GetAllNurseFilter> = {};
-     if (filters["nurse-name"]?.trim()) activeFilters["nurse-name"] = filters["nurse-name"].trim();
-     if (filters["service-id"]?.trim()) activeFilters["service-id"] = filters["service-id"].trim(); // Assuming service ID is string
-     if (filters.rate) activeFilters.rate = filters.rate;
+    // Filter out empty strings before sending if needed by API
+    const activeFilters: Partial<GetAllNurseFilter> = {};
+    if (filters["nurse-name"]?.trim())
+      activeFilters["nurse-name"] = filters["nurse-name"].trim();
+    if (filters["service-id"]?.trim())
+      activeFilters["service-id"] = filters["service-id"].trim(); // Assuming service ID is string
+    if (filters.rate) activeFilters.rate = filters.rate;
 
     onSearch(activeFilters as GetAllNurseFilter); // Pass potentially partial filters
   };
@@ -67,19 +69,18 @@ export default function RenovatedNurseFilter({
     onReset(); // Call parent reset function
   };
 
-   // Allow searching on Enter key press in text inputs
+  // Allow searching on Enter key press in text inputs
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       handleSearch();
     }
   };
-
 
   return (
     <Card className="mb-6 shadow-sm">
       <CardContent className="py-2">
         {/* Use grid for layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Filter by Name */}
           <div className="grid gap-1">
             <Input
@@ -94,6 +95,21 @@ export default function RenovatedNurseFilter({
               disabled={isLoading}
             />
           </div>
+
+          <div className="grid gap-1">
+            <Input
+              // id="nurse-name"
+              // name="nurse-name" // Use name attribute for handleInputChange
+              type="text"
+              placeholder="Tìm theo nơi làm việc..."
+              // value={filters["nurse-name"]}
+              // onChange={handleInputChange}
+              // onKeyDown={handleKeyDown}
+              className="h-9"
+              disabled={isLoading}
+            />
+          </div>
+
           <div className="grid gap-1">
             <Input
               id="service-id"
@@ -107,10 +123,11 @@ export default function RenovatedNurseFilter({
               disabled={isLoading}
             />
           </div>
+
           <div className="grid gap-1">
             <Select
               value={filters.rate || "all"} // Use "all" for empty string value
-              onValueChange={(value) => handleSelectChange('rate', value)}
+              onValueChange={(value) => handleSelectChange("rate", value)}
               disabled={isLoading}
             >
               <SelectTrigger id="rate" className="h-9">
@@ -130,7 +147,12 @@ export default function RenovatedNurseFilter({
         </div>
       </CardContent>
       <CardFooter className="flex justify-end gap-2 pt-2 pb-3">
-        <Button variant="outline" size="sm" onClick={handleReset} disabled={isLoading}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleReset}
+          disabled={isLoading}
+        >
           <X className="h-4 w-4 mr-1" />
           Xóa bộ lọc
         </Button>

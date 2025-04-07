@@ -220,7 +220,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
               paginatedServices.map((service) => (
                 <TableRow key={service.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{service.name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground line-clamp-3">
+                  <TableCell className="text-sm text-muted-foreground">
                     {service.description}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
