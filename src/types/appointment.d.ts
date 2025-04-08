@@ -22,4 +22,23 @@ export type ScheduleEvent = {
   appointment_date: string;
 };
 
+export type CreateRes = {
+  status: number;
+  message: string;
+};
+
+export type CreateAppointmentCusPackage = {
+  dates: string[]; 
+  "nursing-id"?: string;
+  "patient-id": string;
+  "svcpackage-id": string;
+  "task-infos": {
+    "client-note": string;
+    "est-duration": number;
+    "svctask-id": string;
+    "total-cost": number;
+    "total-unit": number;
+  }[];
+};
+
 export type CalendarViewType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "SCHEDULE";

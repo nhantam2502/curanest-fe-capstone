@@ -16,8 +16,8 @@ interface Step2Props {
   setSelectedServicesTask: (services: ServiceTaskType[]) => void;
 
   isLoading?: boolean;
-  selectedPackage: string | null;
-  setSelectedPackage: (packageName: string | null) => void;
+  selectedPackage: PackageServiceItem | null;
+  setSelectedPackage: (packageName: PackageServiceItem | null) => void;
   fetchServiceTasks: (packageId: string) => Promise<ServiceTaskType[]>;
   serviceTasks: Record<string, ServiceTaskType[]>;
   setServiceTasks: React.Dispatch<
@@ -53,7 +53,10 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
     packageName: string,
     packageId: string
   ) => {
-    setSelectedPackage(packageName);
+    const selectedPackageItem =
+      servicesByType[selectedServiceType][packageName]?.[0] || null;
+
+    setSelectedPackage(selectedPackageItem);
 
     // Đầu tiên tải tasks nếu chưa có
     if (!serviceTasks[packageId]) {
@@ -170,20 +173,12 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
     );
   }, [selectedServiceType]);
 
-  const calculatePackageDiscount = (services: PackageServiceItem[]) => {
-    if (services.length === 0) return 0;
-    const totalDiscount = services.reduce(
-      (sum, service) => sum + (service.discount || 0),
-      0
-    );
-    return Math.round(totalDiscount / services.length);
-  };
-
   const calculateTasksTotalPrice = (tasks: ServiceTaskType[]) => {
     return tasks.reduce((total, task) => {
       return total + (task.cost || 0);
     }, 0);
   };
+
   return (
     <div className="space-y-6 text-lg">
       <h2 className="text-4xl font-bold">Chọn gói dịch vụ</h2>
@@ -223,9 +218,10 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
             <div className="space-y-6 mr-4">
               {Object.keys(servicesByType[selectedServiceType] || {}).map(
                 (packageName) => {
-                  const packageDiscount = calculatePackageDiscount(
-                    servicesByType[selectedServiceType][packageName]
-                  );
+                  const packageDiscount =
+                    servicesByType[selectedServiceType][packageName][0]
+                      ?.discount || 0;
+
                   const packageId =
                     servicesByType[selectedServiceType][packageName][0]?.id ||
                     "";
@@ -236,7 +232,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                       key={packageName}
                       className={cn(
                         "overflow-hidden transition-all cursor-pointer",
-                        selectedPackage === packageName
+                        selectedPackage?.name === packageName
                           ? "border-primary ring-2 ring-primary/30"
                           : "border-gray-200 hover:border-primary/50"
                       )}
@@ -301,7 +297,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
 
                             {isTasksLoading &&
                               !tasks.length &&
-                              selectedPackage === packageName && (
+                              selectedPackage?.name === packageName && (
                                 <div className="mt-4 flex items-center">
                                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
                                   <span>Đang tải danh sách công việc...</span>
@@ -309,7 +305,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                               )}
 
                             <div className="text-lg text-gray-600 mt-4">
-                              {calculatePackageTotalTime(
+                              {/* {calculatePackageTotalTime(
                                 servicesByType[selectedServiceType][
                                   packageName
                                 ].map((service) => ({
@@ -317,7 +313,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                                   time: String(service["time-interval"]),
                                 }))
                               )}{" "}
-                              phút •{" "}
+                              phút •{" "} */}
                               {tasks && tasks.length > 0
                                 ? tasks.length
                                 : servicesByType[selectedServiceType][
@@ -327,24 +323,52 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                             </div>
                           </div>
 
-                          <div className="flex flex-col items-end gap-5 min-w-[150px]">
-                            {packageDiscount > 0 && (
-                              <div className="bg-red-100 text-red-700 px-2 py-2 rounded-full text-lg font-semibold min-w-[120px] text-center whitespace-nowrap">
-                                Giảm {packageDiscount}%
-                              </div>
+                          <div className="flex flex-col items-end gap-3 min-w-[150px]">
+                            {packageDiscount > 0 ? (
+                              <>
+                                <div className="bg-red-100 text-red-700 px-2 py-2 rounded-full text-lg font-semibold min-w-[120px] text-center whitespace-nowrap">
+                                  Giảm {packageDiscount}%
+                                </div>
+                                <span className="font-bold text-2xl text-red-600">
+                                  {formatCurrency(
+                                    tasks.length > 0
+                                      ? calculateTasksTotalPrice(tasks) *
+                                          (1 - packageDiscount / 100)
+                                      : calculatePackagePrice(
+                                          servicesByType[selectedServiceType][
+                                            packageName
+                                          ]
+                                        ) *
+                                          (1 - packageDiscount / 100)
+                                  )}
+                                </span>
+                                <span className="text-gray-500 text-lg line-through">
+                                  {formatCurrency(
+                                    tasks.length > 0
+                                      ? calculateTasksTotalPrice(tasks)
+                                      : calculatePackagePrice(
+                                          servicesByType[selectedServiceType][
+                                            packageName
+                                          ]
+                                        )
+                                  )}
+                                </span>
+                              </>
+                            ) : (
+                              <span className="font-bold text-2xl text-red-600">
+                                {formatCurrency(
+                                  tasks.length > 0
+                                    ? calculateTasksTotalPrice(tasks)
+                                    : calculatePackagePrice(
+                                        servicesByType[selectedServiceType][
+                                          packageName
+                                        ]
+                                      )
+                                )}
+                              </span>
                             )}
-                            <span className="font-bold text-2xl text-red-600">
-                              {formatCurrency(
-                                tasks.length > 0
-                                  ? calculateTasksTotalPrice(tasks)
-                                  : calculatePackagePrice(
-                                      servicesByType[selectedServiceType][
-                                        packageName
-                                      ]
-                                    )
-                              )}
-                            </span>
-                            {selectedPackage === packageName && (
+
+                            {selectedPackage?.name === packageName && (
                               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                                 <Check className="w-5 h-5 text-white" />
                               </div>

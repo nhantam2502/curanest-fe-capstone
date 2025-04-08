@@ -60,7 +60,6 @@ export type CreateRes = {
   message: string;
 };
 
-
 export interface InfoItemProps {
   icon: LucideIcon;
   label: string;

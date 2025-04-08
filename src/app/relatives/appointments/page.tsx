@@ -21,7 +21,7 @@ const dummyData: Appointment[] = [
     phone_number: "0987654321",
     techniques: "Kỹ thuật A- Kỹ thuật B-Kỹ thuật C - Kỹ thuật G",
     total_fee: 500000,
-    appointment_date: "2025-03-20",
+    appointment_date: "2025-04-02",
     time_from_to: "08:00 - 09:00",
   },
   {
@@ -32,7 +32,7 @@ const dummyData: Appointment[] = [
     phone_number: "0912345678",
     techniques: "Kỹ thuật D-Kỹ thuật E",
     total_fee: 300000,
-    appointment_date: "2025-03-25",
+    appointment_date: "2025-04-05",
     time_from_to: "10:00 - 11:00",
   },
   {
@@ -43,7 +43,7 @@ const dummyData: Appointment[] = [
     phone_number: "0912345678",
     techniques: "Kỹ thuật D-Kỹ thuật E",
     total_fee: 300000,
-    appointment_date: "2025-01-22",
+    appointment_date: "2025-04-12",
     time_from_to: "10:00 - 11:00",
   },
 ];

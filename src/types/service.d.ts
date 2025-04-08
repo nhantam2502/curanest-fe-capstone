@@ -129,6 +129,7 @@ export type ServiceTaskType = {
   unit: string;
   "price-of-step": number;
   status: string;
+  note: string;
 };
 
 export type ServiceTaskTypeRes = {
