@@ -1,5 +1,5 @@
 // Nurse
-export interface Appointment {
+export interface AppointmentDummy {
   id: number;
   nurse_name: string;
   avatar: string;
@@ -22,13 +22,15 @@ export type ScheduleEvent = {
   appointment_date: string;
 };
 
+export type CalendarViewType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "SCHEDULE";
+// ----------------------//
 export type CreateRes = {
   status: number;
   message: string;
 };
 
 export type CreateAppointmentCusPackage = {
-  dates: string[]; 
+  dates: string[];
   "nursing-id"?: string;
   "patient-id": string;
   "svcpackage-id": string;
@@ -41,4 +43,51 @@ export type CreateAppointmentCusPackage = {
   }[];
 };
 
-export type CalendarViewType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "SCHEDULE";
+export interface Appointment {
+  id: string;
+  "service-id": string;
+  "cuspackage-id": string;
+  "nursing-id": string;
+  "patient-id": string;
+  "est-date": string;
+  "act-date": string;
+  status: string;
+  "created-at": string;
+}
+
+export type AppointmentRes = {
+  success: boolean;
+  message: string;
+  data: Appointment[];
+};
+
+export type CusPackageResponse = {
+  success: boolean;
+  data: {
+    package: CusPackage;
+    tasks: Task[];
+  };
+};
+
+export type CusPackage = {
+  id: string;
+  name: string;
+  "total-fee": number;
+  "paid-amount": number;
+  "unpaid-amount": number;
+  "payment-status": string;
+  "created-at": string; 
+};
+
+export type Task = {
+  id: string;
+  "task-order": number;
+  name: string;
+  "client-note": string;
+  "staff-advice": string;
+  "est-duration": number;
+  unit: string;
+  "total-unit": number;
+  status: string; 
+  "est-date": string; 
+};

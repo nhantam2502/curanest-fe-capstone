@@ -24,7 +24,7 @@ const StartTimeSelection: React.FC<StartTimeSelectionProps> = ({
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 space-x-1">
       <div className="flex items-center space-x-4">
         <h3 className="text-2xl font-semibold">
           Chọn giờ bắt đầu

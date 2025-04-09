@@ -1,21 +1,21 @@
+import { Appointment } from "@/types/appointment";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
-interface Appointment {
-  id: number;
+interface AppointmentDisplay {
+  id: string;
   nurse_name: string;
   avatar: string;
-  status: string;
-  phone_number: string;
   techniques: string;
-  total_fee: number;
+  total_fee?: number;
   appointment_date: string;
   time_from_to: string;
+  apiData: Appointment;
 }
 
 interface CalendarProps {
   onDateSelect: (date: string) => void;
-  appointments: Appointment[];
+  appointments: AppointmentDisplay[];
 }
 
 const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
@@ -33,23 +33,35 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
       6) %
     7;
 
+  // Tạo tập hợp các ngày có lịch hẹn để kiểm tra nhanh hơn
+  const appointmentDates = useMemo(() => {
+    const dates = new Set<string>();
+    appointments.forEach((apt) => {
+      // Chuẩn hóa định dạng ngày từ appointment_date (giả sử là YYYY-MM-DD)
+      const date = new Date(apt.appointment_date);
+      if (!isNaN(date.getTime())) {
+        const formattedDate = `${date.getFullYear()}-${String(
+          date.getMonth() + 1
+        ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        dates.add(formattedDate);
+      }
+    });
+    return dates;
+  }, [appointments]);
+
   const hasAppointment = (date: number) => {
     const dateString = `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
-    return appointments.some((apt) => apt.appointment_date === dateString);
+    return appointmentDates.has(dateString);
   };
 
   const getWeekDates = (date: Date) => {
     const day = date.getDay();
-    // Tính ngày thứ 2 của tuần (điều chỉnh CN về 7 thay vì 0)
     const monday = new Date(date);
     monday.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
-
-    // Tính ngày CN của tuần
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-
     return { monday, sunday };
   };
 
@@ -61,10 +73,8 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
       currentDate.getMonth(),
       date
     );
-
     const { monday, sunday } = getWeekDates(selectedDate);
 
-    // Set time to start of day for accurate comparison
     currentDateObj.setHours(0, 0, 0, 0);
     monday.setHours(0, 0, 0, 0);
     sunday.setHours(0, 0, 0, 0);
@@ -82,17 +92,6 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
     const formattedDate = `${newDate.getFullYear()}-${String(
       newDate.getMonth() + 1
     ).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
-
-    console.log("Selected Date:", {
-      fullDate: newDate.toLocaleDateString("vi-VN"),
-      formattedDate: formattedDate,
-      day: date,
-      month: currentDate.getMonth() + 1,
-      year: currentDate.getFullYear(),
-      dayOfWeek: newDate.toLocaleDateString("vi-VN", { weekday: "long" }),
-      week: getWeekDates(newDate),
-    });
-
     onDateSelect(formattedDate);
   };
 
@@ -101,7 +100,7 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
     newDate.setMonth(newDate.getMonth() + increment);
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Đặt thời gian về đầu ngày để so sánh chính xác
+    today.setHours(0, 0, 0, 0);
 
     if (newDate >= today) {
       setCurrentDate(newDate);
@@ -167,12 +166,12 @@ const Calendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) => {
           key={day}
           onClick={() => handleDateClick(currentDay)}
           className={`
-      w-12 h-12 flex items-center justify-center rounded-lg cursor-pointer
-      transition-all duration-200 hover:bg-blue-100
-      ${hasAppt ? "bg-yellow-100 hover:bg-yellow-200" : ""}
-      ${isSelected ? "bg-[#71DDD7] text-white hover:bg-[#71DDD7]/90" : ""}
-      ${isToday(currentDay) ? "border-2 border-red-500" : ""}
-    `}
+            w-12 h-12 flex items-center justify-center rounded-lg cursor-pointer
+            transition-all duration-200 hover:bg-blue-100
+            ${hasAppt ? "bg-yellow-100 hover:bg-yellow-200" : ""}
+            ${isSelected ? "bg-[#71DDD7] text-black hover:bg-[#71DDD7]/90" : ""}
+            ${isToday(currentDay) ? "border-2 border-red-500" : ""}
+          `}
         >
           <div className="flex flex-col items-center">
             <span className="text-xs">

@@ -800,12 +800,58 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                     )} */}
                   </div>
 
+                  {/* Phần hiển thị Patient Record đã chọn */}
+                  {selectedProfile ? (
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2 ">
+                      <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
+                        Hồ sơ bệnh nhân đã chọn
+                      </h3>
+                      <div className="text-lg text-gray-600 space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">Tên:</span>
+                          <span>{selectedProfile["full-name"]}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">Ngày sinh:</span>
+                          <span>
+                            {new Date(selectedProfile.dob).toLocaleDateString(
+                              "vi-VN"
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">Giới tính:</span>
+                          <span>
+                            {selectedProfile.gender === true ? "Nam" : "Nữ"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 italic text-center py-4">
+                      Chưa chọn hồ sơ bệnh nhân
+                    </div>
+                  )}
+
+                  {/* Selected Nurse */}
+                  {selectedNurse && (
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <h3 className="text-xl font-be-vietnam-pro font-semibold mb-2 text-gray-800">
+                        Điều dưỡng đã chọn
+                      </h3>
+                      <div className="text-lg text-gray-600 flex items-center">
+                        <User className="mr-2 text-gray-500" size={16} />
+                        {selectedNurse["nurse-name"]}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Selected Services */}
                   {selectedServicesTask && selectedServicesTask.length > 0 ? (
                     <div className="space-y-4">
                       {/* Package Name if Selected */}
                       {selectedPackage && (
-                        <div className="pb-3 border-b border-gray-200">
+                        <div>
                           <span className="text-xl font-semibold text-primary block">
                             {selectedPackage.name}
                           </span>
@@ -910,19 +956,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                   ) : (
                     <div className="text-gray-500 italic text-center py-4">
                       Chưa có dịch vụ nào được chọn
-                    </div>
-                  )}
-
-                  {/* Selected Nurse */}
-                  {selectedNurse && (
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      <h3 className="text-xl font-be-vietnam-pro font-semibold mb-2 text-gray-800">
-                        Điều dưỡng đã chọn
-                      </h3>
-                      <div className="text-lg text-gray-600 flex items-center">
-                        <User className="mr-2 text-gray-500" size={16} />
-                        {selectedNurse["nurse-name"]}
-                      </div>
                     </div>
                   )}
 

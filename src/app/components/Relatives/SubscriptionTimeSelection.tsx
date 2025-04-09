@@ -9,20 +9,16 @@ import {
 } from "@/components/ui/popover";
 import {
   CalendarIcon,
-  ChevronDown,
-  ChevronUp,
   CheckCircle2,
-  Clock,
   AlertCircle,
+  Edit2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   format,
   addDays,
   isSameDay,
-  differenceInDays,
   isAfter,
-  parseISO,
 } from "date-fns";
 import { vi } from "date-fns/locale";
 import StartTimeSelection from "./StartTimeSelection";
@@ -50,13 +46,13 @@ export interface TimeSlot {
 export interface SelectedDateTime {
   date: Date;
   timeSlot: TimeSlot;
-  isoString?: string; 
+  isoString?: string;
 }
 
 interface SubscriptionTimeSelectionProps {
   totalTime: number;
-  timeInterval: number; 
-  comboDays: number; 
+  timeInterval: number;
+  comboDays: number;
   onTimesSelect: (datetimes: SelectedDateTime[]) => void;
 }
 
@@ -67,7 +63,6 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
   onTimesSelect,
 }) => {
   const [selectedDates, setSelectedDates] = useState<SelectedDateTime[]>([]);
-  const [currentEditingDay, setCurrentEditingDay] = useState<number>(0);
   const [activeDate, setActiveDate] = useState<Date>(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(
     null
@@ -75,6 +70,7 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTime, setStartTime] = useState<string>("08:00");
   const [expandedDays, setExpandedDays] = useState<string>("0");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   // Function to get the days in the next 30 days
   const getDaysInRange = (): Date[] => {
@@ -155,11 +151,11 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
 
   // Function to convert date and time slot to ISO string format
   const createISOString = (date: Date, timeSlot: TimeSlot): string => {
-    const [hours, minutes] = timeSlot.start.split(':').map(Number);
-    
+    const [hours, minutes] = timeSlot.start.split(":").map(Number);
+
     const dateObj = new Date(date);
     dateObj.setHours(hours, minutes, 0, 0);
-    
+
     // Convert to UTC for backend: 2025-03-30T03:00:00Z format
     return dateObj.toISOString();
   };
@@ -169,116 +165,76 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
     setActiveDate(date);
     setCalendarOpen(false);
     setSelectedTimeSlot(null);
-  
-    // After selecting the first date with timeInterval > 0,
-    // we need to adjust the currentEditingDay
-    if (timeInterval > 0 && selectedDates.length === 0) {
-      // We just selected the first date, so make sure we're editing day 0
-      setCurrentEditingDay(0);
-    }
   };
 
   // Function to handle time slot selection
   const handleTimeSlotSelect = (timeSlot: TimeSlot) => {
     setSelectedTimeSlot(timeSlot);
-  
+
+    // If editing an existing session
+    if (editingIndex !== null) {
+      // Create ISO string for the edited date and time
+      const isoString = createISOString(selectedDates[editingIndex].date, timeSlot);
+
+      // Update only the time slot for this specific session
+      const updatedDates = [...selectedDates];
+      updatedDates[editingIndex] = {
+        ...updatedDates[editingIndex],
+        timeSlot: timeSlot,
+        isoString: isoString,
+      };
+
+      setSelectedDates(updatedDates);
+      setEditingIndex(null);
+      
+      // Notify parent component of the selection
+      onTimesSelect(updatedDates);
+      return;
+    }
+
     // Create ISO string for the selected date and time
     const isoString = createISOString(activeDate, timeSlot);
-  
+
     const newSelection: SelectedDateTime = {
       date: activeDate,
       timeSlot: timeSlot,
-      isoString: isoString, // Add ISO string
+      isoString: isoString,
     };
-  
-    // Update the selected dates for the current day only
-    const updatedDates = [...selectedDates];
-  
-    // Replace or add the current day selection
-    if (updatedDates.length > currentEditingDay) {
-      updatedDates[currentEditingDay] = newSelection;
-  
-      // If we're editing a day that's not the last one, we need to update subsequent days
-      if (currentEditingDay < updatedDates.length - 1) {
-        // Remove all selections after the current editing day
-        updatedDates.splice(currentEditingDay + 1);
-      }
-    } else {
-      updatedDates.push(newSelection);
+
+    // Update the selected dates array
+    const updatedDates: SelectedDateTime[] = [];
+
+    // Add the first date with selected time slot
+    updatedDates.push(newSelection);
+
+    // Calculate and add the remaining dates with the same time slot
+    for (let i = 1; i < comboDays; i++) {
+      const nextDate = addDays(activeDate, (timeInterval + 1) * i);
+      const nextIsoString = createISOString(nextDate, timeSlot);
+
+      updatedDates.push({
+        date: nextDate,
+        timeSlot: timeSlot,
+        isoString: nextIsoString,
+      });
     }
-  
+
     setSelectedDates(updatedDates);
-  
-    // Move to the next day if there are more days to select
-    if (currentEditingDay < comboDays - 1) {
-      setCurrentEditingDay(currentEditingDay + 1);
-  
-      // Set the next active date based on the timeInterval
-      if (timeInterval > 0) {
-        // For fixed interval, calculate from the first date
-        const nextDate = addDays(
-          updatedDates[0].date,
-          timeInterval * (currentEditingDay + 1)
-        );
-        setActiveDate(nextDate);
-      } else {
-        // For flexible scheduling (timeInterval = 0)
-        // Find the nearest available date that isn't already selected and is after all previously selected dates
-        const lastSelectedDate = getLatestSelectedDate(updatedDates);
-        setActiveDate(addDays(lastSelectedDate || new Date(), 1));
-      }
-    }
-  
+
     // Notify parent component of the selection
     onTimesSelect(updatedDates);
   };
 
-  // Function to edit a specific day
-  const handleEditDay = (index: number) => {
-    setCurrentEditingDay(index);
-
-    // Set the active date to the date being edited
-    if (selectedDates.length > index) {
-      setActiveDate(selectedDates[index].date);
-      setSelectedTimeSlot(selectedDates[index].timeSlot);
-    } else {
-      // If this is a new day after the last selected one
-      const lastSelectedDate = getLatestSelectedDate();
-      if (lastSelectedDate) {
-        if (timeInterval === 0) {
-          // For flexible scheduling, set to day after the latest selected date
-          setActiveDate(addDays(lastSelectedDate, 1));
-        } else {
-          // For fixed interval, calculate from the first date
-          if (selectedDates.length > 0) {
-            const nextDate = addDays(
-              selectedDates[0].date,
-              timeInterval * index
-            );
-            setActiveDate(nextDate);
-          }
-        }
-      }
-      setSelectedTimeSlot(null);
-    }
+  // Function to edit a specific session
+  const handleEditSession = (index: number) => {
+    setEditingIndex(index);
+    setExpandedDays(index.toString());
+    
+    // Set the current session's time slot as selected
+    setSelectedTimeSlot(selectedDates[index].timeSlot);
   };
 
-  // Function to get the latest selected date
-  const getLatestSelectedDate = (
-    datesList: SelectedDateTime[] = selectedDates
-  ): Date | null => {
-    if (datesList.length === 0) return null;
-
-    let latestDate = datesList[0].date;
-    for (let i = 1; i < datesList.length; i++) {
-      if (isAfter(datesList[i].date, latestDate)) {
-        latestDate = datesList[i].date;
-      }
-    }
-    return latestDate;
-  };
-
-  // Function to check if a date is already selected (for any day)
+  // Function to check if a date is already selected
   const isDateAlreadySelected = (
     date: Date,
     datesList: SelectedDateTime[] = selectedDates
@@ -291,85 +247,6 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
     return format(date, "dd/MM/yyyy", { locale: vi });
   };
 
-  // Function to get suggested dates based on first selection and timeInterval
-const getSuggestedDates = (): Date[] => {
-  if (selectedDates.length === 0) return [];
-
-  const dates: Date[] = [];
-
-  // Handle special case when timeInterval is 0
-  if (timeInterval === 0) {
-    // When timeInterval is 0, any future date that's not already selected is valid
-    const lastSelectedDate = getLatestSelectedDate();
-    const availableDates = getDaysInRange().filter(
-      (date) =>
-        !isDateAlreadySelected(date) &&
-        (lastSelectedDate ? isAfter(date, lastSelectedDate) : true)
-    );
-
-    // Return the currently active date if it's available, otherwise the first available date
-    const activeIsAvailable =
-      !isDateAlreadySelected(activeDate) &&
-      (lastSelectedDate ? isAfter(activeDate, lastSelectedDate) : true);
-    return activeIsAvailable
-      ? [activeDate]
-      : availableDates.length > 0
-        ? [availableDates[0]]
-        : [];
-  } else {
-    // Normal case with timeInterval > 0
-    const firstDate = selectedDates[0].date;
-    
-    // For each day in the combo, suggest a date based on the interval
-    // First date is already selected, so start from 1
-    for (let i = 0; i < comboDays; i++) {
-      if (i === 0) {
-        // For the first day, use the already selected date
-        dates.push(firstDate);
-      } else {
-        // For subsequent days, add (timeInterval + 1) * dayIndex
-        // Adding +1 because we want to skip exactly timeInterval days
-        // For example, if timeInterval = 3, from day 1 (9/4) to day 2 should be 13/4 (4 days later)
-        const suggestedDate = addDays(firstDate, (timeInterval + 1) * i);
-        dates.push(suggestedDate);
-      }
-    }
-  }
-
-  return dates;
-};
-  
-  // Function to check if a date is one of the suggested dates
-const isDateSuggested = (date: Date): boolean => {
-  // If timeInterval is 0, all future dates that aren't already selected are suggested
-  if (timeInterval === 0) {
-    const lastSelectedDate = getLatestSelectedDate();
-    return (
-      !isDateAlreadySelected(date) &&
-      (lastSelectedDate ? isAfter(date, lastSelectedDate) : true)
-    );
-  }
-
-  // Exit early if no dates selected yet
-  if (selectedDates.length === 0) return true;
-
-  const firstSelectedDate = selectedDates[0].date;
-  
-  // For subsequent selections with timeInterval > 0
-  if (selectedDates.length > 0) {
-    // Calculate exact days for each interval
-    for (let i = 1; i < comboDays; i++) {
-      const exactDay = addDays(firstSelectedDate, (timeInterval + 1) * i);
-      if (isSameDay(date, exactDay)) {
-        return true;
-      }
-    }
-  }
-  
-  // Any other date is not suggested
-  return false;
-};
-
   // Function to check if a date is already selected with a time slot
   const isDateSelected = (date: Date): boolean => {
     return selectedDates.some(
@@ -379,41 +256,15 @@ const isDateSuggested = (date: Date): boolean => {
   };
 
   // Function to check if a date should be disabled
-  // Function to check if a date should be disabled
-const isDateDisabled = (date: Date): boolean => {
-  // Don't allow selecting dates in the past
-  if (date < new Date()) return true;
+  const isDateDisabled = (date: Date): boolean => {
+    // Không cho phép chọn các ngày trong quá khứ
+    if (date < new Date()) return true;
 
-  // Don't allow selecting dates that are already selected
-  if (isDateAlreadySelected(date)) return true;
+    // Không cho phép chọn các ngày đã được chọn
+    if (isDateAlreadySelected(date)) return true;
 
-  // If we have selected at least one date and timeInterval > 0
-  if (timeInterval > 0 && selectedDates.length > 0) {
-    const firstSelectedDate = selectedDates[0].date;
-    
-    // Calculate how many days have passed since the first selected date
-    const daysSinceFirstSelection = differenceInDays(date, firstSelectedDate);
-    
-    // Exact day of first selection
-    if (isSameDay(date, firstSelectedDate)) {
-      return false; // Not disabled
-    }
-    
-    // For other days, check if they are one of the suggested dates
-    // For timeInterval = 3, only days like firstDate + 4, firstDate + 8, etc. are valid
-    return !isDateSuggested(date);
-  }
-
-  // For timeInterval = 0, don't allow selecting dates that are before any already selected date
-  if (timeInterval === 0 && selectedDates.length > 0) {
-    const lastSelectedDate = getLatestSelectedDate();
-    if (lastSelectedDate && !isAfter(date, lastSelectedDate)) {
-      return true;
-    }
-  }
-
-  return false;
-};
+    return false;
+  };
 
   // Function to get the day number (1-based) for a selected date
   const getSelectedDayNumber = (date: Date): number | null => {
@@ -422,11 +273,6 @@ const isDateDisabled = (date: Date): boolean => {
     );
     return index >= 0 ? index + 1 : null;
   };
-
-  // Effect to update expandedDays when currentEditingDay changes
-  useEffect(() => {
-    setExpandedDays(currentEditingDay.toString());
-  }, [currentEditingDay]);
 
   return (
     <div className="space-y-8">
@@ -470,7 +316,6 @@ const isDateDisabled = (date: Date): boolean => {
           {getDaysInRange().map((date) => {
             const formattedDate = formatDate(date);
             const isActive = isSameDay(activeDate, date);
-            const isSuggested = isDateSuggested(date);
             const isSelected = isDateSelected(date);
             const dayNumber = getSelectedDayNumber(date);
             const isDisabled = isDateDisabled(date) && !isSelected;
@@ -482,19 +327,8 @@ const isDateDisabled = (date: Date): boolean => {
                     <div className="relative">
                       <Button
                         onClick={() => {
-                          if (
-                            !isDisabled &&
-                            (currentEditingDay === 0 || isSuggested)
-                          ) {
+                          if (!isDisabled && selectedDates.length === 0) {
                             setActiveDate(date);
-                            if (isSuggested && timeInterval > 0) {
-                              const dayIndex = getSuggestedDates().findIndex(
-                                (d) => isSameDay(d, date)
-                              );
-                              if (dayIndex >= 0) {
-                                setCurrentEditingDay(dayIndex);
-                              }
-                            }
                             setSelectedTimeSlot(null);
                           }
                         }}
@@ -504,11 +338,8 @@ const isDateDisabled = (date: Date): boolean => {
                             ? "bg-primary text-white hover:bg-blue-500"
                             : isSelected
                               ? "bg-blue-500 text-white hover:bg-blue-500"
-                              : isSuggested
-                                ? "border-primary border-dashed"
-                                : "bg-white text-black hover:bg-gray-100",
-                          (isDisabled ||
-                            !(currentEditingDay === 0 || isSuggested)) &&
+                              : "bg-white text-black hover:bg-gray-100",
+                          (isDisabled || selectedDates.length > 0) &&
                             "opacity-50 cursor-not-allowed"
                         )}
                       >
@@ -532,16 +363,10 @@ const isDateDisabled = (date: Date): boolean => {
                     {isSelected
                       ? `Ngày đã chọn (buổi ${dayNumber})`
                       : isDisabled
-                        ? timeInterval === 0 &&
-                          getLatestSelectedDate() &&
-                          !isAfter(date, getLatestSelectedDate()!)
-                          ? "Ngày đã qua (phải chọn sau ngày đã chọn trước đó)"
-                          : "Ngày đã được chọn cho buổi khác"
-                        : isSuggested
-                          ? timeInterval > 0
-                            ? "Ngày đề xuất theo khoảng thời gian"
-                            : "Ngày có thể chọn"
-                          : "Ngày không phù hợp"}
+                        ? "Ngày đã được chọn cho buổi khác"
+                        : selectedDates.length > 0
+                          ? "Không thể chọn (đã chọn buổi đầu tiên)"
+                          : "Có thể chọn cho buổi đầu tiên"}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -551,31 +376,18 @@ const isDateDisabled = (date: Date): boolean => {
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
 
-      {/* Reminder about date interval - only show if timeInterval > 0 */}
-      {selectedDates.length > 0 && timeInterval > 0 && (
+      {/* Updated notice about time slots */}
+      {selectedDates.length > 0 && (
         <div className="bg-yellow-50 p-4 rounded-lg flex items-start gap-3 text-yellow-700">
           <AlertCircle className="h-6 w-6 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold">
-              Lưu ý về khoảng thời gian giữa các buổi
+              Lưu ý về khung giờ và khoảng thời gian
             </p>
             <p>
-              Gói dịch vụ này yêu cầu {timeInterval} ngày giữa mỗi buổi. Các
-              ngày đề xuất đã được tính toán tự động.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Notice about unique date selection for timeInterval=0 */}
-      {selectedDates.length > 0 && timeInterval === 0 && (
-        <div className="bg-yellow-50 p-4 rounded-lg flex items-start gap-3 text-yellow-700">
-          <AlertCircle className="h-6 w-6 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold">Lưu ý về việc lựa chọn ngày</p>
-            <p>
-              Mỗi buổi cần được chọn vào một ngày khác nhau, và ngày mới phải
-              nằm sau các ngày đã chọn trước đó.
+              Mặc định tất cả các buổi sẽ cùng một khung giờ{" "}
+              {selectedDates[0].timeSlot.display}, với khoảng cách{" "}
+              {timeInterval} ngày giữa mỗi buổi. Bạn có thể chọn chỉnh sửa giờ riêng cho từng buổi nếu cần.
             </p>
           </div>
         </div>
@@ -591,6 +403,7 @@ const isDateDisabled = (date: Date): boolean => {
         {Array.from({ length: comboDays }).map((_, index) => {
           const isSelected = selectedDates.length > index;
           const selectedDate = isSelected ? selectedDates[index] : null;
+          const isEditing = editingIndex === index;
 
           return (
             <AccordionItem value={index.toString()} key={index}>
@@ -611,16 +424,21 @@ const isDateDisabled = (date: Date): boolean => {
                     )}
                   </span>
 
-                  {index === currentEditingDay && (
+                  {(expandedDays === index.toString() || isEditing) && (
                     <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-800 text-sm rounded">
-                      Đang chọn
+                      {index === 0 && selectedDates.length === 0 
+                        ? "Đang chọn"
+                        : isEditing 
+                          ? "Đang chỉnh sửa" 
+                          : "Chi tiết"}
                     </span>
                   )}
                 </div>
               </AccordionTrigger>
 
               <AccordionContent>
-                {index === currentEditingDay || (index === 0 && !isSelected) ? (
+                {index === 0 && selectedDates.length === 0 ? (
+                  // First day selection UI (initial state)
                   <div className="border-0 shadow-none">
                     <CardContent className="p-0 pt-4">
                       <StartTimeSelection
@@ -661,7 +479,60 @@ const isDateDisabled = (date: Date): boolean => {
                       </div>
                     </CardContent>
                   </div>
+                ) : isEditing ? (
+                  // Editing mode for any session
+                  <div className="border-0 shadow-none">
+                    <CardContent className="p-0 pt-4">
+                      <StartTimeSelection
+                        startTime={startTime}
+                        onStartTimeChange={(newTime) => {
+                          setStartTime(newTime);
+                          setSelectedTimeSlot(null);
+                        }}
+                      />
+
+                      <div className="mt-6">
+                        <h3 className="text-2xl font-semibold mb-4">
+                          Chỉnh sửa giờ cho buổi {index + 1} - ngày{" "}
+                          {getFormattedDate(selectedDate!.date)}
+                          <span className="text-red-500 ml-2">
+                            ({totalTime} phút)
+                          </span>
+                        </h3>
+                        <div className="grid grid-cols-5 gap-4">
+                          {getTimeSlots(startTime).map((slot) => {
+                            const isActive =
+                              selectedTimeSlot?.display === slot.display;
+                            return (
+                              <Button
+                                key={slot.display}
+                                variant={isActive ? "default" : "outline"}
+                                className={cn(
+                                  "rounded-full text-xl py-3 px-6",
+                                  isActive && "bg-primary text-white"
+                                )}
+                                onClick={() => handleTimeSlotSelect(slot)}
+                              >
+                                {slot.display}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      <div className="mt-6 flex justify-end">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setEditingIndex(null)}
+                          className="mr-2"
+                        >
+                          Hủy
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </div>
                 ) : isSelected ? (
+                  // Session display with edit option
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
                       <div>
@@ -672,26 +543,25 @@ const isDateDisabled = (date: Date): boolean => {
                         <p className="text-lg text-gray-700">
                           <span className="font-semibold">Thời gian: </span>
                           {selectedDate!.timeSlot.display}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          <span className="font-semibold">ISO: </span>
-                          {selectedDate!.isoString}
-                        </p>
+                        </p>                      
                       </div>
 
+                      {/* Edit button for each session */}
                       <Button
                         variant="outline"
-                        onClick={() => handleEditDay(index)}
+                        onClick={() => handleEditSession(index)}
+                        className="flex items-center gap-2"
                       >
-                        Chỉnh sửa
+                        <Edit2 className="h-4 w-4" />
+                        Chỉnh sửa giờ
                       </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="p-4 text-center text-gray-500 italic">
-                    {index > 0 && selectedDates.length < index
-                      ? "Vui lòng chọn ngày và thời gian cho các buổi trước."
-                      : "Vui lòng chọn ngày và thời gian cho buổi này."}
+                    {selectedDates.length === 0
+                      ? "Vui lòng chọn ngày và thời gian cho buổi đầu tiên."
+                      : "Các buổi tiếp theo sẽ được tự động tính toán dựa trên buổi đầu tiên."}
                   </div>
                 )}
               </AccordionContent>
