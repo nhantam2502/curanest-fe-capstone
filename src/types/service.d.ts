@@ -66,6 +66,7 @@ type PackageServiceItem = {
   "service-id": string;
   "time-interval": number;
   "combo-days"?: number;
+  note?: string;
   discount: number;
   // Thêm field giả định sau này sẽ xoá
   price?: number;

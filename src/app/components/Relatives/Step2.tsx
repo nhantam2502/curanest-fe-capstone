@@ -85,6 +85,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
             unit: task.unit || "",
             "svcpackage-id": task["svcpackage-id"] || "",
             status: task.status || "",
+            note: task.note,
           }))
         );
       } else {
@@ -106,6 +107,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
             unit: "",
             "svcpackage-id": packageId,
             status: "",
+          note: service.note || "",
           }))
         );
       }
@@ -130,6 +132,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
             unit: task.unit || "",
             "svcpackage-id": task["svcpackage-id"] || "",
             status: task.status || "",
+            note: task.note,
           }))
         );
       } else {
@@ -151,6 +154,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
             unit: "",
             "svcpackage-id": packageId,
             status: "",
+            note: service.note || "",
           }))
         );
       }
