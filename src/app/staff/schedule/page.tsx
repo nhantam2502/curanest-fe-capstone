@@ -138,7 +138,7 @@ const NurseScheduleCalendar = () => {
 
         console.log("Fetching appointments with params:", apiParams);
 
-        const res = await appointmentApiRequest.getAppointment(apiParams);
+        const res = await appointmentApiRequest.getAppointments(apiParams);
 
         if (res.status === 200 && Array.isArray(res.payload?.data)) {
           const transformed = res.payload.data;
