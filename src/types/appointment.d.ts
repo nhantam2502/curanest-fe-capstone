@@ -11,6 +11,32 @@ export interface AppointmentDummy {
   time_from_to: string;
 }
 
+// 
+export type GetAppointment = {
+  id: string;
+  "service-id": string;
+  "cuspackage-id": string;
+  "nursing-id": string;
+  "patient-id": string;
+  "est-date": string;
+  "act-date": string | null;
+  status: string;
+  "created-at": string;
+};
+
+export type AppointmentFilter = {
+  "service-id"?: string;
+  "cuspackage-id"?: string;
+  "nursing-id"?: string;
+  "patient-id"?: string;
+  "had-nurse"?: string;
+  "appointment-status"?: string;
+  "est-date-from"?: string;
+  "est-date-to"?: string;
+};
+
+// ----------------------//
+
 export interface ScheduleEvent {
   id: string;
   title: string;
@@ -23,7 +49,6 @@ export interface ScheduleEvent {
   patientID?: string;
 }
 
-// ----------------------//
 export type CreateRes = {
   status: number;
   message: string;
