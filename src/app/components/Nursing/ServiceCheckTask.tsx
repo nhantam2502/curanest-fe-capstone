@@ -9,10 +9,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface EnhancedService {
   id: string;
   name: string;
-  category: string;
   description: string;
   duration: string;
-  price: string;
   customerNote?: string;
   staffNote?: string;
   times: number;
@@ -20,7 +18,6 @@ interface EnhancedService {
   nurseNote?: string;
 }
 
-// Props cho component ServiceCheckTask
 interface ServiceCheckTaskProps {
   services: EnhancedService[];
   onServiceComplete: (serviceId: string, nurseNote: string) => void;

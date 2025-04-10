@@ -4,11 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { ServiceTaskType } from "@/types/service";
+import {
+  PackageServiceItem,
+  ServicePackageType,
+  ServiceTaskType,
+} from "@/types/service";
 
 interface Step3Props {
   selectedServiceTask: ServiceTaskType[];
   serviceQuantities: { [key: string]: number };
+  updateServiceNote?: (serviceName: string, note: string) => void;
   updateServiceQuantity: (serviceName: string, newQuantity: number) => void;
   removeService: (serviceName: string) => void;
   calculateAdvancedPricing: (
@@ -24,11 +29,13 @@ interface Step3Props {
   setCurrentStep: (step: number) => void;
   onNext?: () => void;
   onPrevious?: () => void;
+  selectedPackage: PackageServiceItem | null;
 }
 
 export const ServiceAdjustment: React.FC<Step3Props> = ({
   selectedServiceTask,
   serviceQuantities,
+  updateServiceNote,
   updateServiceQuantity,
   removeService,
   calculateAdvancedPricing,
@@ -38,8 +45,19 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
   setCurrentStep,
   onNext,
   onPrevious,
+  selectedPackage,
 }) => {
-  // New function to calculate advanced pricing
+  const [serviceNotes, setServiceNotes] = React.useState<{
+    [key: string]: string;
+  }>({});
+
+  const handleNoteChange = (serviceName: string, note: string) => {
+    setServiceNotes((prev) => ({
+      ...prev,
+      [serviceName]: note,
+    }));
+    updateServiceNote?.(serviceName, note);
+  };
 
   return (
     <div className="space-y-6 text-lg">
@@ -55,10 +73,24 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
             <div className="flex flex-col gap-6">
               {selectedServiceTask.map((service) => {
                 const currentQuantity = serviceQuantities[service.name] || 1;
-                const { totalCost, totalDuration } = calculateAdvancedPricing(
+                const { totalCost } = calculateAdvancedPricing(
                   service,
                   currentQuantity
                 );
+
+                let additionalDuration = 0;
+                let totalQuantity = currentQuantity;
+                let totalTime = service["est-duration"];
+
+                if (currentQuantity > 1) {
+                  if (service.unit === "time") {
+                    additionalDuration =
+                      (currentQuantity - 1) * service["price-of-step"];
+                    totalTime = service["est-duration"] + additionalDuration;
+                  } else if (service.unit === "quantity") {
+                    totalQuantity = currentQuantity;
+                  }
+                }
 
                 return (
                   <Card
@@ -66,7 +98,7 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
                     className="overflow-hidden shadow-lg"
                   >
                     <CardContent className="p-5">
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-start">
                         <div className="space-y-2 flex-1">
                           <h3 className="text-xl font-semibold">
                             {service.name}
@@ -85,15 +117,17 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
                           {currentQuantity > 1 &&
                             service["additional-cost-desc"] && (
                               <p className="text-yellow-500 mt-1 italic font-semibold">
-                                {service["additional-cost-desc"]}
+                                {service["additional-cost-desc"]}:{" "}
+                                {formatCurrency(service["additional-cost"])} /{" "}
+                                {service["price-of-step"]}{" "}
+                                {service.unit === "quantity" ? "lần" : "phút"}
                               </p>
                             )}
                         </div>
 
                         {!(
-                          service["additional-cost"] === 0 &&
-                          service["additional-cost-desc"] === "" &&
-                          service.unit === "quantity" &&
+                          service["additional-cost"] === 0 ||
+                          service["additional-cost-desc"] === "" ||
                           service["price-of-step"] === 0
                         ) && (
                           <div className="flex items-center gap-6">
@@ -113,9 +147,19 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
                                 <span className="text-lg">-</span>
                               </Button>
 
-                              <span className="w-8 text-center text-lg">
-                                {currentQuantity}
-                              </span>
+                              {service.unit === "time" ? (
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-lg">{totalTime}</span>
+                                  <span className="text-lg">phút</span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-lg">
+                                    {totalQuantity}
+                                  </span>
+                                  <span className="text-lg">lần</span>
+                                </div>
+                              )}
 
                               <Button
                                 variant="outline"
@@ -135,19 +179,34 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
                             <span className="font-bold text-xl">
                               {formatCurrency(totalCost)}
                             </span>
-
-                            {!service["is-must-have"] && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                                onClick={() => removeService(service.name)}
-                              >
-                                <Trash size={24} />
-                              </Button>
-                            )}
                           </div>
                         )}
+
+                        {!service["is-must-have"] && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                            onClick={() => removeService(service.name)}
+                          >
+                            <Trash size={24} />
+                          </Button>
+                        )}
+                      </div>
+
+                      {/* Thêm phần ghi chú riêng cho từng dịch vụ */}
+                      <div className="mt-4">
+                        <label className="text-lg font-semibold text-red-500">
+                          Ghi chú cho {service.name} (tùy chọn):
+                        </label>
+                        <Textarea
+                          placeholder={`Nhập ghi chú cho ${service.name}...`}
+                          value={serviceNotes[service.name] || ""}
+                          onChange={(e) =>
+                            handleNoteChange(service.name, e.target.value)
+                          }
+                          className="mt-2 min-h-[100px] w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary shadow-sm"
+                        />
                       </div>
                     </CardContent>
                   </Card>
@@ -162,23 +221,30 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
               <span className="text-primary">{calculateTotalTime()} phút</span>
             </div>
             <div className="flex justify-between items-center text-2xl mt-3 font-semibold text-gray-900">
-              <span className="font-medium">Tổng tiền:</span>
-              <span className="font-bold text-red-600 text-3xl">
-                {formatCurrency(calculateTotalPrice())}
+              <span className="font-bold text-2xl text-gray-800">
+                Tổng tiền
               </span>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-2xl font-bold mb-3 text-gray-800">Ghi chú</h3>
-            <p className="text-lg text-gray-600 mb-4">
-              Vui lòng thêm các yêu cầu đặc biệt hoặc lưu ý cho dịch vụ của bạn
-            </p>
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Nhập ghi chú của bạn ở đây..."
-                className="min-h-[150px] w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary shadow-sm"
-              />
+              <div className="flex flex-col items-end">
+                {selectedPackage &&
+                selectedPackage.discount &&
+                selectedPackage.discount > 0 ? (
+                  <>
+                    <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                      {formatCurrency(
+                        calculateTotalPrice() *
+                          (1 - selectedPackage.discount / 100)
+                      )}
+                    </span>
+                    <span className="text-gray-500 text-lg line-through">
+                      {formatCurrency(calculateTotalPrice())}
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                    {formatCurrency(calculateTotalPrice())}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>

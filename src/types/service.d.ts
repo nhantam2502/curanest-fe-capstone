@@ -66,6 +66,7 @@ type PackageServiceItem = {
   "service-id": string;
   "time-interval": number;
   "combo-days"?: number;
+  note?: string;
   discount: number;
   // Thêm field giả định sau này sẽ xoá
   price?: number;
@@ -129,6 +130,7 @@ export type ServiceTaskType = {
   unit: string;
   "price-of-step": number;
   status: string;
+  note: string;
 };
 
 export type ServiceTaskTypeRes = {
