@@ -28,7 +28,7 @@ const MiniCalendar: React.FC<CalendarProps> = ({ onDateSelect, appointments }) =
     const dateString = `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}-${String(date).padStart(2, "0")}`;
-    return appointments.some((apt) => apt['est-date'] === dateString);
+    return appointments.some((apt) => apt.appointment_date === dateString);
   };
 
   const getWeekDates = (date: Date) => {

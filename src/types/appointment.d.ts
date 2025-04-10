@@ -11,22 +11,23 @@ export interface AppointmentDummy {
   time_from_to: string;
 }
 
-export type ScheduleEvent = {
+export interface ScheduleEvent {
   id: string;
   title: string;
   startTime: string;
-  endTime: string;
   status: string;
   name: string;
-  classType: string;
   appointment_date: string;
-};
+  estDate?: string;
+  cusPackageID?: string;
+  patientID?: string;
+}
 
-export type CalendarViewType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "SCHEDULE";
 // ----------------------//
 export type CreateRes = {
   status: number;
   message: string;
+  "object-id": string;
 };
 
 export type CreateAppointmentCusPackage = {
@@ -53,6 +54,7 @@ export interface Appointment {
   "act-date": string;
   status: string;
   "created-at": string;
+  appointment_date?: string;
 }
 
 export type AppointmentRes = {
@@ -76,7 +78,7 @@ export type CusPackage = {
   "paid-amount": number;
   "unpaid-amount": number;
   "payment-status": string;
-  "created-at": string; 
+  "created-at": string;
 };
 
 export type Task = {
@@ -88,6 +90,22 @@ export type Task = {
   "est-duration": number;
   unit: string;
   "total-unit": number;
-  status: string; 
-  "est-date": string; 
+  status: string;
+  "est-date": string;
+};
+
+export interface Inovice {
+  id: string;
+  "cuspackage-id": string;
+  "order-code": number;
+  "total-free": number;
+  status: string;
+  note: string;
+  "payos-url": string;
+  "created-at": string;
+}
+
+export type InoviceRes = {
+  success: boolean;
+  data: Inovice[];
 };

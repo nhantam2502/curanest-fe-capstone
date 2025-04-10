@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle, Hourglass } from "lucide-react";
 import { PatientRecord } from "@/types/patient";
-import { Appointment, CusPackageResponse } from "@/types/appointment";
+import { Appointment, CusPackageResponse, InoviceRes } from "@/types/appointment";
 import { formatDate } from "@/lib/utils";
 import { NurseItemType } from "@/types/nurse";
+import { Button } from "@/components/ui/button";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { useRouter } from "next/navigation";
 
 interface PatientDetailDialogProps {
   isOpen: boolean;
@@ -34,7 +38,6 @@ const PatientInfo: React.FC<{ label: string; value: string | number }> = ({
     <p className="font-medium text-xl text-gray-900">{value}</p>
   </div>
 );
-
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "completed":
@@ -72,9 +75,38 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   nurse,
   patient,
 }) => {
-  
+  const router = useRouter();
+
+  const [invoices, setInvoices] = useState<InoviceRes | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const packageData = appointment.cusPackage?.data?.package;
   const tasks = appointment.cusPackage?.data?.tasks || [];
+
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (isOpen && packageData?.id) {
+        setIsLoading(true);
+        try {
+          const response = await appointmentApiRequest.getInvoice(appointment.apiData["cuspackage-id"]);
+          setInvoices(response.payload.data);
+        } catch (error) {
+          console.error("Failed to fetch invoices:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchInvoices();
+    
+    
+  }, [isOpen, packageData?.id]);
+
+
+  const handlePayment = () => {
+    // router.push(invoices?.data[0]["payos-url"] || "");
+  };  
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -171,6 +203,15 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                       : "Đã thanh toán"
                   }
                 />
+                {/* Thêm nút thanh toán khi chưa thanh toán */}
+                {packageData["payment-status"] === "unpaid" && (
+                  <Button 
+                    className="w-full mt-4 text-xl"
+                    onClick={handlePayment}
+                  >
+                    Thanh toán ngay
+                  </Button>
+                )}
               </>
             ) : (
               <p className="text-gray-500">Chưa có thông tin gói dịch vụ</p>
@@ -222,6 +263,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                   </div>
                 </div>
               ))}
+
             </div>
           </div>
         )}

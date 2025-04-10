@@ -20,7 +20,6 @@ interface AppointmentDisplay {
   id: string;
   nurse_name: string;
   avatar: string;
-  techniques: string;
   total_fee?: number;
   appointment_date: string;
   time_from_to: string;
@@ -202,10 +201,7 @@ const AppointmentPage: React.FC = () => {
     // Gọi API để lấy thông tin cusPackage nếu có cusPackageID
     if (cusPackageID) {
       try {
-        const response = await appointmentApiRequest.getCusPackage(
-          cusPackageID,
-          appointment["est-date"]
-        );
+        const response = await appointmentApiRequest.getCusPackage( cusPackageID, appointment["est-date"]);
         if (response && response.payload && response.payload.success) {
           cusPackageData = response.payload;
           console.log("CusPackage data fetched:", cusPackageData);
@@ -221,8 +217,6 @@ const AppointmentPage: React.FC = () => {
       id: appointment.id,
       nurse_name: matchedNurse?.["nurse-name"] || "Chưa có thông tin",
       avatar: matchedNurse?.["nurse-picture"] || "",
-      techniques: DEFAULT_TECHNIQUES,
-      // total_fee từ cusPackage nếu có
       total_fee: cusPackageData?.data?.price || undefined,
       appointment_date: formattedDate,
       time_from_to: formattedTime,

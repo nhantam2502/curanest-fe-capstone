@@ -6,7 +6,6 @@ interface AppointmentDisplay {
   id: string;
   nurse_name: string;
   avatar: string;
-  techniques: string;
   total_fee?: number;
   appointment_date: string;
   time_from_to: string;

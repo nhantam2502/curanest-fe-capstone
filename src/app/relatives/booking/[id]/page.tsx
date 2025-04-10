@@ -36,7 +36,7 @@ import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import SubscriptionTimeSelection, {
   SelectedDateTime,
 } from "@/app/components/Relatives/SubscriptionTimeSelection";
-import { CreateAppointmentCusPackage } from "@/types/appointment";
+import { CreateAppointmentCusPackage, InoviceRes } from "@/types/appointment";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { PatientRecord } from "@/types/patient";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
@@ -114,6 +114,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const [profiles, setProfiles] = useState<PatientRecord[]>([]);
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [errorProfiles, setErrorProfiles] = useState<string | null>(null);
+
+  // fetch api get invoice
 
   const getSteps = () => {
     const baseSteps = [
@@ -280,7 +282,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             ]
           : [];
 
-      console.log("datesToSend: ", datesToSend);
+      // console.log("datesToSend: ", datesToSend);
 
       // Tạo appointmentData không có nursing-id mặc định
       const appointmentData: CreateAppointmentCusPackage = {
@@ -306,11 +308,13 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       if (nurseSelectionMethod === "manual") {
         appointmentData["nursing-id"] = selectedNurse?.["nurse-id"] ?? "";
       }
-      console.log("appointmentData: ", appointmentData);
+      // console.log("appointmentData: ", appointmentData);
       const response =
         await appointmentApiRequest.createAppointmentCusPackage(
           appointmentData
         );
+
+      const newAppointmentId = response.payload["object-id"];
 
       toast({
         variant: "default",
@@ -318,7 +322,20 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         description: `Tổng tiền: ${formatCurrency(calculateTotalPrice())}`,
       });
 
-      router.push("/relatives/appointments");
+      try {
+        const invoiceResponse =
+          await appointmentApiRequest.getInvoice(newAppointmentId);
+        const invoiceData = invoiceResponse.payload.data;
+        console.log("invoiceData: ", invoiceData);
+
+        // Chuyển hướng đến URL thanh toán nếu có
+        if (invoiceData && invoiceData.length > 0) {
+          router.push(invoiceData[0]["payos-url"]);
+        }
+      } catch (invoiceError) {
+        console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
+        router.push("/relatives/appointments");
+      }
     } catch (error) {
       console.error("Lỗi khi tạo cuộc hẹn:", error);
       toast({
