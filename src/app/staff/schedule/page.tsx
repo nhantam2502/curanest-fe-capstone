@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -10,90 +10,89 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, getFormattedDate, getStartTimeFromEstDate } from "@/lib/utils";
 import DonutChart from "@/app/components/Nursing/DonutChart";
 import { Appointment, ScheduleEvent } from "@/types/appointment";
 import { useRouter } from "next/navigation";
 import MiniCalendar from "@/app/components/Nursing/MiniCalendar";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { useSession } from "next-auth/react";
 
 const NurseScheduleCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [scheduleData, setScheduleData] = useState<ScheduleEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
-  // Dữ liệu mẫu cho appointments
-  const appointments: Appointment[] = [
-    {
-      id: 1,
-      nurse_name: "Nguyễn Văn A",
-      avatar: "/avatar1.jpg",
-      status: "completed",
-      phone_number: "0123456789",
-      techniques: "Chăm sóc bệnh nhân",
-      total_fee: 500000,
-      appointment_date: "2025-03-17",
-      time_from_to: "08:00-09:00",
-    },
-    {
-      id: 2,
-      nurse_name: "Trần Thị B",
-      avatar: "/avatar2.jpg",
-      status: "upcoming",
-      phone_number: "0987654321",
-      techniques: "Tiêm thuốc",
-      total_fee: 300000,
-      appointment_date: "2025-03-21",
-      time_from_to: "10:00-12:00",
-    },
-  ];
+  // Lấy session từ useSession
+  const { data: session, status } = useSession();
+  const nursingId = session?.user?.id || null;
 
-  // Dữ liệu mẫu cho schedule events
-  const scheduleData: ScheduleEvent[] = [
-    {
-      id: "1",
-      title: "Thay băng vết thương",
-      startTime: "8:00",
-      endTime: "9:00",
-      status: "completed",
-      name: "Nguyễn Văn A",
-      classType: "wound-care",
-      appointment_date: "2025-03-17",
-    },
-    {
-      id: "2",
-      title: "Tiêm thuốc",
-      startTime: "10:00",
-      endTime: "12:00",
-      status: "upcoming",
-      name: "Trần Thị B",
-      classType: "injection",
-      appointment_date: "2025-03-21",
-    },
-  ];
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
 
+        if (status === "loading") {
+          return;
+        }
+        if (!nursingId) {
+          throw new Error("Nursing ID not found in session");
+        }
+
+        const response = await appointmentApiRequest.getAppointment(nursingId);
+
+        const apiAppointments: Appointment[] = response.payload.data.map(
+          (item: any) => ({
+            id: item.id,
+            patient_id: item["patient-id"] || "Chưa có thông tin",
+            status: item.status,
+            appointment_date: getFormattedDate(item["est-date"]),
+            time_from_to: getStartTimeFromEstDate(item["est-date"]),
+          })
+        );
+
+        const apiScheduleData: ScheduleEvent[] = response.payload.data.map(
+          (item: any) => ({
+            id: item.id.toString(),
+            title: item.techniques || "Chưa xác định",
+            startTime: getStartTimeFromEstDate(item["est-date"]),
+            status: item.status,
+            name: item.nurse_name || "Chưa có thông tin",
+            appointment_date: getFormattedDate(item["est-date"]),
+            estDate: item["est-date"], // Thêm estDate
+            cusPackageID: item["cuspackage-id"] || "N/A",
+          })
+        );
+
+        setAppointments(apiAppointments);
+        setScheduleData(apiScheduleData);
+      } catch (error) {
+        console.error("Error fetching appointments:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [selectedDate, nursingId, status]);
+
+  // console.log("Appointments:", appointments);
+  console.log("Schedule Data:", scheduleData);
+
+  // Phần còn lại của code giữ nguyên
   const handleDateSelect = (date: string) => {
     console.log("Selected date:", date);
     setSelectedDate(new Date(date));
   };
 
-  const getEventColor = (
-    type: ScheduleEvent["status"],
-    classType: ScheduleEvent["classType"]
-  ) => {
+  const getEventColor = (type: Appointment["status"]) => {
     if (type === "substitute") return "bg-red-50 border-red-100";
     if (type === "completed") return "bg-green-50 border-green-100";
-    if (type === "upcoming") return "bg-yellow-50 border-yellow-100";
-    switch (classType) {
-      case "wound-care":
-        return "bg-green-50 border-green-100";
-      case "injection":
-        return "bg-blue-50 border-blue-100";
-      default:
-        return "bg-gray-50";
-    }
+    if (type === "waiting") return "bg-yellow-50 border-yellow-100";
   };
 
-  const timeSlots = Array.from({ length: 12 }, (_, i) => {
-    return `${i + 8}:00`;
-  });
+  const timeSlots = Array.from({ length: 12 }, (_, i) => `${i + 8}:00`);
 
   const getStartOfWeek = (date: Date): Date => {
     const start = new Date(date);
@@ -102,13 +101,6 @@ const NurseScheduleCalendar = () => {
     start.setDate(diff);
     return start;
   };
-
-  // const getEndOfWeek = (date: Date): Date => {
-  //   const startOfWeek = getStartOfWeek(date);
-  //   const end = new Date(startOfWeek);
-  //   end.setDate(startOfWeek.getDate() + 6);
-  //   return end;
-  // };
 
   const shouldShowEvent = (
     event: ScheduleEvent,
@@ -119,12 +111,10 @@ const NurseScheduleCalendar = () => {
     currentDate.setDate(currentDate.getDate() + dayIndex);
     const eventDate = new Date(event.appointment_date);
 
-    // Kiểm tra ngày
     if (currentDate.toDateString() !== eventDate.toDateString()) return false;
 
     const [slotHour, slotMinutes] = timeSlot.split(":").map(Number);
     const [startHour, startMinutes] = event.startTime.split(":").map(Number);
-    const [endHour, endMinutes] = event.endTime.split(":").map(Number);
 
     const slotTime = slotHour * 60 + slotMinutes;
     const startTime = startHour * 60 + startMinutes;
@@ -132,40 +122,30 @@ const NurseScheduleCalendar = () => {
     return slotTime === startTime;
   };
 
-  const getEventDuration = (event: ScheduleEvent) => {
-    const [startHour, startMinutes] = event.startTime.split(":").map(Number);
-    const [endHour, endMinutes] = event.endTime.split(":").map(Number);
-
-    const startTime = startHour * 60 + startMinutes;
-    const endTime = endHour * 60 + endMinutes;
-    return (endTime - startTime) / 60;
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="w-full h-full p-2">
+    <div className="w-full h-full bg-gray-100 p-4">
       <div className="flex gap-4 h-full">
-        {/* Left Sidebar */}
         <Card className="w-72 h-full">
           <CardHeader className="p-4 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-blue-500" />
-                <span className="text-sm font-medium">Lịch hẹn với bệnh nhân</span>
+                <span className="text-sm font-medium">
+                  Lịch hẹn với bệnh nhân
+                </span>
               </div>
-             
             </div>
-            {/* Mini calendar */}
             <MiniCalendar
               appointments={appointments}
               onDateSelect={(date) => handleDateSelect(date)}
             />
-
-            {/* Summary */}
             <DonutChart value={44} total={100} />
           </CardHeader>
         </Card>
-
-        {/* Main Calendar Area */}
         <Card className="flex-1 h-full shadow-lg">
           <CardHeader className="p-4 border-b">
             <div className="flex items-center justify-between">
@@ -178,7 +158,6 @@ const NurseScheduleCalendar = () => {
                 >
                   Hôm nay
                 </Button>
-
                 <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
                   <Button
                     variant="ghost"
@@ -192,7 +171,6 @@ const NurseScheduleCalendar = () => {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
-
                   <Button
                     variant="ghost"
                     size="icon"
@@ -206,7 +184,6 @@ const NurseScheduleCalendar = () => {
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
-
                 <span className="text-lg font-medium">
                   {selectedDate.toLocaleDateString("vi-VN", {
                     month: "long",
@@ -214,7 +191,6 @@ const NurseScheduleCalendar = () => {
                   })}
                 </span>
               </div>
-
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -227,10 +203,8 @@ const NurseScheduleCalendar = () => {
               </div>
             </div>
           </CardHeader>
-
           <CardContent className="p-4 overflow-auto">
             <div className="grid grid-cols-8 min-w-[1000px]">
-              {/* Header row with time label and days */}
               <div className="col-span-1 p-4 border-r border-b">
                 <div className="text-sm font-medium text-gray-500">Giờ</div>
               </div>
@@ -263,8 +237,6 @@ const NurseScheduleCalendar = () => {
                   </div>
                 );
               })}
-
-              {/* Time slots */}
               {timeSlots.map((timeSlot) => (
                 <React.Fragment key={timeSlot}>
                   <div className="col-span-1 border-r border-b h-20 p-4">
@@ -273,43 +245,38 @@ const NurseScheduleCalendar = () => {
                   {Array.from({ length: 7 }).map((_, dayIndex) => (
                     <div
                       key={`${timeSlot}-${dayIndex}`}
-                      className="col-span-1 border-b border-r h-20 relative"
+                      className="col-span-1 border-b border-r h-20 relative flex items-center justify-center"
                     >
                       {scheduleData.map((event) => {
                         if (shouldShowEvent(event, timeSlot, dayIndex)) {
-                          const duration = getEventDuration(event);
-
                           return (
                             <div
                               key={event.id}
                               className={cn(
-                                "absolute left-1 right-1 p-2 rounded-lg border transition-colors cursor-pointer hover:bg-opacity-75",
-                                getEventColor(event.status, event.classType)
+                                "w-11/12 p-2 rounded-md border shadow-sm transition-all cursor-pointer hover:bg-opacity-90 hover:shadow-md",
+                                getEventColor(event.status)
                               )}
-                              style={{
-                                top: "4px",
-                                height: `calc(${duration} * 8rem)`, 
-                              }}
                               onClick={() =>
-                                router.push(`/nurse/appointments/${event.id}`)
-                              } 
+                                router.push(
+                                  `/nurse/appointments/${event.id}?estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}`
+                                )
+                              }
                             >
-                              <div className="flex items-start gap-2">
-                                <Clock className="w-4 h-4 flex-shrink-0" />
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-3 h-3 flex-shrink-0 text-gray-600" />
                                 <div className="min-w-0">
-                                  <div className="text-xs font-medium truncate">
-                                    {event.title}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {event.startTime} - {event.endTime}
+                                  <div className="text-sm leading-tight">
+                                    {event.startTime}
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-1 mt-2">
-                                <Users className="w-3 h-3" />
-                                <div className="flex -space-x-2">
-                                <span className="text-xs font-medium">{event.name}</span>
 
+                              <div className="flex items-center gap-1 mt-2">
+                                {/* <Users className="w-3 h-3 text-gray-600 flex-shrink-0" /> */}
+                                <div>
+                                  <span className="text-xs font-medium truncate">
+                                    {event.name}
+                                  </span>
                                 </div>
                               </div>
                             </div>
