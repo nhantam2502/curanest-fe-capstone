@@ -10,9 +10,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea"; // Assuming you added this
-import { Separator } from "@/components/ui/separator"; // <-- Using Separator
-
+import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"; // <-- Import Tabs components
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,31 +25,30 @@ import * as z from "zod";
 import {
   Form,
   FormControl,
-  FormDescription, // Keep if needed for specific fields
+  FormDescription,
   FormField,
   FormItem,
-  FormLabel, // Use this instead of plain Label
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-// Removed Label import
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils"; // Assuming you have cn utility
-import { BirthDatePicker } from "@/components/date-picker";
+import { cn } from "@/lib/utils";
+// import { BirthDatePicker } from "@/components/date-picker"; // Keep if you want to use a custom date picker
 
 interface Geo {
   code: number | string;
   name: string;
 }
 
-// Updated Schema (using date, string for gender, stricter validations)
+// Schema remains the same
 const formSchema = z.object({
   "full-name": z.string().min(2, { message: "Tên không được để trống." }),
-  dob: z.string(),
+  dob: z.string().min(1, { message: "Ngày sinh không được để trống." }), // Ensure date is picked
   "citizen-id": z
     .string()
-    .min(9, { message: "CCCD phải có ít nhất 9-12 số." })
-    .max(12, { message: "CCCD phải có ít nhất 9-12 số." })
+    .min(9, { message: "CCCD phải có 9-12 số." })
+    .max(12, { message: "CCCD phải có 9-12 số." })
     .regex(/^\d+$/, { message: "CCCD chỉ chứa số." }),
   "phone-number": z
     .string()
@@ -96,6 +100,7 @@ const NurseForm: React.FC = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       "full-name": "",
+      dob: "", // Initialize date as empty string
       "citizen-id": "",
       "phone-number": "",
       email: "",
@@ -113,7 +118,7 @@ const NurseForm: React.FC = () => {
       "google-drive-url": "",
       "nurse-picture": "",
     },
-    mode: "onSubmit",
+    mode: "onSubmit", // Validate on submit
   });
 
   // --- Fetching Logic (remains the same) ---
@@ -155,15 +160,16 @@ const NurseForm: React.FC = () => {
             title: "Lỗi",
             description: "Không thể tải danh sách Phường/Xã.",
           });
-          setWards([]);
+          setWards([]); // Clear wards on error
         }
       };
       fetchWards();
     } else {
-      setWards([]);
+      setWards([]); // Clear wards if no district selected
     }
   }, [selectedDistrictCode, toast]);
 
+  // --- Toast Logic (remains the same) ---
   useEffect(() => {
     if (submissionError) {
       toast({
@@ -174,21 +180,25 @@ const NurseForm: React.FC = () => {
     }
     if (submissionSuccess) {
       toast({
-        title: "Success!",
-        description: "Đã tạo điều dưỡng thành công.",
+        title: "Thành công!",
+        description: "Đã tạo hồ sơ điều dưỡng thành công.",
       });
     }
   }, [submissionError, submissionSuccess, toast]);
 
-  const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
+  // --- Submission Logic (remains the same, includes formatting) ---
+  const onSubmit: SubmitHandler<NurseFormValues> = async (data) => {
     setIsSubmitting(true);
     setSubmissionError(null);
     setSubmissionSuccess(false);
+    console.log("Form Data Submitted:", data); // Log data before sending
+
     try {
-      // Format date to string (YYYY-MM-DD) and ensure optional fields have at least empty strings
       const formattedData = {
         ...data,
-        dob: data.dob, // Convert Date to YYYY-MM-DD string
+        // Date should already be a string 'YYYY-MM-DD' from the input type="date"
+        dob: data.dob,
+        // Ensure optional fields are sent correctly (empty string if not provided)
         "current-work-place": data["current-work-place"] || "",
         experience: data["experience"] || "",
         "education-level": data["education-level"] || "",
@@ -196,428 +206,476 @@ const NurseForm: React.FC = () => {
         slogan: data["slogan"] || "",
         "google-drive-url": data["google-drive-url"] || "",
         "nurse-picture": data["nurse-picture"] || "",
-        // Convert string gender to boolean
+        // Convert gender string ("true"/"false") to boolean for the API
         gender: data.gender === "true",
       };
 
+      console.log("Formatted Data for API:", formattedData); // Log formatted data
+
       const response = await nurseApiRequest.createNurse(formattedData);
+
       if (response.status === 201) {
         setSubmissionSuccess(true);
-        form.reset();
-        setSelectedDistrictCode("");
+        form.reset(); // Reset form fields
+        setSelectedDistrictCode(""); // Reset district selection
+        setWards([]); // Clear wards list
+        // Optionally navigate away or show a success message permanently
+        // router.push('/nurses'); // Example navigation
       } else {
-        setSubmissionError(response.payload?.error?.reason_field);
+        // Try to get a more specific error message
+        const errorReason =
+          response.payload?.error?.message ||
+          response.payload?.message ||
+          "Lỗi không xác định từ máy chủ.";
+        setSubmissionError(errorReason);
+        console.error("API Error:", response.payload);
       }
-    } catch (error) {
-      setSubmissionError("Có lỗi xảy ra khi tạo điều dưỡng.");
+    } catch (error: any) {
+      setSubmissionError("Có lỗi xảy ra khi gửi yêu cầu tạo điều dưỡng.");
       console.error("Error creating nurse:", error);
+      // Log detailed error if available
+      if (error.response) {
+        console.error("Error Response Data:", error.response.data);
+        console.error("Error Response Status:", error.response.status);
+      } else if (error.request) {
+        console.error("Error Request:", error.request);
+      } else {
+        console.error("Error Message:", error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
   const Req = () => <span className="text-destructive">*</span>;
   const handleBack = () => {
-    router.back(); 
+    router.back();
   };
+
   return (
     <Form {...form}>
-      <Button
-      className="mb-4"
-        variant="outline"
-        onClick={handleBack}
-      >
-        Quay lại
-      </Button>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8"
-        noValidate
-      >
-        {/* --- Section 1: Personal Information --- */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Thông tin cá nhân</h2>
-          <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-3">
-            {/* Full Name */}
-            <FormField
-              control={form.control}
-              name="full-name"
-              render={({ field }) => (
-                <FormItem className="lg:col-span-2">
-                  <FormLabel>
-                    Tên đầy đủ <Req />
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nguyễn Văn A" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Date of Birth */}
-            <FormField
-              control={form.control}
-              name="dob"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ngày sinh</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <h1 className="text-2xl font-bold mb-4">Thêm thông tin điều dưỡng</h1>
+      <Separator className="mb-6" /> {/* Increased bottom margin */}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+        <Tabs defaultValue="personal-info" className="w-full">
+          {/* Tab Triggers */}
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
+            <TabsTrigger value="personal-info">Thông tin cá nhân</TabsTrigger>
+            <TabsTrigger value="contact-address">Liên hệ & Địa chỉ</TabsTrigger>
+            <TabsTrigger value="professional">Thông tin chuyên môn</TabsTrigger>
+            <TabsTrigger value="media">Tài liệu & Hình ảnh</TabsTrigger>
+          </TabsList>
 
-            {/* Gender */}
-            <FormField
-              control={form.control}
-              name="gender"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Giới tính <Req />
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn giới tính" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="true">Nam</SelectItem>
-                      <SelectItem value="false">Nữ</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Citizen ID */}
-            <FormField
-              control={form.control}
-              name="citizen-id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Số CCCD <Req />
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nhập số Căn cước công dân" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        {/* --------------------------------------- */}
-        <Separator /> {/* Divider between sections */}
-        {/* --- Section 2: Contact & Address --- */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Liên hệ & Địa chỉ</h2>
-          <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-3">
-            {/* Phone Number */}
-            <FormField
-              control={form.control}
-              name="phone-number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Số điện thoại <Req />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="tel"
-                      placeholder="Nhập số điện thoại"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Email <Req />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="abc@example.com"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Password */}
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Mật khẩu <Req />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Address */}
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem className="lg:col-span-3">
-                  <FormLabel>
-                    Số nhà, tên đường <Req />
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ví dụ: 123 Đường ABC" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tỉnh/Thành phố</FormLabel>
-                  <FormControl>
-                    <Input placeholder="TP. Hồ Chí Minh" {...field} disabled />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Tab Content: Personal Information */}
+          <TabsContent value="personal-info" className="mt-4">
+            <div className="space-y-5 rounded-md border p-6 shadow h-96">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-3">
+                {/* Full Name */}
+                <FormField
+                  control={form.control}
+                  name="full-name"
+                  render={({ field }) => (
+                    <FormItem className="lg:col-span-2">
+                      <FormLabel>
+                        Tên đầy đủ <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nguyễn Văn A" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Date of Birth */}
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Ngày sinh <Req />
+                      </FormLabel>
+                      <FormControl>
+                        {/* Use standard HTML5 date input */}
+                        <Input type="date" {...field} />
+                        {/* If using BirthDatePicker: <BirthDatePicker field={field} /> */}
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Gender */}
+                <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Giới tính <Req />
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn giới tính" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="true">Nam</SelectItem>
+                          <SelectItem value="false">Nữ</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Citizen ID */}
+                <FormField
+                  control={form.control}
+                  name="citizen-id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Số CCCD <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Nhập số Căn cước công dân"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </TabsContent>
 
-            {/* District */}
-            <FormField
-              control={form.control}
-              name="district"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Quận/Huyện</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={(value) => {
-                        // value is the district name
-                        field.onChange(value);
-                        // Find the district in our list so we can extract its code for fetching wards
-                        const selected = districts.find(
-                          (d) => d.name === value
-                        );
-                        setSelectedDistrictCode(
-                          selected ? selected.code.toString() : ""
-                        );
-                        // Clear ward value when district changes
-                        form.setValue("ward", "");
-                      }}
-                      value={field.value}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn Quận/Huyện" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        {districts.map((district) => (
-                          <SelectItem key={district.code} value={district.name}>
-                            {district.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          {/* Tab Content: Contact & Address */}
+          <TabsContent value="contact-address" className="mt-4">
+             <div className="space-y-5 rounded-md border p-6 shadow">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-3">
+                {/* Phone Number */}
+                <FormField
+                  control={form.control}
+                  name="phone-number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Số điện thoại <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          placeholder="Nhập số điện thoại"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Email */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Email <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="abc@example.com"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Password */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Mật khẩu <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Nhập mật khẩu (ít nhất 6 ký tự)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Address */}
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem className="lg:col-span-3">
+                      <FormLabel>
+                        Số nhà, tên đường <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ví dụ: 123 Đường ABC" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* City (Disabled) */}
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tỉnh/Thành phố</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="TP. Hồ Chí Minh"
+                          {...field}
+                          disabled
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* District */}
+                <FormField
+                  control={form.control}
+                  name="district"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Quận/Huyện <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            const selected = districts.find(
+                              (d) => d.name === value
+                            );
+                            setSelectedDistrictCode(
+                              selected ? String(selected.code) : ""
+                            );
+                            form.setValue("ward", ""); // Reset ward on district change
+                          }}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn Quận/Huyện" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {districts.map((district) => (
+                              <SelectItem
+                                key={district.code}
+                                value={district.name}
+                              >
+                                {district.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Ward */}
+                <FormField
+                  control={form.control}
+                  name="ward"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Phường/Xã <Req />
+                      </FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value}
+                          disabled={!selectedDistrictCode || wards.length === 0}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn Phường/Xã" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {wards.map((ward) => (
+                              <SelectItem key={ward.code} value={ward.name}>
+                                {ward.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </TabsContent>
 
-            {/* Ward */}
-            <FormField
-              control={form.control}
-              name="ward"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phường/Xã</FormLabel>
-                  <FormControl>
-                    <Select
-                      onValueChange={(value) => field.onChange(value)}
-                      value={field.value}
-                      disabled={!selectedDistrictCode}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn Phường/Xã" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        {wards.map((ward) => (
-                          <SelectItem key={ward.code} value={ward.name}>
-                            {ward.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        {/* --------------------------------------- */}
-        <Separator />
-        {/* --- Section 3: Professional Information --- */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Thông tin chuyên môn</h2>
-          <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
-            {/* Current Work Place */}
-            <FormField
-              control={form.control}
-              name="current-work-place"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nơi làm việc hiện tại</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ví dụ: Bệnh viện XYZ" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Experience */}
-            <FormField
-              control={form.control}
-              name="experience"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kinh nghiệm</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ví dụ: 5 năm trong ngành" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Education Level */}
-            <FormField
-              control={form.control}
-              name="education-level"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Trình độ học vấn</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ví dụ: Cử nhân Điều dưỡng" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Certificate */}
-            <FormField
-              control={form.control}
-              name="certificate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Chứng chỉ</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ví dụ: Chứng chỉ hành nghề"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Slogan */}
-            <FormField
-              control={form.control}
-              name="slogan"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Slogan/Giới thiệu ngắn</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={3}
-                      placeholder="Nhập slogan hoặc giới thiệu ngắn..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        {/* --------------------------------------- */}
-        <Separator />
-        {/* --- Section 4: Links & Media --- */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            Tài liệu & Hình ảnh (Tùy chọn)
-          </h2>
-          <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
-            {/* Google Drive URL */}
-            <FormField
-              control={form.control}
-              name="google-drive-url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL Google Drive (Hồ sơ)</FormLabel>
-                  <FormControl>
-                    <Input type="url" placeholder="https://" {...field} />
-                  </FormControl>
-                  <FormDescription className="text-xs">
-                    Liên kết đến thư mục chứa hồ sơ, chứng chỉ.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Nurse Picture URL */}
-            <FormField
-              control={form.control}
-              name="nurse-picture"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>URL Hình ảnh</FormLabel>
-                  <FormControl>
-                    <Input type="url" placeholder="https://" {...field} />
-                  </FormControl>
-                  <FormDescription className="text-xs">
-                    Liên kết đến ảnh đại diện.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-        {/* --------------------------------------- */}
-        {/* --- Submit Button --- */}
-        <div className="flex justify-end pt-4">
-          <Button type="submit" disabled={isSubmitting} size="lg">
+          {/* Tab Content: Professional Information */}
+          <TabsContent value="professional" className="mt-4">
+             <div className="space-y-5 rounded-md border p-6 shadow">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
+                {/* Current Work Place */}
+                <FormField
+                  control={form.control}
+                  name="current-work-place"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nơi làm việc hiện tại</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ví dụ: Bệnh viện XYZ" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Experience */}
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kinh nghiệm</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ví dụ: 5 năm trong ngành"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Education Level */}
+                <FormField
+                  control={form.control}
+                  name="education-level"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Trình độ học vấn</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ví dụ: Cử nhân Điều dưỡng"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Certificate */}
+                <FormField
+                  control={form.control}
+                  name="certificate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Chứng chỉ</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ví dụ: Chứng chỉ hành nghề"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Slogan */}
+                <FormField
+                  control={form.control}
+                  name="slogan"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Slogan/Giới thiệu ngắn</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          placeholder="Nhập slogan hoặc giới thiệu ngắn..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Tab Content: Links & Media */}
+          <TabsContent value="media" className="mt-4">
+             <div className="space-y-5 rounded-md border p-6 shadow">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
+                {/* Google Drive URL */}
+                <FormField
+                  control={form.control}
+                  name="google-drive-url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL Google Drive (Hồ sơ)</FormLabel>
+                      <FormControl>
+                        <Input type="url" placeholder="https://" {...field} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Liên kết đến thư mục chứa hồ sơ, chứng chỉ (không bắt buộc).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* Nurse Picture URL */}
+                <FormField
+                  control={form.control}
+                  name="nurse-picture"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL Hình ảnh</FormLabel>
+                      <FormControl>
+                        <Input type="url" placeholder="https://" {...field} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Liên kết đến ảnh đại diện (không bắt buộc).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Submit/Back Buttons - Placed outside Tabs but inside the form */}
+        <div className="flex justify-end pt-4 space-x-3">
+          <Button type="button" variant="outline" onClick={handleBack}>
+            Quay lại
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
-              <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-primary-foreground rounded-full mr-2"></span>
-            ) : null}
-            {isSubmitting ? "Đang xử lý..." : "Tạo hồ sơ Điều dưỡng"}
+              <>
+                <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-primary-foreground rounded-full mr-2"></span>
+                Đang xử lý...
+              </>
+            ) : (
+              "Tạo hồ sơ Điều dưỡng"
+            )}
           </Button>
         </div>
-        {/* ------------------- */}
       </form>
     </Form>
   );

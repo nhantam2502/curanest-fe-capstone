@@ -108,14 +108,16 @@ function Page() {
                   onClick={() => handleServiceClick(service.id, service.name)}
                   className="cursor-pointer"
                 >
-                  <Card className="p-2 shadow-lg hover:shadow-xl transition-shadow">
-                    <CardHeader className="flex flex-row items-center justify-between">
+                  <Card className="p-2 shadow-lg hover:shadow-xl transition-shadow min-h-[220px]">
+                    <CardHeader className="flex flex-col">
                       <CardTitle className="text-lg font-semibold">{service.name}</CardTitle>
                       <Badge
+                      style={{ width: "fit-content" }}
                         className={
                           service.status === "available"
                             ? "bg-green-300 text-white"
-                            : "bg-gray-400 text-white"
+                            : "bg-gray-400 text-white" 
+
                         }
                       >
                         {service.status === "available" ? "Available" : "Unavailable"}

@@ -21,10 +21,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
-const PRIMARY_COLOR = "text-sky-400";
-const ACTIVE_BG_COLOR = "bg-sky-100";
-const ICON_COLOR = "text-sky-500";
+const PRIMARY_COLOR = "text-emerald-600";
+const ACTIVE_BG_COLOR = "bg-emerald-50";
+const ICON_COLOR = "text-emerald-500";
 
 interface MenuItem {
   title: string;
@@ -50,9 +51,11 @@ const DesktopMenuItem: React.FC<{ item: MenuItem; isCollapsed: boolean }> = ({
   return (
     <Link
       href={`/admin${item.link}`}
-      className={`flex items-center p-3 my-2 rounded-lg transition-all duration-200 ease-in-out ${
-        isCollapsed ? "justify-center" : ""
-      } ${isActive ? `${ACTIVE_BG_COLOR} ${PRIMARY_COLOR}` : "hover:bg-sky-50"}`}
+      className={cn(
+        "flex items-center p-3 my-1 rounded-lg transition-all duration-200 ease-in-out",
+        isCollapsed ? "justify-center" : "px-3",
+        isActive ? `${ACTIVE_BG_COLOR} ${PRIMARY_COLOR}` : "hover:bg-gray-100"
+      )}
       aria-label={item.title}
     >
       <span className={`${ICON_COLOR} ${isCollapsed ? "" : "mr-3"}`}>
@@ -87,21 +90,19 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
     <>
       {/* Desktop Sidebar */}
       <div
-        className={`h-screen p-4 fixed hidden lg:flex flex-col transition-all duration-300 ease-in-out bg-white border-r ${
-          isCollapsed ? "w-18" : "w-64"
-        }`}
+        className={cn(
+          "h-screen p-4 fixed hidden lg:flex flex-col transition-all duration-300 ease-in-out bg-white border-r",
+          isCollapsed ? "w-20" : "w-64"
+        )}
       >
-        <div className="mb-8 flex items-center justify-center">
-          <Link href="/" className="flex flex-col items-center">
-            {isCollapsed ? (
-              <Image
-                src="/logo.png"
-                alt="Curanest Logo"
-                width={40}
-                height={40}
-              />
-            ) : (
-              <p className={`font-bold text-2xl ${PRIMARY_COLOR}`}>CURANEST</p>
+        <div className="mb-8 flex items-center">
+          <Link href="/" className="flex flex-row items-center">
+            <Image src="/logo.png" alt="Curanest Logo" width={40} height={40} />
+
+            {!isCollapsed && (
+              <p className={`font-bold text-xl ml-3 ${PRIMARY_COLOR}`}>
+                CURANEST
+              </p>
             )}
           </Link>
         </div>

@@ -85,21 +85,24 @@ export function SortableTaskCard({
                 {serviceTask.description}
               </p>
             </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground">
-                Trạng thái
-              </h4>
-              <Badge className={getTaskStatusColor(serviceTask.status)}>
-                {serviceTask.status}
-              </Badge>
-            </div>
-            <div className="flex">
-              <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground mr-2">
-                Giá:
-              </h4>
-              <p className="text-xs sm:text-sm text-gray-700">
-                {serviceTask.cost}
-              </p>
+            <div className="flex items-center justify-between ">
+              <div>
+                <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                  Trạng thái
+                </h4>
+                <Badge className={getTaskStatusColor(serviceTask.status)}>
+                  {serviceTask.status}
+                </Badge>
+              </div>
+
+              <div className="flex">
+                <h4 className="text-xs sm:text-sm font-bold text-muted-foreground mr-2">
+                  Giá:
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-700">
+                  {serviceTask.cost}
+                </p>
+              </div>
             </div>
           </div>
           {!isReorderingEnabled && servicePackageId && (

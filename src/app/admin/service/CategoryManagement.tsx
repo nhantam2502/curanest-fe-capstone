@@ -117,7 +117,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        // Adjust pagination/filter parameters as needed for getListNurse
         const response = await nurseApiRequest.getListNurse(
           1,
           100,
@@ -131,7 +130,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
 
       } catch (error) {
         console.error("Error fetching users:", error);
-        setUsers([]); // Ensure users is an empty array on error
+        setUsers([]); 
         toast({
             title: "Lỗi tải danh sách y tá",
             description: "Không thể tải danh sách y tá để lựa chọn.",
@@ -156,7 +155,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   const prepareDeleteCategory = (categoryId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent row click event
     setCategoryToDeleteId(categoryId);
-    // The actual deletion happens in confirmDeleteCategory
   };
 
   // Performs the actual deletion after confirmation
@@ -212,13 +210,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
-    setSelectedCategoryId(categoryId); // Set the current category ID
+    setSelectedCategoryId(categoryId); 
     setSelectedNurseInfo(staffInfo);
-    setSelectedStaffId(""); // Reset dropdown selection when opening
+    setSelectedStaffId(""); 
     setNurseInfoDialogOpen(true);
   };
 
-  // Adds the selected nurse to the currently selected category
   const handleAddStaff = async () => {
     if (!selectedCategoryId || !selectedStaffId) {
       toast({
@@ -276,7 +273,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   };
 
   return (
-    <div className="w-full p-4 border rounded-lg shadow-sm">
+    <div className="w-full p-4 border rounded-lg shadow-sm h-fit">
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <Label className="text-xl font-semibold">Quản lý danh mục dịch vụ</Label>
         {/* Ensure CategoryForm handles its own open state via props */}
@@ -287,7 +284,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         />
       </div>
 
-      {/* Search Bar */}
       <div className="mb-4 relative">
         <Input
           type="text"
@@ -299,13 +295,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       </div>
 
-      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[25%]">Tên danh mục</TableHead>
-              <TableHead className="w-[40%]">Mô tả</TableHead>
+              <TableHead className="w-[20%]">Tên danh mục</TableHead>
+              <TableHead className="w-[50%]">Mô tả</TableHead>
               <TableHead className="w-[15%] text-center">Người phụ trách</TableHead>
               <TableHead className="w-[20%] text-right">Hành động</TableHead>
             </TableRow>
@@ -337,7 +332,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   <TableCell className="text-center">
                     {category["staff-info"] ? (
                       <div
-                        className="flex justify-center items-center cursor-pointer group"
+                        className="flex flex-col justify-center items-center cursor-pointer group"
                         onClick={(e) => handleNurseInfoClick(category["staff-info"], category.id, e)}
                       >
                         <Avatar className="w-8 h-8 group-hover:ring-2 group-hover:ring-primary">
@@ -350,12 +345,15 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                             {category["staff-info"]["nurse-name"]?.charAt(0)?.toUpperCase() || 'N'}
                           </AvatarFallback>
                         </Avatar>
+                        <p className="mt-2 text-sm font-medium">
+                          {category["staff-info"]["nurse-name"]}
+                        </p>
                       </div>
                     ) : (
                       <Button
                         variant="link"
                         size="sm"
-                        className="h-auto p-0"
+                        className="h-auto p-0 w-full"
                         onClick={(e) => handleNurseInfoClick(null, category.id, e)}
                       >
                         Thêm y tá
@@ -378,7 +376,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>
-                       {/* Ensure content only renders if categoryToDeleteId matches */}
                       {categoryToDeleteId === category.id && (
                           <AlertDialogContent>
                           <AlertDialogHeader>
@@ -408,7 +405,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
         </Table>
       </div>
 
-      {/* Pagination Controls */}
       {totalPages > 1 && (
         <div className="flex justify-end items-center space-x-2 mt-4">
           <Button
@@ -448,10 +444,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 : "Thêm y tá phụ trách cho danh mục này."}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-            {/* Display current nurse info OR show Add form */}
+          <div className="flex py-4 space-y-4 w-full">
             {selectedNurseInfo ? (
-              <div className="space-y-2">
+              <div className="flex flex-col space-y-2 w-full">
                  <div className="flex items-center gap-4">
                      <Avatar className="w-16 h-16">
                           <AvatarImage src={ selectedNurseInfo["nurse-picture"] || undefined } alt={selectedNurseInfo["nurse-name"]} />
@@ -459,9 +454,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                      </Avatar>
                     <p className="font-medium">{selectedNurseInfo["nurse-name"]}</p>
                  </div>
-                {/* Add more details if available in StaffInfo */}
-                {/* <p><strong>ID:</strong> {selectedNurseInfo["nurse-id"]}</p> */}
-                <Button
+                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={handleRemoveStaff}
@@ -469,6 +462,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   Xoá khỏi danh mục này
                 </Button>
               </div>
+              
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="nurse-select">Chọn y tá để thêm:</Label>

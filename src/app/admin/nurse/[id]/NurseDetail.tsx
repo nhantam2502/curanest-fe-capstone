@@ -171,7 +171,7 @@ export default function NurseDetailPageRenovated() {
 
   // --- Render Details ---
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
+    <div className="container mx-auto p-4 md:p-6 lg:p-4 space-y-6">
       {/* Back Button */}
       <Button variant="outline" onClick={() => router.back()} className="mb-2">
         <ChevronLeft className="mr-2 h-4 w-4" />
