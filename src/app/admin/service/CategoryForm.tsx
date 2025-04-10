@@ -20,7 +20,6 @@ interface CategoryFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateCategory: () => void;
-  
 }
 
 const CategoryForm: React.FC<CategoryFormProps> = ({

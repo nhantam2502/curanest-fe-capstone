@@ -4,7 +4,12 @@ import {
   Res,
   UpdateServicePackage,
 } from "@/types/servicesPack";
-import { CreateServiceTask, UpdateServiceTask } from "@/types/servicesTask";
+import {
+  CreateServiceTask,
+  UpdateServiceOrder,
+  UpdateServiceOrderPayload,
+  UpdateServiceTask,
+} from "@/types/servicesTask";
 
 const servicePackageApiRequest = {
   // Service Package
@@ -33,6 +38,9 @@ const servicePackageApiRequest = {
 
   createServiceTask: (packageId: string, body: CreateServiceTask) =>
     http.post<Res>(`/appointment/api/v1/svcpackage/${packageId}/svctask`, body),
+
+  updateServiceOrder: (taskData: UpdateServiceOrderPayload) =>
+    http.patchWithBody<Res>(`/appointment/api/v1/svcpackage/svctask`, taskData),
 
   updateServiceTask: (
     packageId: string,

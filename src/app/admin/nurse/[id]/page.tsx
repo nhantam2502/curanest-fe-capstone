@@ -182,11 +182,11 @@ const NurseServiceMappingPage: React.FC = () => {
             <p>Chưa chọn dịch vụ nào.</p>
           )}
           <div className="mt-4 flex justify-end">
-            <Button onClick={handleSubmitMapping}>Gán</Button>
+            <Button onClick={handleSubmitMapping}>Thêm</Button>
           </div>
         </div>
         
-        <div>
+        <div className="overflow-y-auto h-[calc(80vh-120px)]">
           {serviceCategories.map((category) => (
             <div key={category.id} className="mb-4">
               <h3 className="font-semibold mb-2">{category.name}</h3>
@@ -201,7 +201,7 @@ const NurseServiceMappingPage: React.FC = () => {
                     />
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm">No services available.</p>
+                  <p className="text-gray-500 text-sm">Điều dưỡng này hiện chưa có dịch vụ.</p>
                 )}
               </div>
             </div>

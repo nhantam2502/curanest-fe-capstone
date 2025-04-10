@@ -1,11 +1,13 @@
 import http from "@/lib/http";
 import {
+  AppointmentFilter,
   AppointmentRes,
   CreateAppointmentCusPackage,
   CreateRes,
   CusPackageResponse,
   InoviceRes,
 } from "@/types/appointment";
+import { Res } from "@/types/service";
 
 const appointmentApiRequest = {
   createAppointmentCusPackage: (body: CreateAppointmentCusPackage) =>
@@ -31,6 +33,24 @@ const appointmentApiRequest = {
     http.get<InoviceRes>(
       `/appointment/api/v1/cuspackage/${cusPackageID}/invoices`
     ),
+
+    getAppointments: (filter: AppointmentFilter | null) => {
+      let queryString = `/appointment/api/v1/appointments`;
+  
+      if (filter) {
+        const params = new URLSearchParams();
+        Object.entries(filter).forEach(([key, value]) => {
+          if (value) {
+            params.append(key, value);
+          }
+        });
+  
+        queryString += `?${params.toString()}`;
+      }
+  
+      return http.get<Res>(queryString);
+    },
+
 };
 
 export default appointmentApiRequest;

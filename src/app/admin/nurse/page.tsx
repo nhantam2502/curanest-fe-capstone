@@ -9,6 +9,8 @@ import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import { useToast } from "@/hooks/use-toast";
 import { GetAllNurse, GetAllNurseFilter } from "@/types/nurse";
 
+type SortDirection = "asc" | "desc";
+
 export default function NurseManagementPage() {
   const { toast } = useToast();
   const [nurses, setNurses] = useState<GetAllNurse[]>([]);
@@ -19,7 +21,7 @@ export default function NurseManagementPage() {
     "service-id": "",
     rate: "",
   });
-  const itemsPerPage = 10; // adjust as needed
+  const itemsPerPage = 5; // adjust as needed
 
   const fetchNurses = useCallback(async () => {
     try {
@@ -30,7 +32,7 @@ export default function NurseManagementPage() {
       };
       // Subtract 1 from currentPage if API expects 0-indexed pages
       const paging = {
-        page: currentPage ,
+        page: currentPage,
         size: itemsPerPage,
       };
       const response = await nurseApiRequest.getAllNurse({ filter, paging });
@@ -41,8 +43,7 @@ export default function NurseManagementPage() {
         toast({
           title: "Lỗi tải điều dưỡng",
           description:
-            response.payload?.message ||
-            "Không thể tải danh sách điều dưỡng.",
+            response.payload?.message || "Không thể tải danh sách điều dưỡng.",
           variant: "destructive",
         });
       }
@@ -68,23 +69,52 @@ export default function NurseManagementPage() {
   const resetFilters = () => {
     setFilters({ "nurse-name": "", "service-id": "", rate: "" });
   };
+  const [sortColumn, setSortColumn] = useState<keyof GetAllNurse | "">("");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  const handleSort = (column: keyof GetAllNurse | "") => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      // Set new column and reset to ascending order
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+  const sortedNurses = [...nurses].sort((a, b) => {
+    if (!sortColumn) return 0; // If no sorting column is selected, return original order
+
+    const valueA = a[sortColumn] ?? ""; // Handle null/undefined
+    const valueB = b[sortColumn] ?? "";
+
+    if (typeof valueA === "string" && typeof valueB === "string") {
+        return sortDirection === "asc"
+            ? valueA.localeCompare(valueB)
+            : valueB.localeCompare(valueA);
+    }
+
+    if (typeof valueA === "number" && typeof valueB === "number") {
+        return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+    }
+
+    return 0;
+});
 
   return (
     <div>
       <div className="flex justify-between">
-        <h1 className="text-2xl font-bold mb-4">Quản lý điều dưỡng</h1>
-        <div className="flex space-x-4">
-          <Link href="/admin/nurse/create-nurse">
-            <Button className="mb-4">Thêm</Button>
-          </Link>
-        </div>
+        <h1 className="text-2xl font-bold mb-4">Quản lý điều dưỡng</h1>     
       </div>
       <NurseFilter onSearch={handleSearch} onReset={resetFilters} />
       <NurseTable
-        nurses={nurses}
+        nurses={sortedNurses}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={(page) => setCurrentPage(page)}
+        totalNurses={0}
+        sortColumn={sortColumn}
+        sortDirection={sortDirection}
+        onSort={handleSort}
       />
     </div>
   );

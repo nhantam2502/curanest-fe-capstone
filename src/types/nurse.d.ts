@@ -64,6 +64,7 @@ export type DetailNurseListResType = {
 };
 
 export interface NurseForStaff {
+  avatar: string;
   id: number;
   name: string;
   email: string;
@@ -80,6 +81,7 @@ export interface NurseForStaff {
   slogan: string;
   department?: string; 
   email?: string;
+  "phone-number": string; 
 }
 export interface CreateNurse {
   address: string;

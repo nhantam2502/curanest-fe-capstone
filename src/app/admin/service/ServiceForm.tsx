@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react"; // Removed useCallback as fetchCategories is gone
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,199 +12,184 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// Removed Select imports as category selection is removed
 import { useToast } from "@/hooks/use-toast";
-import { CreateServiceCate } from "@/types/service";
+import { CreateServiceCate } from "@/types/service"; // Type for the service data
 import serviceApiRequest from "@/apiRequest/service/apiServices";
-import categoryApiRequest from "@/apiRequest/category/apiCategory";
-import { Category, CategoryFilter } from "@/types/category";
+import { Textarea } from "@/components/ui/textarea"; // Added Textarea import
 
+// Updated Props Interface
 interface ServiceFormProps {
+  categoryId: string | null; // Receive category ID from parent
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCancel: () => void;
+  onSuccess: () => void; // Callback on successful creation
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
+  categoryId, // Use categoryId from props
   open,
   onOpenChange,
+  onSuccess, // Use onSuccess callback
 }) => {
-  const [newService, setNewService] = useState<CreateServiceCate>({
+  // Initial state for a new service
+  const initialServiceState: CreateServiceCate = {
     name: "",
     description: "",
-    "est-duration": "",
-  });
+    "est-duration": "", // Keep as string for input, convert on save
+  };
+  const [newService, setNewService] = useState<CreateServiceCate>(initialServiceState);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
-  const [searchQuery] = useState<CategoryFilter>({ name: "" });
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<
-    string | undefined
-  >(undefined);
 
-  const fetchCategories = useCallback(async () => {
-    try {
-      const response = await categoryApiRequest.getCategory(searchQuery);
-      if (response.status === 200 && response.payload) {
-        setCategories(response.payload.data || []);
-      } else {
-        console.error("Error fetching categories:", response);
-        toast({
-          title: "Lỗi tải danh mục",
-          description:
-            response.payload?.message || "Không thể tải danh mục dịch vụ.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
-      toast({
-        title: "Lỗi tải danh mục",
-        description: "Không thể tải danh mục dịch vụ. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    }
-  }, [searchQuery, toast]);
-
+  // Reset form when dialog closes or categoryId changes (optional, but good practice)
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    if (!open) {
+      setNewService(initialServiceState); // Reset on close
+    }
+  }, [open]);
 
+  // Handle input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setNewService((prevState: CreateServiceCate) => ({
+    setNewService((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
 
+  // Handle saving the new service
   const handleSave = async () => {
-    setIsSaving(true);
-    if (!selectedCategoryId) {
+    // Check if a category is selected (passed via props)
+    if (!categoryId) {
       toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn một danh mục.",
+        title: "Chưa chọn danh mục",
+        description: "Vui lòng chọn một danh mục trước khi thêm dịch vụ.",
         variant: "destructive",
       });
-      setIsSaving(false);
       return;
     }
 
+    // Basic validation for name
+    if (!newService.name.trim()) {
+       toast({
+        title: "Thiếu tên dịch vụ",
+        description: "Vui lòng nhập tên cho dịch vụ.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
     try {
+      // Prepare payload with correct types
       const payload = {
         name: newService.name,
-        description: newService.description,
+        description: newService.description || "", 
         "est-duration": newService["est-duration"],
       };
 
+      // Call API to create service under the selected category
       const response = await serviceApiRequest.createService(
-        selectedCategoryId,
+        categoryId, // Use categoryId from props
         payload
-      ); // Pass selectedCategoryId
-      if (response && response.status === 201) {
+      );
+
+      if (response && (response.status === 201 || response.status === 200)) { // Check common success statuses
         toast({
           title: "Thành công",
-          description: "Danh mục dịch vụ đã được tạo thành công.",
+          description: `Đã tạo dịch vụ "${payload.name}" thành công.`,
         });
-        console.log(response);
-        setNewService({
-          name: "",
-          description: "",
-          "est-duration": "",
-        });
-        setSelectedCategoryId(undefined); // Reset selected category
-        onOpenChange(false);
+        onSuccess(); // Call the success callback passed from parent
+        onOpenChange(false); // Close the dialog
+        // No need to reset state here if useEffect handles it on !open
       } else {
         toast({
-          title: "Lỗi",
+          title: "Lỗi tạo dịch vụ",
           description:
             response?.payload?.message ||
-            "Không thể tạo danh mục dịch vụ. Vui lòng thử lại.",
+            "Không thể tạo dịch vụ. Vui lòng thử lại.",
           variant: "destructive",
         });
-        console.error("Error creating category:", response);
+        console.error("Error creating service:", response);
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
-        title: "Lỗi",
-        description: "Không thể tạo danh mục dịch vụ. Vui lòng thử lại.",
+        title: "Lỗi hệ thống",
+        description: error?.message || "Không thể tạo dịch vụ. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Error creating category:", error);
+      console.error("Error creating service:", error);
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
+    // Dialog component controlled by parent's state via 'open' and 'onOpenChange' props
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button>Thêm danh mục</Button>
+        {/* Disable button if no category is selected */}
+        <Button disabled={!categoryId}>Thêm dịch vụ</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Thêm danh mục mới</DialogTitle>
+          {/* Updated Title and Description */}
+          <DialogTitle>Thêm dịch vụ mới</DialogTitle>
           <DialogDescription>
-            Nhập tên và mô tả cho danh mục dịch vụ mới.
+            Nhập thông tin cho dịch vụ mới vào danh mục đã chọn.
           </DialogDescription>
         </DialogHeader>
+        {/* Form fields for service details */}
         <div className="grid gap-4 py-4">
+          {/* Name Input */}
           <div className="grid gap-2">
-            <Label htmlFor="category-id">Danh mục</Label>
-            <Select onValueChange={setSelectedCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn danh mục" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="name">Tên danh mục</Label>
+            <Label htmlFor="name">
+              Tên dịch vụ <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="name"
               name="name"
               value={newService.name}
               onChange={handleInputChange}
-              placeholder="Ví dụ: Chăm sóc tại nhà"
+              placeholder="Ví dụ: Thay băng vết thương"
+              required // Added basic required attribute
             />
           </div>
+          {/* Description Textarea */}
           <div className="grid gap-2">
             <Label htmlFor="description">Mô tả</Label>
-            <Input
+            <Textarea // Use Textarea for description
               id="description"
               name="description"
               value={newService.description}
               onChange={handleInputChange}
-              placeholder="Mô tả ngắn gọn về danh mục"
+              placeholder="Mô tả ngắn gọn về dịch vụ (không bắt buộc)"
+              rows={3} // Adjust rows as needed
             />
           </div>
+          {/* Estimated Duration Input */}
           <div className="grid gap-2">
-            <Label htmlFor="est-duration">Thời gian dự kiến</Label>
+            <Label htmlFor="est-duration">Thời gian dự kiến (phút)</Label>
             <Input
               id="est-duration"
               name="est-duration"
+              type="number" // Change type to number
+              min="0" // Prevent negative numbers
               value={newService["est-duration"]}
               onChange={handleInputChange}
+              placeholder="0"
             />
           </div>
         </div>
+        {/* Dialog Actions */}
         <DialogFooter>
-          <Button type="submit" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? "Đang lưu..." : "Lưu"}
+           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
+          {/* Save Button */}
+          <Button type="button" onClick={handleSave} disabled={isSaving || !categoryId}>
+            {isSaving ? "Đang lưu..." : "Lưu dịch vụ"}
           </Button>
         </DialogFooter>
       </DialogContent>
