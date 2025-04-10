@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,39 +8,24 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock } from "lucide-react";
+import { Clock, CheckCircle, XCircle, Hourglass } from "lucide-react";
 import { PatientRecord } from "@/types/patient";
+import { Appointment, CusPackageResponse, InoviceRes } from "@/types/appointment";
+import { formatDate } from "@/lib/utils";
+import { NurseItemType } from "@/types/nurse";
+import { Button } from "@/components/ui/button";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { useRouter } from "next/navigation";
 
 interface PatientDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
   appointment: {
-    id: number;
-    nurse_name: string;
-    avatar: string;
-    status: string;
-    phone_number: string;
-    techniques: string;
-    total_fee: number;
-    appointment_date: string;
     time_from_to: string;
+    apiData: Appointment;
+    cusPackage?: CusPackageResponse | null;
   };
-  nurse: {
-    id: number;
-    name: string;
-    photo: string;
-    specialization: string;
-    avgRating: number;
-    totalRating: number;
-    totalPatients: number;
-    hospital: string;
-    certificate: string[];
-    experience: string;
-    education_level: string;
-    services: {
-      [key: string]: string[];
-    };
-  };
+  nurse?: NurseItemType;
   patient: PatientRecord;
 }
 
@@ -47,11 +33,40 @@ const PatientInfo: React.FC<{ label: string; value: string | number }> = ({
   label,
   value,
 }) => (
-  <div>
-    <p className="text-gray-500 text-xl mb-1">{label}</p>
-    <p className="font-medium text-xl">{value}</p>
+  <div className="mb-4">
+    <p className="text-gray-500 text-xl">{label}</p>
+    <p className="font-medium text-xl text-gray-900">{value}</p>
   </div>
 );
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "completed":
+    case "done":
+      return "font-semibold text-green-800";
+    case "waiting":
+    case "not_done":
+      return "bg-white hover:bg-white cursor-pointer font-semibold text-yellow-500";
+    case "canceled":
+      return "font-semibold text-red-800";
+    default:
+      return "font-semibold text-gray-800";
+  }
+};
+
+const getStatusIcon = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "completed":
+    case "done":
+      return <CheckCircle className="w-5 h-5" />;
+    case "waiting":
+    case "not_done":
+      return <Hourglass className="w-5 h-5" />;
+    case "canceled":
+      return <XCircle className="w-5 h-5" />;
+    default:
+      return null;
+  }
+};
 
 const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   isOpen,
@@ -60,112 +75,198 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   nurse,
   patient,
 }) => {
+  const router = useRouter();
+
+  const [invoices, setInvoices] = useState<InoviceRes | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const packageData = appointment.cusPackage?.data?.package;
+  const tasks = appointment.cusPackage?.data?.tasks || [];
+
+
+  useEffect(() => {
+    const fetchInvoices = async () => {
+      if (isOpen && packageData?.id) {
+        setIsLoading(true);
+        try {
+          const response = await appointmentApiRequest.getInvoice(appointment.apiData["cuspackage-id"]);
+          setInvoices(response.payload.data);
+        } catch (error) {
+          console.error("Failed to fetch invoices:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchInvoices();
+    
+    
+  }, [isOpen, packageData?.id]);
+
+
+  const handlePayment = () => {
+    // router.push(invoices?.data[0]["payos-url"] || "");
+  };  
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[1400px] max-h-[90vh] overflow-y-auto p-8">
-        <DialogHeader className="mb-8">
-          <DialogTitle className="text-2xl font-semibold">
+      <DialogContent className="sm:max-w-[1500px] max-h-[90vh] overflow-y-auto p-8">
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-3xl font-bold text-gray-800">
             Chi tiết lịch hẹn
           </DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Thông tin bệnh nhân */}
-          <div className="space-y-8">
-            <h3 className="text-2xl font-semibold">Thông tin bệnh nhân</h3>
-            <div className="flex items-center space-x-6">
-              <Avatar className="w-24 h-24">
+          <div className="space-y-6">
+            <h3 className="text-2xl font-semibold text-gray-800">Bệnh nhân</h3>
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-16 h-16">
                 <AvatarImage src={patient["full-name"]} alt="Patient Avatar" />
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-xl">
                   {patient["full-name"]
-                    ? patient["full-name"]
-                        .split(" ")
-                        .slice(-1)[0][0]
-                        .toUpperCase()
-                    : "?"}
+                    ?.split(" ")
+                    .slice(-1)[0][0]
+                    ?.toUpperCase() || "?"}
                 </AvatarFallback>
               </Avatar>
-
               <div className="text-xl font-semibold">
                 {patient["full-name"]}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-8">
-              <PatientInfo label="Ngày sinh" value={patient.dob} />
-              <PatientInfo
-                label="Số điện thoại"
-                value={patient["phone-number"]}
-              />
-              <PatientInfo label="Tuổi" value="81" />
-            </div>
+            <PatientInfo label="Ngày sinh" value={patient.dob} />
+            <PatientInfo
+              label="Số điện thoại"
+              value={patient["phone-number"]}
+            />
             <PatientInfo label="Địa chỉ" value={patient.address} />
             <PatientInfo
               label="Mô tả bệnh lý"
-              value={patient["desc-pathology"]}
-            />
-            <PatientInfo
-              label="Lưu ý với điều duỡng"
-              value={patient["note-for-nurse"]}
+              value={patient["desc-pathology"] || "Chưa có"}
             />
           </div>
 
           {/* Thông tin điều dưỡng và lịch hẹn */}
-          <div className="space-y-8">
-            <h3 className="text-2xl font-semibold">
-              Thông tin điều dưỡng và lịch hẹn
+          <div className="space-y-6">
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Điều dưỡng & Lịch hẹn
             </h3>
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={nurse.photo} alt="Nurse Avatar" />
-                <AvatarFallback>{nurse.name}</AvatarFallback>
+            <div className="flex items-center space-x-4">
+              <Avatar className="w-16 h-16">
+                <AvatarImage src={nurse?.["nurse-picture"]} alt="Nurse Avatar" />
+                <AvatarFallback>{nurse?.["nurse-name"]?.[0]}</AvatarFallback>
               </Avatar>
-              <div className="bg-[#00E2D6] text-white px-6 py-2 rounded-full text-lg">
-                {nurse.name}
-              </div>
-              <p className="text-gray-600 text-lg">
-                {appointment.phone_number}
-              </p>
+              <div className="text-xl font-semibold">{nurse?.["nurse-name"]}</div>
             </div>
             <PatientInfo
-              label="Lịch hẹn ngày"
-              value={appointment.appointment_date}
+              label="Ngày hẹn"
+              value={formatDate(new Date(appointment.apiData["est-date"]))}
             />
             <PatientInfo label="Thời gian" value={appointment.time_from_to} />
-            <div>
-              <p className="text-gray-500 text-xl mb-2">Trạng thái:</p>
-              <div className="flex items-center space-x-3">
-                <Clock className="w-6 h-6 text-green-500" />
-                <span className="text-green-500 text-xl font-semibold">
-                  {appointment.status}
+
+            <div className="flex items-center space-x-2">
+              <p className="text-gray-500 text-xl">Trạng thái:</p>
+              <div>
+                <span
+                  className={`text-xl ${getStatusColor(appointment.apiData.status)}`}
+                >
+                  {appointment.apiData.status}
                 </span>
               </div>
-            </div>
-            <div>
-              <p className="text-gray-500 text-xl mb-2">Dịch vụ đã đăng kí:</p>
-              <div className="flex flex-wrap gap-3 mt-2">
-                {(appointment.techniques || "")
-                  .split("-")
-                  .filter(Boolean)
-                  .map((technique, index) => (
-                    <Badge
-                      key={index}
-                      className="text-white px-4 py-2 text-base"
-                    >
-                      {technique.trim()}
-                    </Badge>
-                  ))}
-              </div>
-            </div>
-            <div className="flex justify-end mt-6">
-              <p className="font-semibold text-xl text-red-500">
-                Tổng số tiền:{" "}
-                <span className="font-semibold">
-                  {appointment.total_fee.toLocaleString()} VND
-                </span>
-              </p>
             </div>
           </div>
+
+          {/* Thông tin gói dịch vụ và tác vụ */}
+          <div className="space-y-6">
+            <h3 className="text-2xl font-semibold text-gray-800">
+              Gói dịch vụ
+            </h3>
+            {packageData ? (
+              <>
+                <div className="text-gray-500 text-xl">
+                  Tên gói
+                  <div className="text-primary font-semibold">
+                    {packageData.name}
+                  </div>
+                </div>
+                <div className="text-gray-500 text-xl">
+                  Tổng phí
+                  <div className="text-red-500 font-semibold">{`${packageData["total-fee"].toLocaleString()} VND`}</div>
+                </div>
+
+                <PatientInfo
+                  label="Trạng thái thanh toán"
+                  value={
+                    packageData["payment-status"] === "unpaid"
+                      ? "Chưa thanh toán"
+                      : "Đã thanh toán"
+                  }
+                />
+                {/* Thêm nút thanh toán khi chưa thanh toán */}
+                {packageData["payment-status"] === "unpaid" && (
+                  <Button 
+                    className="w-full mt-4 text-xl"
+                    onClick={handlePayment}
+                  >
+                    Thanh toán ngay
+                  </Button>
+                )}
+              </>
+            ) : (
+              <p className="text-gray-500">Chưa có thông tin gói dịch vụ</p>
+            )}
+          </div>
         </div>
+
+        {/* Danh sách tác vụ */}
+        {tasks.length > 0 && (
+          <div className="mt-8">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+              Danh sách tác vụ
+            </h3>
+            <div className="space-y-4">
+              {tasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-xl font-semibold text-gray-800">
+                        {task["task-order"]}. {task.name}
+                      </p>
+                      <p className="text-lg text-red-600 mt-1">
+                        {task["client-note"]
+                          ? `Ghi chú: ${task["client-note"]}`
+                          : ""}
+                      </p>
+                      {/* <p className="text-lg text-gray-600">
+                        Lời khuyên: {task["staff-advice"] || "Không có"}
+                      </p> */}
+                    </div>
+                    <Badge
+                      className={`${getStatusColor(task.status)} text-sm px-3 py-1 flex items-center gap-2`}
+                    >
+                      {getStatusIcon(task.status)}
+                      {task.status === "not_done"
+                        ? "Chưa hoàn thành"
+                        : task.status}
+                    </Badge>
+                  </div>
+                  <div className="mt-2 flex items-center text-gray-600 text-lg">
+                    <Clock className="w-4 h-4 mr-2" />
+                    <span>
+                      {task["est-duration"]} phút 
+                    
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

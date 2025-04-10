@@ -5,6 +5,7 @@ import React from "react";
 
 const NursePage = () => {
   const { data: session } = useSession();
+  // console.log("session", session);
 
   if (!session) {
     redirect("/api/auth/signin?callbackUrl=/nurse");

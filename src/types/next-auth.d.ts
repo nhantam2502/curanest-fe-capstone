@@ -3,6 +3,7 @@ import type { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
   interface User {
+    id?: string;
     role?: "relatives" | "nurse" | "staff" | "admin";
     dob?: string;
     "phone-number"?: string;
@@ -17,6 +18,7 @@ declare module "next-auth" {
 
   interface Session {
     user: {
+      id?: User["id"];
       role?: User["role"];
       dob?: User["dob"];
       "phone-number"?: User["phone-number"];
@@ -33,6 +35,7 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
+    id?: User["id"];
     role?: User["role"];
     dob?: User["dob"];
     "phone-number"?: User["phone-number"];

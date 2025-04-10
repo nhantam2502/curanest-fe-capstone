@@ -21,6 +21,10 @@ const nurseApiRequest = {
   getDetailNurse: (id: string) =>
     http.get<DetailNurseListResType>(`/nurse/api/v1/nurses/${id}`),
 
+  getListNurseNoFilter: () =>
+    http.get<NurseListResType>("/nurse/api/v1/nurses?page=1&size=50"),
+  
+
   getInfoNurseMe: () =>
     http.get<infoNurseRes>("/nurse/api/v1/nurses/me"),
 

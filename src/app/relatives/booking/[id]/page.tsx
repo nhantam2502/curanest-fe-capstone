@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge, Calendar, Check, Clock, User } from "lucide-react";
+import { Badge, Calendar, Check, Clock, FileText, User } from "lucide-react";
 import {
   calculateAdvancedPricing,
   calculatePackagePrice,
@@ -10,7 +10,9 @@ import {
   cn,
   formatCurrency,
 } from "@/lib/utils";
-import TimeSelection from "@/app/components/Relatives/TimeSelection";
+import TimeSelection, {
+  TimeSlot,
+} from "@/app/components/Relatives/TimeSelection";
 import {
   CategoryInfo,
   PackageServiceItem,
@@ -20,8 +22,7 @@ import {
   TransformedCategory,
 } from "@/types/service";
 import NurseSelectionList from "@/app/components/Relatives/NurseSelectionList";
-import nurses from "@/dummy_data/dummy_nurse.json";
-import { Nurse, NurseItemType } from "@/types/nurse";
+import { NurseItemType } from "@/types/nurse";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { ServiceCategorySelection } from "@/app/components/Relatives/Step1";
@@ -32,10 +33,17 @@ import { Step6Component } from "@/app/components/Relatives/Step6";
 import { OrderConfirmationComponent } from "@/app/components/Relatives/Step7";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
+import SubscriptionTimeSelection, {
+  SelectedDateTime,
+} from "@/app/components/Relatives/SubscriptionTimeSelection";
+import { CreateAppointmentCusPackage, InoviceRes } from "@/types/appointment";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { PatientRecord } from "@/types/patient";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
 interface SelectedTime {
   timeSlot: { display: string; value: string };
-  date: string;
+  date: Date;
 }
 
 type ServicesByType = {
@@ -46,15 +54,17 @@ type ServicesByType = {
 const DetailBooking = ({ params }: { params: { id: string } }) => {
   const { toast } = useToast();
   const router = useRouter();
+  const { id: patientId } = params;
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+  const [selectedPackage, setSelectedPackage] =
+    useState<PackageServiceItem | null>(null);
   const [selection, setSelection] = useState<{
     categoryId: string;
     serviceId: string;
     serviceName?: string;
   } | null>(null);
 
-  console.log("selection: ", selection);
+  // console.log("selection: ", selection);
 
   // Replace this hardcoded data
   const [serviceCategories, setServiceCategories] = useState<
@@ -71,6 +81,9 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const [isPackagesLoading, setIsPackagesLoading] = useState(false);
 
   // fetch api get serivce task
+  const [serviceNotes, setServiceNotes] = useState<{ [key: string]: string }>(
+    {}
+  );
   const [serviceTasks, setServiceTasks] = useState<Record<string, any[]>>({});
   const [isTasksLoading, setIsTasksLoading] = useState(false);
   const [selectedServicesTask, setSelectedServicesTask] = useState<
@@ -86,15 +99,23 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
 
   // fetch api get nurse
   const [nurses, setNurses] = useState<NurseItemType[]>([]);
-  const [appliedMinRating, setAppliedMinRating] = useState(0);
-  const [appliedNameFilter, setAppliedNameFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [isNursesLoading, setIsNursesLoading] = useState(false);
+  const [selectedTimes, setSelectedTimes] = useState<SelectedDateTime[]>([]);
 
   const [selectedTime, setSelectedTime] = useState<SelectedTime | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<NurseItemType | null>(
     null
   );
+
+  // fetch api get patient record
+  const [selectedProfile, setSelectedProfile] = useState<PatientRecord | null>(
+    null
+  );
+  const [profiles, setProfiles] = useState<PatientRecord[]>([]);
+  const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
+  const [errorProfiles, setErrorProfiles] = useState<string | null>(null);
+
+  // fetch api get invoice
 
   const getSteps = () => {
     const baseSteps = [
@@ -127,6 +148,13 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     setServiceQuantities((prev) => ({
       ...prev,
       [serviceName]: Math.max(0, newQuantity),
+    }));
+  };
+
+  const updateServiceNote = (serviceName: string, note: string) => {
+    setServiceNotes((prev) => ({
+      ...prev,
+      [serviceName]: note,
     }));
   };
 
@@ -192,10 +220,23 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     setCurrentStep((current) => current - 1);
   };
 
-  const handleCompleteBooking = () => {
+  const handleCompleteBooking = async () => {
+    // console.log("== DỮ LIỆU KIỂM TRA ==");
+    // console.log("selectedPackage:", selectedPackage);
+    // console.log("selectedServicesTask:", selectedServicesTask);
+    // console.log("selectedTime:", selectedTime);
+    // console.log("selectedTimes:", selectedTimes);
+    // console.log("nurseSelectionMethod:", nurseSelectionMethod);
+
+    const isMultiDayPackage =
+      selectedPackage?.["combo-days"] && selectedPackage["combo-days"] > 1;
+    const hasValidTime = isMultiDayPackage
+      ? selectedTimes && selectedTimes.length > 0
+      : selectedTime !== null;
+
     if (
       !selectedServicesTask.length ||
-      !selectedTime ||
+      !hasValidTime ||
       !nurseSelectionMethod
     ) {
       toast({
@@ -203,13 +244,105 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         title: "Đặt lịch không thành công",
         description: "Vui lòng chọn đầy đủ thông tin!",
       });
-    } else {
+      return;
+    }
+
+    try {
+      const convertToUTCString = (dateTime: SelectedDateTime) => {
+        const date = dateTime.date;
+        const startTime = dateTime.timeSlot.start;
+
+        const formattedDate = date.toISOString().split("T")[0];
+        const localDate = new Date(`${formattedDate}T${startTime}:00+07:00`);
+
+        // console.log("date: ", date);
+        // console.log("startTime: ", startTime);
+        // console.log("formattedDate: ", formattedDate);
+        // console.log("localDate: ", localDate);
+
+        if (isNaN(localDate.getTime())) {
+          throw new Error("Không thể tạo Date hợp lệ từ date và time");
+        }
+
+        const isoString = localDate.toISOString(); // Ví dụ: "2025-03-30T03:00:00.000Z"
+        return isoString.replace(".000Z", "Z"); // Thay .000Z bằng Z để được "2025-03-30T03:00:00Z"
+      };
+
+      const datesToSend: string[] = isMultiDayPackage
+        ? selectedTimes.map((time) => convertToUTCString(time))
+        : selectedTime !== null
+          ? [
+              convertToUTCString({
+                date: selectedTime.date,
+                timeSlot: {
+                  start: selectedTime.timeSlot.value.split("-")[0],
+                  end: selectedTime.timeSlot.value.split("-")[1],
+                },
+              }),
+            ]
+          : [];
+
+      // console.log("datesToSend: ", datesToSend);
+
+      // Tạo appointmentData không có nursing-id mặc định
+      const appointmentData: CreateAppointmentCusPackage = {
+        dates: datesToSend,
+        "patient-id": patientId,
+        "svcpackage-id": selectedPackage?.id ?? "",
+        "task-infos": selectedServicesTask.map((service) => {
+          const { totalCost, totalDuration } = calculateAdvancedPricing(
+            service,
+            serviceQuantities[service.name] || 1
+          );
+          return {
+            "client-note": serviceNotes[service.name] || "",
+            "est-duration": totalDuration || 0,
+            "svctask-id": service.id,
+            "total-cost": totalCost || 0,
+            "total-unit": serviceQuantities[service.name] || 1,
+          };
+        }),
+      };
+
+      // Chỉ thêm nursing-id nếu nurseSelectionMethod là "manual"
+      if (nurseSelectionMethod === "manual") {
+        appointmentData["nursing-id"] = selectedNurse?.["nurse-id"] ?? "";
+      }
+      // console.log("appointmentData: ", appointmentData);
+      const response =
+        await appointmentApiRequest.createAppointmentCusPackage(
+          appointmentData
+        );
+
+      const newAppointmentId = response.payload["object-id"];
+
       toast({
         variant: "default",
         title: "Bạn đã đặt lịch thành công",
         description: `Tổng tiền: ${formatCurrency(calculateTotalPrice())}`,
       });
-      router.push("/relatives/appointments");
+
+      try {
+        const invoiceResponse =
+          await appointmentApiRequest.getInvoice(newAppointmentId);
+        const invoiceData = invoiceResponse.payload.data;
+        console.log("invoiceData: ", invoiceData);
+
+        // Chuyển hướng đến URL thanh toán nếu có
+        if (invoiceData && invoiceData.length > 0) {
+          router.push(invoiceData[0]["payos-url"]);
+        }
+      } catch (invoiceError) {
+        console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
+        router.push("/relatives/appointments");
+      }
+    } catch (error) {
+      console.error("Lỗi khi tạo cuộc hẹn:", error);
+      toast({
+        variant: "destructive",
+        title: "Đặt lịch không thành công",
+        description: "Đã có lỗi xảy ra khi tạo cuộc hẹn",
+      });
     }
   };
 
@@ -225,19 +358,53 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         if (nurseSelectionMethod === "manual") {
           return selectedNurse !== null;
         } else {
-          return selectedTime !== null; // Auto method - phải chọn thời gian
+          return selectedTime !== null || selectedTimes !== null;
         }
 
       case 6:
-        // Case 6: Phải chọn thời gian nếu là manual, hoặc đã đủ thông tin nếu là auto
+        // Case 6: Phải chọn thời gian nếu là manual
         if (nurseSelectionMethod === "manual") {
-          return selectedTime !== null;
+          // Nếu là gói subscription thì phải chọn đủ số ngày
+          if (
+            selectedPackage &&
+            selectedPackage["combo-days"] &&
+            selectedPackage["combo-days"] > 1
+          ) {
+            return selectedTimes.length === selectedPackage["combo-days"];
+          } else {
+            // Nếu là gói một lần thì chỉ cần chọn một thời gian
+            return selectedTime !== null;
+          }
         }
         return true;
       default:
         return true;
     }
   };
+
+  useEffect(() => {
+    const fetchPatientRecords = async () => {
+      setIsLoadingProfiles(true);
+      try {
+        const response = await patientApiRequest.getPatientRecord();
+        const patientRecords = response.payload.data;
+        setProfiles(patientRecords);
+        setErrorProfiles(null);
+
+        const matchedProfile = patientRecords.find(
+          (profile: PatientRecord) => profile.id === patientId
+        );
+        setSelectedProfile(matchedProfile || null);
+      } catch (err) {
+        setErrorProfiles("Không thể tải hồ sơ bệnh nhân");
+        console.error(err);
+      } finally {
+        setIsLoadingProfiles(false);
+      }
+    };
+
+    fetchPatientRecords();
+  }, [patientId]);
 
   useEffect(() => {
     const fetchFilteredServices = async () => {
@@ -304,6 +471,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
               "service-id": pkg["service-id"],
               "time-interval": pkg["time-interval"] || 0,
               discount: parseInt(pkg.discount),
+              "combo-days": pkg["combo-days"] || 0,
             };
 
             if (!updatedServicesByType[packageType][categoryName]) {
@@ -434,6 +602,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             onNext={handleNextStep}
             onPrevious={handlePreviousStep}
             setCurrentStep={setCurrentStep}
+            selectedPackage={selectedPackage}
+            updateServiceNote={updateServiceNote} // Thêm prop này
           />
         );
 
@@ -459,10 +629,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
               setSelectedNurse(selectedNurse);
             }
           };
-
           // Filter nurses (if needed, though now it's done server-side)
           const filteredNurses = nurses;
-
           return (
             <div className="space-y-6 text-lg">
               <h2 className="text-3xl font-bold">Chọn điều dưỡng</h2>
@@ -481,56 +649,80 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             </div>
           );
         }
-
         // If auto selection, fall through to time selection
-        return (
-          <TimeSelection
-            totalTime={calculateTotalTime()}
-            onTimeSelect={({ date, timeSlot }) => {
-              const formattedDate =
-                date instanceof Date
-                  ? date.toLocaleDateString("vi-VN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                    })
-                  : date;
-              setSelectedTime({ timeSlot, date: formattedDate });
-            }}
-          />
-        );
-
-      case 6:
-        if (nurseSelectionMethod === "manual") {
+        if (
+          selectedPackage &&
+          selectedPackage["combo-days"] &&
+          selectedPackage["combo-days"] > 1
+        ) {
+          // For subscription packages
+          return (
+            <SubscriptionTimeSelection
+              totalTime={calculateTotalTime()}
+              timeInterval={selectedPackage["time-interval"]}
+              comboDays={selectedPackage["combo-days"] || 0}
+              onTimesSelect={(selectedDates) => {
+                setSelectedTimes(selectedDates);
+              }}
+            />
+          );
+        } else {
+          // For one-time packages
           return (
             <TimeSelection
               totalTime={calculateTotalTime()}
               onTimeSelect={({ date, timeSlot }) => {
-                const formattedDate =
-                  date instanceof Date
-                    ? date.toLocaleDateString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                      })
-                    : date;
-                setSelectedTime({ timeSlot, date: formattedDate });
+                setSelectedTime({ timeSlot, date });
               }}
             />
           );
         }
+
+      case 6:
+        if (nurseSelectionMethod === "manual") {
+          if (
+            selectedPackage &&
+            selectedPackage["combo-days"] &&
+            selectedPackage["combo-days"] > 1
+          ) {
+            // For subscription packages
+            return (
+              <SubscriptionTimeSelection
+                totalTime={calculateTotalTime()}
+                timeInterval={selectedPackage["time-interval"]}
+                comboDays={selectedPackage["combo-days"] || 0}
+                onTimesSelect={(selectedDates) => {
+                  setSelectedTimes(selectedDates);
+                }}
+              />
+            );
+          } else {
+            // For one-time packages
+            return (
+              <TimeSelection
+                totalTime={calculateTotalTime()}
+                onTimeSelect={({ date, timeSlot }) => {
+                  // Không cần chuyển đổi thành string, giữ nguyên date là Date
+                  setSelectedTime({ timeSlot, date });
+                }}
+              />
+            );
+          }
+        }
+
         // If auto selection, show confirmation
         return (
           <Step6Component
             nurseSelectionMethod={nurseSelectionMethod}
+            selectedPackage={selectedPackage}
             calculateTotalTime={calculateTotalTime}
-            setSelectedTime={setSelectedTime}
-            selectedServicesTask={selectedServicesTask}
+            selectedServiceTask={selectedServicesTask}
             serviceQuantities={serviceQuantities}
             formatCurrency={formatCurrency}
             calculateTotalPrice={calculateTotalPrice}
             selectedNurse={selectedNurse}
             selectedTime={selectedTime}
+            selectedTimes={selectedTimes}
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
@@ -540,16 +732,21 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       case 7:
         return (
           <OrderConfirmationComponent
-            selectedServicesTask={selectedServicesTask}
+            selectedServiceTask={selectedServicesTask}
+            selectedPackage={selectedPackage}
             serviceQuantities={serviceQuantities}
             formatCurrency={formatCurrency}
             selectedNurse={selectedNurse}
             selectedTime={selectedTime}
+            selectedTimes={selectedTimes}
+            calculateTotalTime={calculateTotalTime}
             calculateTotalPrice={calculateTotalPrice}
             nurseSelectionMethod={nurseSelectionMethod}
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
+            serviceNotes={serviceNotes}
+            selectedProfile={selectedProfile}
           />
         );
     }
@@ -612,22 +809,68 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                     <h2 className="text-2xl font-be-vietnam-pro font-bold text-gray-800">
                       Dịch vụ đã chọn
                     </h2>
-
+                    {/* 
                     {selection?.serviceName && (
                       <Badge className="text-base bg-[#e5ab47] text-white border-[#e5ab47]">
                         {selection.serviceName}
                       </Badge>
-                    )}
+                    )} */}
                   </div>
+
+                  {/* Phần hiển thị Patient Record đã chọn */}
+                  {selectedProfile ? (
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2 ">
+                      <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
+                        Hồ sơ bệnh nhân đã chọn
+                      </h3>
+                      <div className="text-lg text-gray-600 space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">Tên:</span>
+                          <span>{selectedProfile["full-name"]}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">Ngày sinh:</span>
+                          <span>
+                            {new Date(selectedProfile.dob).toLocaleDateString(
+                              "vi-VN"
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold">Giới tính:</span>
+                          <span>
+                            {selectedProfile.gender === true ? "Nam" : "Nữ"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-gray-500 italic text-center py-4">
+                      Chưa chọn hồ sơ bệnh nhân
+                    </div>
+                  )}
+
+                  {/* Selected Nurse */}
+                  {selectedNurse && (
+                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <h3 className="text-xl font-be-vietnam-pro font-semibold mb-2 text-gray-800">
+                        Điều dưỡng đã chọn
+                      </h3>
+                      <div className="text-lg text-gray-600 flex items-center">
+                        <User className="mr-2 text-gray-500" size={16} />
+                        {selectedNurse["nurse-name"]}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Selected Services */}
                   {selectedServicesTask && selectedServicesTask.length > 0 ? (
                     <div className="space-y-4">
                       {/* Package Name if Selected */}
                       {selectedPackage && (
-                        <div className="pb-3 border-b border-gray-200">
+                        <div>
                           <span className="text-xl font-semibold text-primary block">
-                            {selectedPackage}
+                            {selectedPackage.name}
                           </span>
                         </div>
                       )}
@@ -673,7 +916,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                               <span className="font-semibold text-xl text-gray-800 truncate max-w-[70%]">
                                 {service.name}
                               </span>
-                              <span className="font-bold text-primary">
+                              <span className="font-bold text-primary text-lg">
                                 {formatCurrency(totalCost)}
                               </span>
                             </div>
@@ -687,20 +930,19 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                                 <span>
                                   {service["est-duration"]} phút
                                   {quantity > 1 && (
-                                    <span className="ml-2 text-lg text-yellow-500 font-semibold">
+                                    <div className="text-lg text-yellow-500 font-semibold">
                                       (+{additionalDuration.toFixed(0)} phút)
-                                    </span>
+                                    </div>
                                   )}
                                 </span>
                               </span>
                               <span className="flex items-center">
                                 <span className="text-gray-600 mr-2">
                                   {formatCurrency(service.cost)}
-                                  {/* {service.unit === "quantity" ? "/ lần" : ""} */}
                                   {quantity > 1 && (
-                                    <span className="ml-2 text-lg text-green-600">
+                                    <div className="text-lg text-green-600">
                                       (+{formatCurrency(additionalCost)})
-                                    </span>
+                                    </div>
                                   )}
                                 </span>
 
@@ -711,6 +953,19 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                                 )}
                               </span>
                             </div>
+
+                            {/* Hiển thị ghi chú nếu có */}
+                            {serviceNotes[service.name] && (
+                              <div className="text-lg text-gray-600 mt-2">
+                                <FileText
+                                  className="inline-block mr-2 text-gray-500"
+                                  size={16}
+                                />
+                                <span className="italic">
+                                  Ghi chú: {serviceNotes[service.name]}
+                                </span>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -721,20 +976,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                     </div>
                   )}
 
-                  {/* Selected Nurse */}
-                  {selectedNurse && (
-                    <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      <h3 className="text-xl font-be-vietnam-pro font-semibold mb-2 text-gray-800">
-                        Điều dưỡng đã chọn
-                      </h3>
-                      <div className="text-lg text-gray-600 flex items-center">
-                        <User className="mr-2 text-gray-500" size={16} />
-                        {selectedNurse["nurse-name"]}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Selected Time */}
+                  {/* Phần hiển thị thời gian đã chọn */}
                   {selectedTime && (
                     <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2">
                       <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
@@ -744,7 +986,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                       <div className="text-lg text-gray-600 space-y-2">
                         <div className="flex items-center space-x-2">
                           <Calendar className="text-gray-500" size={16} />
-                          <span>{selectedTime.date}</span>
+                          <span>{selectedTime.date.toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Clock className="text-gray-500" size={16} />
@@ -753,6 +995,55 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                       </div>
                     </div>
                   )}
+
+                  {/* Hiển thị danh sách các ngày và thời gian cho gói subscription */}
+                  {selectedTimes &&
+                    selectedTimes.length > 0 &&
+                    selectedPackage &&
+                    selectedPackage["combo-days"] &&
+                    selectedPackage["combo-days"] > 1 && (
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2">
+                        <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
+                          Lịch đã đặt ({selectedTimes.length}/
+                          {selectedPackage["combo-days"]} ngày)
+                        </h3>
+
+                        <div className="max-h-64 overflow-y-auto pr-2">
+                          {selectedTimes.map((timeItem, index) => (
+                            <div
+                              key={index}
+                              className="mb-3 pb-2 border-b border-gray-200 last:border-b-0"
+                            >
+                              <div className="flex items-center space-x-2 text-lg text-gray-600">
+                                <Calendar className="text-gray-500" size={16} />
+                                <span>
+                                  {new Date(timeItem.date).toLocaleDateString(
+                                    "vi-VN",
+                                    {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    }
+                                  )}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2 text-lg text-gray-600 mt-1">
+                                <Clock className="text-gray-500" size={16} />
+                                <span>{timeItem.timeSlot.display}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {selectedTimes.length <
+                          selectedPackage["combo-days"] && (
+                          <div className="text-yellow-500 font-medium text-lg italic">
+                            Vui lòng chọn đủ {selectedPackage["combo-days"]}{" "}
+                            ngày
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   {/* Total Price and Navigation */}
                   <div className="pt-6 border-t border-gray-200">
@@ -768,9 +1059,27 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                       <span className="font-bold text-2xl text-gray-800">
                         Tổng tiền
                       </span>
-                      <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
-                        {formatCurrency(calculateTotalPrice())}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        {selectedPackage &&
+                        selectedPackage.discount &&
+                        selectedPackage.discount > 0 ? (
+                          <>
+                            <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                              {formatCurrency(
+                                calculateTotalPrice() *
+                                  (1 - selectedPackage.discount / 100)
+                              )}
+                            </span>
+                            <span className="text-gray-500 text-lg line-through">
+                              {formatCurrency(calculateTotalPrice())}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                            {formatCurrency(calculateTotalPrice())}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex gap-4">
