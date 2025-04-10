@@ -22,4 +22,30 @@ export type ScheduleEvent = {
   appointment_date: string;
 };
 
+// 
+export type GetAppointment = {
+  id: string;
+  "service-id": string;
+  "cuspackage-id": string;
+  "nursing-id": string;
+  "patient-id": string;
+  "est-date": string;
+  "act-date": string | null;
+  status: string;
+  "created-at": string;
+};
+
+export type AppointmentFilter = {
+  "service-id"?: string;
+  "cuspackage-id"?: string;
+  "nursing-id"?: string;
+  "patient-id"?: string;
+  "had-nurse"?: string;
+  "appointment-status"?: string;
+  "est-date-from"?: string;
+  "est-date-to"?: string;
+};
+
+
+
 export type CalendarViewType = "DAY" | "WEEK" | "MONTH" | "YEAR" | "SCHEDULE";

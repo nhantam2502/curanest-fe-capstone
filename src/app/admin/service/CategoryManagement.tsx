@@ -353,7 +353,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                       <Button
                         variant="link"
                         size="sm"
-                        className="h-auto p-0"
+                        className="h-auto p-0 w-full"
                         onClick={(e) => handleNurseInfoClick(null, category.id, e)}
                       >
                         Thêm y tá
@@ -444,10 +444,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 : "Thêm y tá phụ trách cho danh mục này."}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex py-4 space-y-4">
-            {/* Display current nurse info OR show Add form */}
+          <div className="flex py-4 space-y-4 w-full">
             {selectedNurseInfo ? (
-              <div className="space-y-2">
+              <div className="flex flex-col space-y-2 w-full">
                  <div className="flex items-center gap-4">
                      <Avatar className="w-16 h-16">
                           <AvatarImage src={ selectedNurseInfo["nurse-picture"] || undefined } alt={selectedNurseInfo["nurse-name"]} />
@@ -455,9 +454,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                      </Avatar>
                     <p className="font-medium">{selectedNurseInfo["nurse-name"]}</p>
                  </div>
-                {/* Add more details if available in StaffInfo */}
-                {/* <p><strong>ID:</strong> {selectedNurseInfo["nurse-id"]}</p> */}
-                <Button
+                 <Button
                   variant="outline"
                   className="w-full"
                   onClick={handleRemoveStaff}
@@ -465,6 +462,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   Xoá khỏi danh mục này
                 </Button>
               </div>
+              
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="nurse-select">Chọn y tá để thêm:</Label>
