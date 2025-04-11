@@ -145,15 +145,11 @@ const AppointmentPage: React.FC = () => {
           const formattedAppointmentsPromises = response.payload.data.map(
             async (appointment: Appointment) => {
               const nursingId = appointment["nursing-id"];
-              console.log(`Looking for nurse with ID: ${nursingId}`);
 
               const matchedNurse = nurses.find((nurse) => {
                 const nurseMatches =
                   String(nurse["nurse-id"]) === String(nursingId);
-                if (nurseMatches) {
-                  console.log("Found matching nurse:", nurse);
-                }
-                return nurseMatches;
+                return nurseMatches;  
               });
 
               return await transformAppointment(appointment, matchedNurse || null);
@@ -194,17 +190,14 @@ const AppointmentPage: React.FC = () => {
     // Định dạng giờ: HH:MM (24h format)
     const formattedTime = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 
-    // Lấy cusPackageID từ appointment
-    const cusPackageID = appointment["cuspackage-id"];
     let cusPackageData = null;
 
     // Gọi API để lấy thông tin cusPackage nếu có cusPackageID
-    if (cusPackageID) {
+    if (appointment["cuspackage-id"]) {
       try {
-        const response = await appointmentApiRequest.getCusPackage( cusPackageID, appointment["est-date"]);
+        const response = await appointmentApiRequest.getCusPackage( appointment["cuspackage-id"], appointment["est-date"]);
         if (response && response.payload && response.payload.success) {
           cusPackageData = response.payload;
-          console.log("CusPackage data fetched:", cusPackageData);
         } else {
           console.error("Failed to fetch cusPackage data:", response);
         }

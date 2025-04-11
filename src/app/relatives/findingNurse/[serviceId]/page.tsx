@@ -10,6 +10,7 @@ import {
   Stethoscope,
   Search,
   StarIcon,
+  Loader2,
 } from "lucide-react";
 
 import {
@@ -50,7 +51,8 @@ const NurseList = () => {
   const serviceIdRaw = params?.serviceId;
   const serviceId =
     typeof serviceIdRaw === "string" ? serviceIdRaw : (serviceIdRaw?.[0] ?? "");
-  const [searchTerm, setSearchTerm] = useState(
+  
+    const [searchTerm, setSearchTerm] = useState(
     serviceId ? decodeURIComponent(serviceId) : ""
   );
 
@@ -58,9 +60,6 @@ const NurseList = () => {
   const searchParams = useSearchParams();
   const serviceID = searchParams.get("serviceId") || "";
   const category = searchParams.get("category") || "";
-
-  console.log("Service ID: ", serviceID);
-  console.log("Category: ", category);
 
   const [selectedSpecialization, setSelectedSpecialization] =
     useState(category);
@@ -466,8 +465,19 @@ const NurseList = () => {
           {/* Main Content - Cột bên phải lớn hơn */}
           <div className="w-full md:w-2/3 lg:w-2/3">
             {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-irisBlueColor"></div>
+              <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    <div className="absolute -inset-4 rounded-full bg-[#A8E0E9] opacity-30 animate-pulse"></div>
+                    <Loader2
+                      className="h-12 w-12 animate-spin text-[#64D1CB]"
+                      aria-label="Loading..."
+                    />
+                  </div>
+                  <div className="text-[#64D1CB] text-sm font-medium mt-4 animate-fade-in">
+                    Đang tải danh sách điều dưỡng...
+                  </div>
+                </div>
               </div>
             ) : (
               <>

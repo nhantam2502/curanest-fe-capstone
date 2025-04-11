@@ -1,6 +1,5 @@
 "use client";
 import { ArrowRight, Video } from "lucide-react";
-import Link from "next/link";
 import React from "react";
 import ServiceList from "../Service/ServiceList";
 import NursingList from "../Nursing/NursingList";
@@ -50,7 +49,6 @@ const Hero = () => {
                 nghiệp, tiện lợi và đáng tin cậy.
               </p>
 
-              <Link href="/auth/signIn">
                 <button
                   data-aos="fade-right"
                   data-aos-delay="50"
@@ -58,12 +56,11 @@ const Hero = () => {
                   data-aos-easing="ease-in-out"
                   className="btn mt-12 text-[20px]"
                   onClick={() => {
-                    router.push("/auth/selectRole");
+                    router.push("/auth/signIn");
                   }}
                 >
                   Trải nghiệm ngay
                 </button>
-              </Link>
             </div>
           </div>
         </div>
@@ -72,7 +69,7 @@ const Hero = () => {
       {/* Section 2 */}
       <section id="about">
         <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10 mt-20">
-          <div className="lg:w-[680px] mx-auto">
+          <div className="lg:w-[800px] mx-auto">
             <h2 className="heading text-center">
               Cung cấp dịch vụ y tế tại nhà tốt nhất
             </h2>
@@ -100,12 +97,12 @@ const Hero = () => {
                   Đội ngũ điều dưỡng chuyên nghiệp
                 </h2>
 
-                <p className="text-[18px] leading-7 text-textColor font-[400] mt-4 text-center">
+                <p className="text-[20px] leading-7 text-textColor font-[400] mt-4 text-center">
                   Đội ngũ điều dưỡng chuyên nghiệp, được tuyển chọn kỹ càng, cam
                   kết mang đến dịch vụ chăm sóc sức khỏe tận tâm và chất lượng{" "}
                 </p>
 
-                <Link
+                {/* <Link
                   href=""
                   className="w-[44px] h-[44px] rounded-full 
                 border border-solid border-[#181A1E] mt-[30px] mx-auto 
@@ -113,7 +110,7 @@ const Hero = () => {
                 hover:border-none"
                 >
                   <ArrowRight className="group-hover:text-[#181A1E] w-6 h-5" />
-                </Link>
+                </Link> */}
               </div>
             </div>
 
@@ -133,12 +130,12 @@ const Hero = () => {
                   Tìm kiếm điều dưỡng xung quanh bạn
                 </h2>
 
-                <p className="text-[18px] leading-7 text-textColor font-[400] mt-4 text-center">
+                <p className="text-[20px] leading-7 text-textColor font-[400] mt-4 text-center">
                   Dễ dàng kết nối với đội ngũ điều dưỡng chuyên nghiệp xung
                   quanh khu vực sinh sống của bạn.
                 </p>
 
-                <Link
+                {/* <Link
                   href=""
                   className="w-[44px] h-[44px] rounded-full 
                 border border-solid border-[#181A1E] mt-[30px] mx-auto 
@@ -146,7 +143,7 @@ const Hero = () => {
                 hover:border-none"
                 >
                   <ArrowRight className="group-hover:text-[#181A1E] w-6 h-5" />
-                </Link>
+                </Link> */}
               </div>
             </div>
 
@@ -166,12 +163,12 @@ const Hero = () => {
                   Đặt lịch hẹn nhanh chóng và đơn giản
                 </h2>
 
-                <p className="text-[18px] leading-7 text-textColor font-[400] mt-4 text-center">
+                <p className="text-[20px] leading-7 text-textColor font-[400] mt-4 text-center">
                   Chỉ với vài bước, bạn có thể lựa chọn điều dưỡng phù hợp và
                   thời gian thuận tiện nhất cho nhu cầu chăm sóc của mình.
                 </p>
 
-                <Link
+                {/* <Link
                   href=""
                   className="w-[44px] h-[44px] rounded-full 
                 border border-solid border-[#181A1E] mt-[30px] mx-auto 
@@ -179,7 +176,7 @@ const Hero = () => {
                 hover:border-none"
                 >
                   <ArrowRight className="group-hover:text-[#181A1E] w-6 h-5" />
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
@@ -192,7 +189,7 @@ const Hero = () => {
       {/* Services Section*/}
       <section id="services">
         <div className="mx-auto max-w-[1900px] px-6 sm:px-8 lg:px-10 mt-10">
-          <div className="xl:w-[480px] mx-auto">
+          <div className="xl:w-[530px] mx-auto">
             <h2 className="heading text-center">Dịch Vụ Điều Dưỡng</h2>
             <p className="text_para text-center">
               Chúng tôi cung cấp các dịch vụ chăm sóc sức khỏe chuyên nghiệp,
@@ -230,7 +227,7 @@ const Hero = () => {
                 </li>
               </ul>
 
-              <Link href="">
+             
                 <button
                   data-aos="fade-right"
                   data-aos-delay="50"
@@ -238,12 +235,11 @@ const Hero = () => {
                   data-aos-easing="ease-in-out"
                   className="btn mt-[38px] text-[20px]"
                   onClick={() => {
-                    router.push("/auth/selectRole");
+                    router.push("/auth/signIn");
                   }}
                 >
                   Trải nghiệm ngay
                 </button>
-              </Link>
             </div>
 
             {/* Feature Image */}

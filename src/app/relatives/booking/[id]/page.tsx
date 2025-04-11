@@ -36,7 +36,7 @@ import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import SubscriptionTimeSelection, {
   SelectedDateTime,
 } from "@/app/components/Relatives/SubscriptionTimeSelection";
-import { CreateAppointmentCusPackage, InoviceRes } from "@/types/appointment";
+import { CreateAppointmentCusPackage } from "@/types/appointment";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { PatientRecord } from "@/types/patient";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
@@ -326,7 +326,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         const invoiceResponse =
           await appointmentApiRequest.getInvoice(newAppointmentId);
         const invoiceData = invoiceResponse.payload.data;
-        console.log("invoiceData: ", invoiceData);
+        // console.log("invoiceData: ", invoiceData);
 
         // Chuyển hướng đến URL thanh toán nếu có
         if (invoiceData && invoiceData.length > 0) {
