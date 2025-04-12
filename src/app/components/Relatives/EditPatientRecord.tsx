@@ -42,6 +42,7 @@ import {
 } from "@/schemaValidation/relatives.schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useToast } from "@/hooks/use-toast";
 
 export interface District {
   name: string;
@@ -85,7 +86,7 @@ export default function EditPatientRecord({
       dob: profile?.dob || "",
     },
   });
-
+  const { toast } = useToast();
   const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
 
   const initialDate = profile?.dob ? new Date(profile.dob) : undefined;
@@ -287,14 +288,25 @@ export default function EditPatientRecord({
         ...data,
         district: districtName,
         ward: wardName,
-        dob: date ? format(date, "yyyy-MM-dd") : "", // Use ISO format
+        dob: date ? format(date, "yyyy-MM-dd") : "",
       };
 
       const response = await patientApiRequest.updatePatientRecord(updatedData);
-      console.log("Updated patient record:", response);
+      toast({
+        variant: "default",
+        title: "Cập nhật thành công",
+        description: "Hồ sơ bệnh nhân đã được cập nhật.",
+        duration: 2000,
+      });
       router.push("/relatives/booking");
     } catch (error) {
       console.error("Error updating patient record:", error);
+      toast({
+        variant: "destructive",
+        title: "Cập nhật thất bại",
+        description: "Có lỗi xảy ra khi cập nhật hồ sơ bệnh nhân.",
+        duration: 2000,
+      });
     }
   };
 

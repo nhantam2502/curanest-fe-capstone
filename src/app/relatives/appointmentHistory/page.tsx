@@ -21,7 +21,7 @@ import { PatientRecord } from "@/types/patient";
 const dummyData = [
   {
     id: 1,
-    patientId: "patient-1",
+    patientId: "patient-0",
     nurse_name: "Ho Dac Nhan Tam",
     avatar: "https://github.com/shadcn.png",
     status: "completed",
@@ -34,7 +34,7 @@ const dummyData = [
   {
     id: 2,
     nurse_name: "Trần Thị B",
-    patientId: "patient-2",
+    patientId: "patient-1",
     avatar: "https://github.com/shadcn.png",
     status: "completed",
     phone_number: "0912345678",
@@ -153,12 +153,15 @@ const AppointmentHistory = () => {
 
   const filteredAppointments = dummyData.filter((appointment) => {
     const appointmentMonth = appointment.appointment_date.substring(0, 7);
+    console.log("Appointment Month:", appointmentMonth);
     return (
       appointment.status === "completed" &&
       appointmentMonth === monthFilter &&
       appointment.patientId === selectedPatientId
     );
   });
+
+  console.log("Filtered Appointments:", filteredAppointments);
 
   const handleMonthChange = (year: string, monthIndex: number) => {
     const formattedMonth = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
@@ -258,7 +261,7 @@ const AppointmentHistory = () => {
 
             {/* Appointments Table */}
             <div className="rounded-md border shadow-sm">
-              <Table  >
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-semibold text-xl">
@@ -267,7 +270,9 @@ const AppointmentHistory = () => {
                     <TableHead className="font-semibold text-xl">
                       Số điện thoại
                     </TableHead>
-                    <TableHead className="font-semibold text-xl">Dịch vụ</TableHead>
+                    <TableHead className="font-semibold text-xl">
+                      Dịch vụ
+                    </TableHead>
                     <TableHead className="font-semibold text-xl">
                       Tổng tiền
                     </TableHead>
@@ -293,9 +298,11 @@ const AppointmentHistory = () => {
                         <TableCell className="text-lg">
                           {appointment.nurse_name}
                         </TableCell>
-                        
-                        <TableCell className="text-lg">{appointment.phone_number}</TableCell>
-                        
+
+                        <TableCell className="text-lg">
+                          {appointment.phone_number}
+                        </TableCell>
+
                         <TableCell className="max-w-[250px]">
                           <div className="flex flex-wrap ">
                             {renderTechniques(appointment.techniques)}
@@ -313,10 +320,14 @@ const AppointmentHistory = () => {
                           {formatDate(new Date(appointment.appointment_date))}
                         </TableCell>
 
-                        <TableCell className="text-lg">{appointment.time_from_to}</TableCell>
-                        
+                        <TableCell className="text-lg">
+                          {appointment.time_from_to}
+                        </TableCell>
+
                         <TableCell>
-                          <Badge className="bg-green-500 text-[16px]">Hoàn thành</Badge>
+                          <Badge className="bg-green-500 text-[16px]">
+                            Hoàn thành
+                          </Badge>
                         </TableCell>
 
                         <TableCell>
@@ -345,7 +356,8 @@ const AppointmentHistory = () => {
                               onClick={() => handleSendFeedback(appointment)}
                               className="flex items-center text-green-600 text-lg"
                             >
-                              <MessageCircle className="mr-1 h-4 w-4" /> Đánh giá
+                              <MessageCircle className="mr-1 h-4 w-4" /> Đánh
+                              giá
                             </Button>
                           </div>
                         </TableCell>

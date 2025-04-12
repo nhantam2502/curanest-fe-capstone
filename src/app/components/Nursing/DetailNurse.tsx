@@ -86,8 +86,6 @@ const DetailNurse = ({
     fetchRelatedNurses();
   }, [serviceID, nurse]);
 
-  console.log("Related Nurses:", relatedNurses);
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const handleResize = () => {
