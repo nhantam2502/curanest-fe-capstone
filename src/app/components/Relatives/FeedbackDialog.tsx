@@ -10,17 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Appointment, CusPackageResponse } from '@/types/appointment';
 
 interface FeedbackDialogProps {
   isOpen: boolean;
   onClose: () => void;
   appointment: {
-    nurse_name: string;
-    avatar: string;
-    techniques: string;
-    appointment_date: string;
-    time_from_to: string;
-  };
+     time_from_to: string;
+     apiData: Appointment;
+     cusPackage?: CusPackageResponse | null;
+   };
   onSubmit: (feedback: { rating: number; content: string }) => void;
 }
 

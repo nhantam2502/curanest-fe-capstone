@@ -79,15 +79,27 @@ export interface Appointment {
   "act-date": string;
   status: string;
   "created-at": string;
+  "total-est-duration": number;
   appointment_date?: string;
 }
 
 export type AppointmentRes = {
   success: boolean;
-  message: string;
   data: Appointment[];
 };
 
+export type HistoryAppointmentRes = {
+  data: Appointment[];
+  filters: {
+   "apply-paging"?: boolean;
+  };
+  paging: {
+    page: number;
+    size: number;
+    total: number;
+  };
+  success: boolean;
+};
 export type CusPackageResponse = {
   success: boolean;
   data: {

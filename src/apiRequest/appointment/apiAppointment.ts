@@ -4,6 +4,7 @@ import {
   CreateAppointmentCusPackage,
   CreateRes,
   CusPackageResponse,
+  HistoryAppointmentRes,
   InoviceRes,
 } from "@/types/appointment";
 
@@ -22,6 +23,30 @@ const appointmentApiRequest = {
       }${nursingId && patientId ? `&patient-id=${patientId}` : ""}`
     ),
 
+  getHistoryAppointment: (
+    page: number,
+    nursingId?: string,
+    patientId?: string,
+    estDateFrom?: string
+  ) =>
+    http.get<HistoryAppointmentRes>(
+      `/appointment/api/v1/appointments${
+        nursingId
+          ? `?nursing-id=${nursingId}`
+          : patientId
+            ? `?patient-id=${patientId}`
+            : ""
+      }${nursingId && patientId ? `&patient-id=${patientId}` : ""}${
+        nursingId || patientId
+          ? estDateFrom
+            ? `&est-date-from=${estDateFrom}`
+            : ""
+          : estDateFrom
+            ? `?est-date-from=${estDateFrom}`
+            : ""
+      }${nursingId || patientId || estDateFrom ? "&" : "?"}apply-paging=true&page=${page}&page-size=10`
+    ),
+
   getCusPackage: (cusPackageID: string, estDate: string) =>
     http.get<CusPackageResponse>(
       `/appointment/api/v1/cuspackage?cus-package-id=${cusPackageID}&est-date=${estDate}`
@@ -34,5 +59,3 @@ const appointmentApiRequest = {
 };
 
 export default appointmentApiRequest;
-
-

@@ -78,7 +78,7 @@ const NurseList = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Hiển thị 6 điều dưỡng mỗi trang
+  const itemsPerPage = 10; // Hiển thị 6 điều dưỡng mỗi trang
 
   // Tính toán tổng số trang
   const totalPages = Math.ceil(nurses.length / itemsPerPage);

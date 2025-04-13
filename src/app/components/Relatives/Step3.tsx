@@ -69,7 +69,8 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
 
       {selectedServiceTask.length > 0 ? (
         <div className="space-y-6">
-          <ScrollArea className="h-96">
+          {/* <ScrollArea className="h-full max-h-[500px] overflow-y-auto"> */}
+          <ScrollArea className="h-100">
             <div className="flex flex-col gap-6">
               {selectedServiceTask.map((service) => {
                 const currentQuantity = serviceQuantities[service.name] || 1;

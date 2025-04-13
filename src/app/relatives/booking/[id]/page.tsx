@@ -1122,7 +1122,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                         </div>
                       </div>
                     )}
-                    
+
                     <div className="flex gap-4">
                       {currentStep > 1 && (
                         <Button
