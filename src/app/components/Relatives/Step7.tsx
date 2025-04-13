@@ -279,7 +279,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
             {/* Tổng thời gian trong ngày */}
             <div className="flex justify-between items-center">
               <span className="text-xl text-gray-700 font-medium">
-                Tổng thời gian (1 ngày):
+                Tổng thời gian (1 buổi):
               </span>
               <span className="text-xl font-semibold text-blue-600">
                 {calculateTotalTime()} phút
@@ -289,7 +289,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
             {/* Tổng tiền trong ngày */}
             <div className="flex justify-between items-center border-t border-gray-200 pt-4">
               <h3 className="text-2xl font-bold text-gray-900">
-                Tổng tiền (1 ngày):
+                Tổng tiền (1 buổi):
               </h3>
               <div className="flex flex-col items-end">
                 {selectedPackage &&
@@ -313,6 +313,42 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
                 )}
               </div>
             </div>
+
+            {(selectedPackage?.["combo-days"] ?? 0) > 1 && (
+              <div className="flex justify-between items-center border-t border-gray-200 pt-4">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Tổng tiền combo ({selectedPackage?.["combo-days"]}  buổi):
+                </h3>
+                <div className="flex flex-col items-end">
+                  {selectedPackage &&
+                  selectedPackage.discount &&
+                  selectedPackage.discount > 0 ? (
+                    <>
+                      <span className="font-bold font-be-vietnam-pro text-2xl text-red-600">
+                        {formatCurrency(
+                          calculateTotalPrice() *
+                            (selectedPackage["combo-days"] ?? 0) *
+                            (1 - selectedPackage.discount / 100)
+                        )}
+                      </span>
+                      <span className="text-gray-500 text-lg line-through">
+                        {formatCurrency(
+                          calculateTotalPrice() *
+                            (selectedPackage["combo-days"] ?? 0)
+                        )}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="font-bold font-be-vietnam-pro text-2xl text-red-600">
+                      {formatCurrency(
+                        calculateTotalPrice() *
+                          (selectedPackage?.["combo-days"] ?? 0)
+                      )}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

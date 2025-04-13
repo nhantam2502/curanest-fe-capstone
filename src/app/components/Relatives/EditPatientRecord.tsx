@@ -70,6 +70,7 @@ export default function EditPatientRecord({
     register,
     handleSubmit,
     formState: { errors },
+    setValue, watch
   } = useForm<UpdatePatientRecord>({
     resolver: zodResolver(UpdatePatientSchema),
     defaultValues: {
@@ -105,7 +106,7 @@ export default function EditPatientRecord({
   const [formData, setFormData] = useState({
     full_name: profile?.["full-name"] || "",
     phone_number: profile?.["phone-number"] || "",
-    gender: profile?.gender ?? false,
+    // gender: profile?.gender ?? false,
     address: profile?.address || "",
     district: "",
     ward: "",
@@ -291,6 +292,8 @@ export default function EditPatientRecord({
         dob: date ? format(date, "yyyy-MM-dd") : "",
       };
 
+      console.log("Updated Data:", updatedData);
+
       const response = await patientApiRequest.updatePatientRecord(updatedData);
       toast({
         variant: "default",
@@ -432,36 +435,33 @@ export default function EditPatientRecord({
                 </div>
 
                 <div className="grid grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-xl" htmlFor="gender">
-                      Giới tính
-                    </Label>
-                    <Select
-                      {...register("gender")}
-                      onValueChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          gender: value === "true",
-                        }))
-                      }
-                      value={formData.gender ? "true" : "false"}
-                    >
-                      <SelectTrigger className="h-12 w-full text-xl">
-                        <SelectValue placeholder="Chọn giới tính" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem className="text-lg" value="true">
-                          Nam
-                        </SelectItem>
-                        <SelectItem className="text-lg" value="false">
-                          Nữ
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {errors.gender && (
-                      <p className="text-red-500">{errors.gender.message}</p>
-                    )}
-                  </div>
+                <div className="space-y-2">
+  <Label className="text-xl" htmlFor="gender">
+    Giới tính
+  </Label>
+  <Select
+    {...register("gender")} // Liên kết trực tiếp với react-hook-form
+    onValueChange={(value) => {
+      setValue("gender", value === "true"); // Cập nhật giá trị trong react-hook-form
+    }}
+    value={watch("gender") ? "true" : "false"} // Sử dụng watch để lấy giá trị hiện tại
+  >
+    <SelectTrigger className="h-12 w-full text-xl">
+      <SelectValue placeholder="Chọn giới tính" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem className="text-lg" value="true">
+        Nam
+      </SelectItem>
+      <SelectItem className="text-lg" value="false">
+        Nữ
+      </SelectItem>
+    </SelectContent>
+  </Select>
+  {errors.gender && (
+    <p className="text-red-500">{errors.gender.message}</p>
+  )}
+</div>
 
                   <div className="space-y-2">
                     <Label className="text-xl" htmlFor="phone_number">

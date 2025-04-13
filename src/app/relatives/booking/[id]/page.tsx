@@ -308,7 +308,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       if (nurseSelectionMethod === "manual") {
         appointmentData["nursing-id"] = selectedNurse?.["nurse-id"] ?? "";
       }
-      // console.log("appointmentData: ", appointmentData);
+      console.log("appointmentData: ", appointmentData);
       const response =
         await appointmentApiRequest.createAppointmentCusPackage(
           appointmentData
@@ -322,20 +322,20 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         description: `Tổng tiền: ${formatCurrency(calculateTotalPrice())}`,
       });
 
-      try {
-        const invoiceResponse =
-          await appointmentApiRequest.getInvoice(newAppointmentId);
-        const invoiceData = invoiceResponse.payload.data;
-        // console.log("invoiceData: ", invoiceData);
+      // try {
+      //   const invoiceResponse =
+      //     await appointmentApiRequest.getInvoice(newAppointmentId);
+      //   const invoiceData = invoiceResponse.payload.data;
+      //   // console.log("invoiceData: ", invoiceData);
 
-        // Chuyển hướng đến URL thanh toán nếu có
-        if (invoiceData && invoiceData.length > 0) {
-          router.push(invoiceData[0]["payos-url"]);
-        }
-      } catch (invoiceError) {
-        console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
-        router.push("/relatives/appointments");
-      }
+      //   // Chuyển hướng đến URL thanh toán nếu có
+      //   if (invoiceData && invoiceData.length > 0) {
+      //     router.push(invoiceData[0]["payos-url"]);
+      //   }
+      // } catch (invoiceError) {
+      //   console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
+      //   router.push("/relatives/appointments");
+      // }
     } catch (error) {
       console.error("Lỗi khi tạo cuộc hẹn:", error);
       toast({
@@ -726,6 +726,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             setCurrentStep={setCurrentStep}
             toast={toast}
             router={router}
+            selectedProfile={selectedProfile}
+            serviceNotes={serviceNotes}
           />
         );
 
@@ -751,6 +753,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         );
     }
   };
+
+  console.log("selectedProfile: ", selectedProfile);
 
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">
@@ -1049,7 +1053,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                   <div className="pt-6 border-t border-gray-200">
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-bold text-2xl text-gray-800">
-                        Tổng thời gian
+                        Tổng thời gian của 1 buổi:
                       </span>
                       <span className="font-bold font-be-vietnam-pro text-2xl text-primary">
                         {calculateTotalTime()} phút
@@ -1057,7 +1061,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                     </div>
                     <div className="flex justify-between items-center mb-6">
                       <span className="font-bold text-2xl text-gray-800">
-                        Tổng tiền
+                        Tổng tiền (1 buổi)
                       </span>
                       <div className="flex flex-col items-end">
                         {selectedPackage &&
@@ -1082,6 +1086,43 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                       </div>
                     </div>
 
+                    {(selectedPackage?.["combo-days"] ?? 0) > 1 && (
+                      <div className="flex justify-between items-center mb-6">
+                        <span className="font-bold text-2xl text-gray-800">
+                          Tổng tiền combo ({selectedPackage?.["combo-days"]}{" "}
+                          buổi)
+                        </span>
+                        <div className="flex flex-col items-end">
+                          {selectedPackage &&
+                          selectedPackage.discount &&
+                          selectedPackage.discount > 0 ? (
+                            <>
+                              <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                                {formatCurrency(
+                                  calculateTotalPrice() *
+                                    (selectedPackage["combo-days"] ?? 0) *
+                                    (1 - selectedPackage.discount / 100)
+                                )}
+                              </span>
+                              <span className="text-gray-500 text-lg line-through">
+                                {formatCurrency(
+                                  calculateTotalPrice() *
+                                    (selectedPackage["combo-days"] ?? 0)
+                                )}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                              {formatCurrency(
+                                calculateTotalPrice() *
+                                  (selectedPackage?.["combo-days"] ?? 0)
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex gap-4">
                       {currentStep > 1 && (
                         <Button

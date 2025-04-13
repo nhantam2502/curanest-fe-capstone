@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Circle,
 } from "lucide-react";
 import { InfoItemProps, PatientRecord } from "@/types/patient";
 import { useRouter } from "next/navigation";
@@ -72,18 +73,9 @@ const InfoItem: React.FC<InfoItemProps> = ({ icon: Icon, label, value }) => (
   </div>
 );
 
-// Loading skeleton for InfoItem
-const InfoItemSkeleton: React.FC = () => (
-  <div className="flex items-center space-x-2 animate-pulse">
-    <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-    <div className="h-6 w-24 bg-gray-200 rounded"></div>
-    <div className="h-6 w-40 bg-gray-200 rounded"></div>
-  </div>
-);
-
-const ProfileCard: React.FC<{ 
-  profile: PatientRecord,
-  isLoading?: boolean 
+const ProfileCard: React.FC<{
+  profile: PatientRecord;
+  isLoading?: boolean;
 }> = ({ profile, isLoading = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
@@ -171,6 +163,12 @@ const ProfileCard: React.FC<{
                   label="Số điện thoại"
                   value={profile["phone-number"]}
                 />
+
+                <InfoItem
+                  icon={Circle}
+                  label="Giới tính"
+                  value={profile.gender ? "Nam" : "Nữ"}
+                />
               </div>
 
               {/* Address Information */}
@@ -217,7 +215,9 @@ const ProfileCard: React.FC<{
                     <AlertCircle className="w-6 h-6 text-gray-500" />
                   </div>
                   <div className="flex-grow text-xl">
-                    <span className="font-semibold">Lưu ý với điều dưỡng: </span>
+                    <span className="font-semibold">
+                      Lưu ý với điều dưỡng:{" "}
+                    </span>
                     <span className="text-gray-600">
                       {profile["note-for-nurse"]}
                     </span>
@@ -266,61 +266,6 @@ const ProfileCard: React.FC<{
   );
 };
 
-// Loading skeleton for the expanded ProfileCard
-const ProfileCardExpandedSkeleton: React.FC = () => {
-  return (
-    <Card className="transition-all duration-200 hover:shadow-lg animate-pulse">
-      <CardContent className="p-6">
-        <div className="flex flex-col items-center">
-          <div className="text-center">
-            <div className="h-10 w-64 bg-gray-200 rounded-lg mx-auto"></div>
-            <div className="h-6 w-20 bg-gray-200 rounded mt-2 mx-auto"></div>
-          </div>
-
-          <div className="mt-4 h-10 w-10 bg-gray-200 rounded-full"></div>
-        </div>
-
-        <div className="mt-6 border-t pt-6">
-          {/* Basic Information Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-            {[...Array(2)].map((_, i) => (
-              <InfoItemSkeleton key={`basic-${i}`} />
-            ))}
-          </div>
-
-          {/* Address Information Skeleton */}
-          <div className="border-t mt-4 pt-4">
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-              {[...Array(4)].map((_, i) => (
-                <InfoItemSkeleton key={`address-${i}`} />
-              ))}
-            </div>
-          </div>
-
-          {/* Medical Information Skeleton */}
-          <div className="border-t mt-4 pt-4 space-y-4">
-            {[...Array(2)].map((_, i) => (
-              <div key={`medical-${i}`} className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-1">
-                  <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
-                </div>
-                <div className="flex-grow">
-                  <div className="h-6 w-full bg-gray-200 rounded"></div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Actions Skeleton */}
-          <div className="flex justify-end space-x-4 pt-4 border-t mt-4">
-            <div className="h-10 w-32 bg-gray-200 rounded-full"></div>
-            <div className="h-10 w-40 bg-gray-200 rounded-full"></div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 const PatientRecords: React.FC = () => {
   const [profiles, setProfiles] = useState<PatientRecord[]>([]);
@@ -332,7 +277,7 @@ const PatientRecords: React.FC = () => {
     setIsLoading(true);
     setIsFetchingError(false);
     setError(null);
-    
+
     try {
       const response = await patientApiRequest.getPatientRecord();
       setProfiles(response.payload.data);
@@ -358,7 +303,11 @@ const PatientRecords: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <ProfileCard key={i} profile={{} as PatientRecord} isLoading={true} />
+            <ProfileCard
+              key={i}
+              profile={{} as PatientRecord}
+              isLoading={true}
+            />
           ))}
         </div>
 
@@ -385,7 +334,7 @@ const PatientRecords: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64 w-full">
         <div className="text-center text-2xl text-red-500">{error}</div>
-        <Button 
+        <Button
           onClick={fetchPatientRecords}
           className="mt-4 px-6 py-2 bg-[#71DDD7] hover:bg-[#5fc4c0] text-white rounded-full"
         >
@@ -406,7 +355,7 @@ const PatientRecords: React.FC = () => {
           <div className="text-center text-2xl text-gray-500 mb-4">
             Chưa có hồ sơ bệnh nhân nào
           </div>
-          <Button 
+          <Button
             onClick={fetchPatientRecords}
             className="px-6 py-2 bg-[#71DDD7] hover:bg-[#5fc4c0] text-white rounded-full"
           >
