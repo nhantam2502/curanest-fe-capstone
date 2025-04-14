@@ -36,9 +36,15 @@ const LoginPage = () => {
   const getRoleTitle = () => {
     if (!isLogin) return "Đăng ký tài khoản mới";
 
-    return ["admin", "staff", "nurse"].includes(role)
-      ? "Đăng nhập dành cho quản trị viên"
-      : "Đăng nhập dành cho khách hàng";
+    if (["staff", "nurse"].includes(role)) {
+      return "Đăng nhập dành cho Điều dưỡng";
+    }
+
+    if (role === "admin") {
+      return "Đăng nhập dành cho Quản trị viên";
+    }
+
+    return "Đăng nhập dành cho khách hàng";
   };
 
   const toggleForm = () => {
@@ -129,14 +135,16 @@ const LoginPage = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
-                <button
-                  onClick={toggleForm}
-                  className="text-lg font-medium whitespace-nowrap cursor-pointer hover:underline"
-                >
-                  {isLogin
-                    ? "Chưa có tài khoản? Đăng ký ngay"
-                    : "Đã có tài khoản? Đăng nhập"}
-                </button>
+                {!["staff", "nurse"].includes(role) && (
+                  <button
+                    onClick={toggleForm}
+                    className="text-lg font-medium whitespace-nowrap cursor-pointer hover:underline"
+                  >
+                    {isLogin
+                      ? "Chưa có tài khoản? Đăng ký ngay"
+                      : "Đã có tài khoản? Đăng nhập"}
+                  </button>
+                )}
               </motion.div>
             </div>
           </div>

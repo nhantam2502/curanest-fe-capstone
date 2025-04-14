@@ -69,7 +69,6 @@ export function LoginFormForNurse({
           case "staff":
             router.push("/staff");
             break;
-
           default:
             router.push("/");
         }

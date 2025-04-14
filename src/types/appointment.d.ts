@@ -81,6 +81,8 @@ export interface Appointment {
   "created-at": string;
   "total-est-duration": number;
   appointment_date?: string;
+  estTimeFrom?: string;
+  estTimeTo?: string;
 }
 
 export type AppointmentRes = {

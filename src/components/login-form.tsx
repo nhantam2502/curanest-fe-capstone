@@ -61,12 +61,12 @@ export function LoginForm({
       if (session?.user?.role) {
         console.log("User role:", session.user.role);
         switch (session.user.role) {
-          case "nurse":
-            router.push("/nurse");
-            break;
-          case "staff":
-            router.push("/staff");
-            break;
+          // case "nurse":
+          //   router.push("/nurse");
+          //   break;
+          // case "staff":
+          //   router.push("/staff");
+          //   break;
           case "relatives":
             router.push("/relatives/booking");
             break;
