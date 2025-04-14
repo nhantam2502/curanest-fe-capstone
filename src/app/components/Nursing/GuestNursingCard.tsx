@@ -7,14 +7,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const GuestNursingCard = ({
   nurse,
+  service,
   serviceID,
 }: {
   nurse: NurseItemType;
   serviceID: string;
+  service: string;
+
 }) => {
   const router = useRouter();
-
-  
 
   if (!nurse) {
     return <p className="text-center text-gray-500">Dữ liệu không tồn tại</p>;
@@ -34,7 +35,7 @@ const GuestNursingCard = ({
     <Card
       onClick={() =>
         router.push(
-          `/guest/nurseList/${encodeURIComponent(serviceID)}/${nurse["nurse-id"]}?serviceID=${encodeURIComponent(serviceID)}`
+          `/guest/nurseList/${encodeURIComponent(service)}/${nurse["nurse-id"]}?serviceID=${encodeURIComponent(serviceID)}`
         )
       }
       data-aos="fade-left"
