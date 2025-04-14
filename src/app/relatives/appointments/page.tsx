@@ -14,7 +14,7 @@ import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { NurseItemType } from "@/types/nurse";
 import { motion } from "framer-motion";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getStatusColor, getStatusText } from "@/lib/utils";
 
 interface AppointmentDisplay {
   id: string;
@@ -27,33 +27,6 @@ interface AppointmentDisplay {
   cusPackage?: CusPackageResponse | null;
 }
 
-const DEFAULT_TECHNIQUES = "Chưa có thông tin";
-
-const getStatusColor = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "completed":
-      return "bg-green-500";
-    case "waiting":
-      return "bg-yellow-500";
-    case "canceled":
-      return "bg-red-500";
-    default:
-      return "bg-gray-500";
-  }
-};
-
-const getStatusText = (status: string) => {
-  switch (status.toLowerCase()) {
-    case "completed":
-      return "Hoàn thành";
-    case "pending":
-      return "Đang chờ";
-    case "canceled":
-      return "Đã hủy";
-    default:
-      return status;
-  }
-};
 
 const AppointmentPage: React.FC = () => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
@@ -427,8 +400,6 @@ const AppointmentPage: React.FC = () => {
                                       </p>
                                     </div>
                                   </div>
-
-                                 
 
                                   <div className="mt-6 flex justify-end">
                                     <Button

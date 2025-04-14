@@ -1,13 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  CalendarDays,
-  Eye,
-  FileText,
-  MessageCircle,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { CalendarDays, Eye, FileText, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -29,7 +22,6 @@ import {
 } from "@/components/ui/pagination";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import MedicalReport from "@/app/components/Relatives/MedicalReport";
-import nurseData from "@/dummy_data/dummy_nurse.json";
 import FeedbackDialog from "@/app/components/Relatives/FeedbackDialog";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { PatientRecord } from "@/types/patient";
@@ -37,65 +29,9 @@ import PatientSelection from "@/app/components/Relatives/PatientSelection";
 import MonthFilter from "@/app/components/Relatives/MonthFilter";
 import { Appointment, CusPackageResponse } from "@/types/appointment";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
-
-const dummyData = [
-  {
-    id: 1,
-    patientId: "01960e73-dcbe-7dfc-af7f-bc341a064fc7",
-    nurse_name: "Ho Dac Nhan Tam",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0987654321",
-    total_fee: 500000,
-    appointment_date: "2025-04-01",
-    time_from_to: "08:00 - 09:00",
-  },
-  {
-    id: 2,
-    nurse_name: "Trần Thị B",
-    patientId: "01960e73-dcbe-7dfc-af7f-bc341a064fc7",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0912345678",
-    total_fee: 300000,
-    appointment_date: "2025-04-05",
-    time_from_to: "10:00 - 11:00",
-  },
-  // Thêm thêm dữ liệu giả để kiểm tra phân trang
-  {
-    id: 3,
-    patientId: "01960e73-dcbe-7dfc-af7f-bc341a064fc7",
-    nurse_name: "Nguyễn Văn C",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0978123456",
-    total_fee: 450000,
-    appointment_date: "2025-04-10",
-    time_from_to: "14:00 - 15:00",
-  },
-  {
-    id: 4,
-    patientId: "01960e73-dcbe-7dfc-af7f-bc341a064fc7",
-    nurse_name: "Lê Thị D",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0901234567",
-    total_fee: 350000,
-    appointment_date: "2025-04-15",
-    time_from_to: "09:00 - 10:00",
-  },
-  {
-    id: 5,
-    patientId: "01960e73-dcbe-7dfc-af7f-bc341a064fc7",
-    nurse_name: "Phạm Văn E",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0923456789",
-    total_fee: 520000,
-    appointment_date: "2025-04-20",
-    time_from_to: "16:00 - 17:00",
-  },
-];
+import { NurseItemType } from "@/types/nurse";
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
+import { formatDate, getStatusColor, getStatusText } from "@/lib/utils";
 
 interface AppointmentProp {
   time_from_to: string;
@@ -111,6 +47,8 @@ const AppointmentHistory = () => {
   const [selectedAppointment, setSelectedAppointment] =
     useState<AppointmentProp | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
+  const [nurses, setNurses] = useState<NurseItemType[]>([]);
+
   const [monthFilter, setMonthFilter] = useState(() => {
     const currentDate = new Date();
     return `${currentDate.getFullYear()}-${String(
@@ -127,8 +65,12 @@ const AppointmentHistory = () => {
   const [appointmentDetails, setAppointmentDetails] = useState<
     Record<string, any>
   >({});
+
+  const [loadingNurses, setLoadingNurses] = useState<boolean>(false);
+  const [nurseError, setNurseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [appointmentError, setAppointmentError] = useState<string | null>(null);
 
   // Thêm state cho phân trang
   const [currentPage, setCurrentPage] = useState(1);
@@ -152,47 +94,77 @@ const AppointmentHistory = () => {
     fetchPatients();
   }, []);
 
+  // Fetch nurse data when component mounts
+  useEffect(() => {
+    const fetchListNurse = async () => {
+      try {
+        setLoadingNurses(true);
+        const response = await nurseApiRequest.getListNurseNoFilter();
+        if (response.payload && response.payload.data) {
+          setNurses(response.payload.data);
+          setNurseError(null);
+        } else {
+          console.error("Invalid nurse data format:", response);
+          setNurseError("Định dạng dữ liệu không hợp lệ");
+        }
+      } catch (error) {
+        console.error("Error fetching nurses:", error);
+        setNurseError("Không thể tải thông tin điều dưỡng.");
+      } finally {
+        setLoadingNurses(false);
+      }
+    };
+
+    fetchListNurse();
+  }, []);
+
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!selectedPatientId) return;
 
       try {
         setIsLoading(true);
-        // Tạo chuỗi ngày từ monthFilter
         const estDateFrom = selectedDay
           ? `${monthFilter}-${String(selectedDay).padStart(2, "0")}`
           : `${monthFilter}-01`;
 
         const response = await appointmentApiRequest.getHistoryAppointment(
           currentPage,
-          undefined, // nursingId không được sử dụng trong trường hợp này
+          undefined,
           selectedPatientId,
           estDateFrom
         );
 
-        if (response.payload.data) {
-          setAppointments(response.payload.data || []);
-
+        if (response.payload && response.payload.success) {
           setTotalPages(
             Math.ceil(
               response.payload.paging.total / response.payload.paging.size
             )
           );
 
-          // Giả lập thông tin chi tiết cho mỗi cuộc hẹn
-          // Trong thực tế, bạn có thể cần gọi API khác để lấy thông tin chi tiết này
-          // const details: Record<string, any> = {};
-          // response.data.forEach(appointment => {
-          //   details[appointment.id] = {
-          //     nursingName: "Điều dưỡng " + appointment.id.substring(0, 5),
-          //     nursingPhoneNumber: "09" + Math.floor(Math.random() * 100000000),
-          //     estTimeFrom: "08:00",
-          //     estTimeTo: "09:00",
-          //     totalPrice: Math.floor(Math.random() * 500000) + 200000,
-          //     // Thêm các thông tin khác nếu cần
-          //   };
-          // });
-          // setAppointmentDetails(details);
+          const formattedAppointmentsPromises = response.payload.data.map(
+            async (appointment: Appointment) => {
+              const nursingId = appointment["nursing-id"];
+
+              const matchedNurse = nurses.find((nurse) => {
+                const nurseMatches =
+                  String(nurse["nurse-id"]) === String(nursingId);
+                return nurseMatches;
+              });
+
+              return await transformAppointment(
+                appointment,
+                matchedNurse || null
+              );
+            }
+          );
+
+          const formattedAppointments = await Promise.all(
+            formattedAppointmentsPromises
+          );
+          setAppointments(formattedAppointments);
+        } else {
+          setAppointmentError("Không thể tải lịch hẹn. Vui lòng thử lại sau.");
         }
         setIsLoading(false);
       } catch (err) {
@@ -205,22 +177,78 @@ const AppointmentHistory = () => {
     fetchAppointments();
   }, [selectedPatientId, monthFilter, selectedDay, currentPage]);
 
-  console.log("Appointments: ", appointments);
+  const transformAppointment = async (
+    appointment: Appointment,
+    matchedNurse: NurseItemType | null
+  ): Promise<AppointmentProp> => {
+    // Extract time information from appointment
+    const estDate = appointment["est-date"];
+    const date = new Date(estDate);
+
+    // Định dạng ngày: YYYY-MM-DD
+    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+    // Định dạng giờ: HH:MM (24h format)
+    const formattedTime = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+    const endTime = new Date(
+      date.getTime() + appointment["total-est-duration"] * 60000
+    );
+    const formattedEndTime = `${String(endTime.getHours()).padStart(2, "0")}:${String(endTime.getMinutes()).padStart(2, "0")}`;
+
+    let cusPackage = null;
+    // Gọi API để lấy thông tin cusPackage nếu có cusPackageID
+    if (appointment["cuspackage-id"]) {
+      try {
+        const response = await appointmentApiRequest.getCusPackage(
+          appointment["cuspackage-id"],
+          appointment["est-date"]
+        );
+        if (response && response.payload && response.payload.success) {
+          cusPackage = response.payload;
+        } else {
+          console.error("Failed to fetch cusPackage data:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching cusPackage:", error);
+      }
+    }
+
+    // Store additional appointment details in the appointmentDetails state
+    const nursingName = matchedNurse
+      ? matchedNurse["nurse-name"]
+      : "Không có thông tin";
+
+    // Update appointment details in the state
+    setAppointmentDetails((prev) => ({
+      ...prev,
+      [appointment.id]: {
+        nursingName,
+        appointment_date: formattedDate,
+        estTimeFrom: formattedTime,
+        estTimeTo: formattedEndTime,
+        totalPrice: cusPackage?.data?.price || undefined,
+        status: appointment.status,
+      },
+    }));
+
+    // Return formatted appointment data
+    return {
+      time_from_to: formattedTime,
+      apiData: appointment,
+      cusPackage: cusPackage,
+    };
+  };
 
   // Reset trang khi thay đổi bộ lọc
   useEffect(() => {
     setCurrentPage(1);
   }, [monthFilter, selectedDay, selectedPatientId]);
 
-  const formatDate = (date: Date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-
   const handleViewDetail = (appointment: any) => {
-    const nurse = nurseData.find((n) => n.id === appointment.id);
+    const nurse = nurses.find(
+      (nurse) => nurse["nurse-id"] === appointment.apiData["nursing-id"]
+    );
     setSelectedAppointment(appointment);
     setSelectedNurse(nurse);
     setIsDialogOpen(true);
@@ -260,30 +288,6 @@ const AppointmentHistory = () => {
     console.log("Submitting feedback:", feedback);
     // Implement API call to submit feedback
   };
-
-  // const filteredAppointments = dummyData.filter((appointment) => {
-  //   const appointmentMonth = appointment.appointment_date.substring(0, 7);
-  //   const appointmentDay = parseInt(
-  //     appointment.appointment_date.substring(8, 10),
-  //     10
-  //   );
-
-  //   return (
-  //     appointment.status === "completed" &&
-  //     appointmentMonth === monthFilter &&
-  //     appointment.patientId === selectedPatientId &&
-  //     (selectedDay === null || appointmentDay === selectedDay)
-  //   );
-  // });
-
-  // Tính toán số trang
-  // const totalPages = Math.ceil(filteredAppointments.length / ITEMS_PER_PAGE);
-
-  // Lấy dữ liệu cho trang hiện tại
-  // const paginatedAppointments = filteredAppointments.slice(
-  //   (currentPage - 1) * ITEMS_PER_PAGE,
-  //   currentPage * ITEMS_PER_PAGE
-  // );
 
   const handleMonthChange = (year: string, monthIndex: number) => {
     const formattedMonth = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
@@ -374,6 +378,25 @@ const AppointmentHistory = () => {
               handleDayChange={handleDayChange}
             />
 
+            {loadingNurses && (
+              <div className="mb-4 p-4 bg-blue-50 rounded-md">
+                <p className="text-blue-600 text-lg">
+                  Đang tải thông tin điều dưỡng...
+                </p>
+              </div>
+            )}
+
+            {nurseError && (
+              <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+                <p className="text-red-600 text-lg">{nurseError}</p>
+              </div>
+            )}
+
+            {appointmentError && (
+              <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+                <p className="text-red-600 text-lg">{appointmentError}</p>
+              </div>
+            )}
             {/* Appointments Table */}
             <div className="rounded-md border shadow-sm">
               <Table>
@@ -383,10 +406,6 @@ const AppointmentHistory = () => {
                       Điều dưỡng
                     </TableHead>
                     <TableHead className="font-semibold text-xl">
-                      Số điện thoại
-                    </TableHead>
-
-                    <TableHead className="font-semibold text-xl">
                       Tổng tiền
                     </TableHead>
                     <TableHead className="font-semibold text-xl">
@@ -395,7 +414,7 @@ const AppointmentHistory = () => {
                     <TableHead className="font-semibold text-xl">
                       Thời gian
                     </TableHead>
-                    <TableHead className="font-semibold text-xl">
+                    <TableHead className="font-semibold text-xl text-center">
                       Trạng thái
                     </TableHead>
                     <TableHead className="font-semibold text-xl text-center">
@@ -409,7 +428,15 @@ const AppointmentHistory = () => {
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8">
                         <p className="text-gray-600 text-lg">
-                          Đang tải dữ liệu...
+                          Đang tải dữ liệu lịch sử cuộc hẹn...
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : appointmentError ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <p className="text-red-600 text-lg">
+                          {appointmentError}
                         </p>
                       </TableCell>
                     </TableRow>
@@ -418,18 +445,15 @@ const AppointmentHistory = () => {
                       const details =
                         appointment.apiData && appointment.apiData.id
                           ? appointmentDetails[appointment.apiData.id]
-                          : null; // or some default value
+                          : null;
                       return (
                         <TableRow key={appointment.apiData.id}>
-                          <TableCell className="text-lg">
+                          <TableCell className="text-lg font-semibold">
                             {details.nursingName}
                           </TableCell>
-                          <TableCell className="text-lg">
-                            {details.nursingPhoneNumber}
-                          </TableCell>
+
                           <TableCell className="font-semibold text-red-500 text-lg">
-                            {Number(details.totalPrice).toLocaleString("vi-VN")}{" "}
-                            VND
+                            {`${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND`}
                           </TableCell>
                           <TableCell className="text-lg">
                             {formatDate(
@@ -439,11 +463,11 @@ const AppointmentHistory = () => {
                           <TableCell className="text-lg">
                             {`${details.estTimeFrom} - ${details.estTimeTo}`}
                           </TableCell>
-                          <TableCell>
-                            <Badge className="bg-green-500 text-[16px]">
-                              {appointment.apiData.status === "completed"
-                                ? "Hoàn thành"
-                                : appointment.apiData.status}
+                          <TableCell className="text-center">
+                            <Badge
+                              className={`${getStatusColor(appointment.apiData.status)} hover:${getStatusColor(appointment.apiData.status)} text-white text-lg`}
+                            >
+                              {getStatusText(appointment.apiData.status)}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -569,7 +593,10 @@ const AppointmentHistory = () => {
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           appointment={selectedAppointment}
-          nurse={selectedNurse}
+          nurse={nurses.find(
+            (nurse) =>
+              nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
+          )}
           patient={patients[0]}
         />
       )}
@@ -590,6 +617,10 @@ const AppointmentHistory = () => {
           onClose={() => setIsFeedbackOpen(false)}
           appointment={selectedAppointment}
           onSubmit={handleSubmitFeedback}
+          nurse={nurses.find(
+            (nurse) =>
+              nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
+          )}
         />
       )}
     </section>

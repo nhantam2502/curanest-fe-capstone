@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { RegisterForm } from "@/components/register-form";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LoginFormForNurse } from "@/components/login-form-nurse";
 
 const LoginPage = () => {
   const searchParams = useSearchParams();
@@ -17,7 +18,7 @@ const LoginPage = () => {
   else if (callbackUrl.includes("/nurse")) roleFromCallback = "nurse";
   else if (callbackUrl.includes("/staff")) roleFromCallback = "staff";
   else if (callbackUrl.includes("/relatives")) roleFromCallback = "relatives";
-  
+
   // Ưu tiên role từ tham số URL, nếu không có thì dùng role từ callbackUrl
   const role = searchParams.get("role") || roleFromCallback;
   const mode = searchParams.get("mode");
@@ -35,7 +36,7 @@ const LoginPage = () => {
   const getRoleTitle = () => {
     if (!isLogin) return "Đăng ký tài khoản mới";
 
-    return role === "admin"
+    return ["admin", "staff", "nurse"].includes(role)
       ? "Đăng nhập dành cho quản trị viên"
       : "Đăng nhập dành cho khách hàng";
   };
@@ -45,9 +46,11 @@ const LoginPage = () => {
     const baseUrl = window.location.pathname;
     const newMode = isLogin ? "register" : "login";
     // Giữ lại callbackUrl khi chuyển form
-    const callbackUrlParam = callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : '';
-    const newUrl = `${baseUrl}?${role ? `role=${role}` : ''}${callbackUrlParam}&mode=${newMode}`;
-    window.history.pushState({}, '', newUrl);
+    const callbackUrlParam = callbackUrl
+      ? `&callbackUrl=${encodeURIComponent(callbackUrl)}`
+      : "";
+    const newUrl = `${baseUrl}?${role ? `role=${role}` : ""}${callbackUrlParam}&mode=${newMode}`;
+    window.history.pushState({}, "", newUrl);
     setIsLogin(!isLogin);
   };
 
@@ -110,6 +113,8 @@ const LoginPage = () => {
                 {isLogin ? (
                   role === "admin" ? (
                     <AdminLoginForm />
+                  ) : role === "nurse" || role === "staff" ? (
+                    <LoginFormForNurse />
                   ) : (
                     <LoginForm />
                   )
