@@ -64,6 +64,7 @@ const NursingList = ({ serviceId }: { serviceId: string }) => {
           key={nurse["nurse-id"]}
           nurse={nurse}
           serviceID={serviceId}
+          service=""
         />
       ))}
     </div>
