@@ -49,13 +49,13 @@ const NurseScheduleCalendar = () => {
             status: item.status,
             appointment_date: getFormattedDate(item["est-date"]),
             time_from_to: getStartTimeFromEstDate(item["est-date"]),
+            "total-est-duration": item["total-est-duration"]
           })
         );
 
         const apiScheduleData: ScheduleEvent[] = response.payload.data.map(
           (item: any) => ({
             id: item.id.toString(),
-            title: item.techniques || "Chưa xác định",
             startTime: getStartTimeFromEstDate(item["est-date"]),
             status: item.status,
             name: item.nurse_name || "Chưa có thông tin",
@@ -77,8 +77,8 @@ const NurseScheduleCalendar = () => {
     fetchAppointments();
   }, [selectedDate, nursingId, status]);
 
-  // console.log("Appointments:", appointments);
-  console.log("Schedule Data:", scheduleData);
+  console.log("Appointments:", appointments);
+  // console.log("Schedule Data:", scheduleData);
 
   // Phần còn lại của code giữ nguyên
   const handleDateSelect = (date: string) => {

@@ -603,7 +603,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             onPrevious={handlePreviousStep}
             setCurrentStep={setCurrentStep}
             selectedPackage={selectedPackage}
-            updateServiceNote={updateServiceNote} // Thêm prop này
+            updateServiceNote={updateServiceNote} 
           />
         );
 
