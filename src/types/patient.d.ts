@@ -49,7 +49,11 @@ export type infoRelativesRes = {
   data: infoRelatives;
 };
 
-
+export type PatientRecordRes = {
+  status: number;
+  message: string;
+  data: PatientRecord[];
+};
 
 export type CreateRes = {
   status: number;
@@ -63,3 +67,4 @@ export interface InfoItemProps {
 }
 
 export type UpdateTermType = z.TypeOf<typeof UpdateTerm>;
+
