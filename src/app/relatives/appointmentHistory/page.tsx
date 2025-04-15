@@ -11,80 +11,70 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import DetailAppointment from "@/app/components/Relatives/DetailAppointment";
 import MedicalReport from "@/app/components/Relatives/MedicalReport";
-import nurseData from "@/dummy_data/dummy_nurse.json";
 import FeedbackDialog from "@/app/components/Relatives/FeedbackDialog";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { PatientRecord } from "@/types/patient";
+import PatientSelection from "@/app/components/Relatives/PatientSelection";
+import MonthFilter from "@/app/components/Relatives/MonthFilter";
+import { Appointment, CusPackageResponse } from "@/types/appointment";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { NurseItemType } from "@/types/nurse";
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
+import { formatDate, getStatusColor, getStatusText } from "@/lib/utils";
 
-const dummyData = [
-  {
-    id: 1,
-    patientId: "patient-1",
-    nurse_name: "Ho Dac Nhan Tam",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0987654321",
-    techniques: "Kỹ thuật A- Kỹ thuật B-Kỹ thuật C - Kỹ thuật G",
-    total_fee: 500000,
-    appointment_date: "2025-04-01",
-    time_from_to: "08:00 - 09:00",
-  },
-  {
-    id: 2,
-    nurse_name: "Trần Thị B",
-    patientId: "patient-2",
-    avatar: "https://github.com/shadcn.png",
-    status: "completed",
-    phone_number: "0912345678",
-    techniques: "Kỹ thuật D-Kỹ thuật E",
-    total_fee: 300000,
-    appointment_date: "2025-04-01",
-    time_from_to: "10:00 - 11:00",
-  },
-];
-
-const months = [
-  "Tháng 1",
-  "Tháng 2",
-  "Tháng 3",
-  "Tháng 4",
-  "Tháng 5",
-  "Tháng 6",
-  "Tháng 7",
-  "Tháng 8",
-  "Tháng 9",
-  "Tháng 10",
-  "Tháng 11",
-  "Tháng 12",
-];
-
-const years = Array.from(
-  { length: 5 },
-  (_, i) => new Date().getFullYear() - i
-).reverse();
+interface AppointmentProp {
+  time_from_to: string;
+  apiData: Appointment;
+  cusPackage?: CusPackageResponse | null;
+}
 
 const AppointmentHistory = () => {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null
   );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<AppointmentProp | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
+  const [nurses, setNurses] = useState<NurseItemType[]>([]);
+
   const [monthFilter, setMonthFilter] = useState(() => {
     const currentDate = new Date();
     return `${currentDate.getFullYear()}-${String(
       currentDate.getMonth() + 1
     ).padStart(2, "0")}`;
   });
+  const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [isMedicalReportOpen, setIsMedicalReportOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   const [patients, setPatients] = useState<PatientRecord[]>([]);
+  const [appointments, setAppointments] = useState<AppointmentProp[]>([]);
+  const [appointmentDetails, setAppointmentDetails] = useState<
+    Record<string, any>
+  >({});
+
+  const [loadingNurses, setLoadingNurses] = useState<boolean>(false);
+  const [nurseError, setNurseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [appointmentError, setAppointmentError] = useState<string | null>(null);
+
+  // Thêm state cho phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchPatients = async () => {
@@ -104,26 +94,173 @@ const AppointmentHistory = () => {
     fetchPatients();
   }, []);
 
-  const formatDate = (date: Date) => {
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+  // Fetch nurse data when component mounts
+  useEffect(() => {
+    const fetchListNurse = async () => {
+      try {
+        setLoadingNurses(true);
+        const response = await nurseApiRequest.getListNurseNoFilter();
+        if (response.payload && response.payload.data) {
+          setNurses(response.payload.data);
+          setNurseError(null);
+        } else {
+          console.error("Invalid nurse data format:", response);
+          setNurseError("Định dạng dữ liệu không hợp lệ");
+        }
+      } catch (error) {
+        console.error("Error fetching nurses:", error);
+        setNurseError("Không thể tải thông tin điều dưỡng.");
+      } finally {
+        setLoadingNurses(false);
+      }
+    };
+
+    fetchListNurse();
+  }, []);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      if (!selectedPatientId) return;
+
+      try {
+        setIsLoading(true);
+        const estDateFrom = selectedDay
+          ? `${monthFilter}-${String(selectedDay).padStart(2, "0")}`
+          : `${monthFilter}-01`;
+
+        const response = await appointmentApiRequest.getHistoryAppointment(
+          currentPage,
+          undefined,
+          selectedPatientId,
+          estDateFrom
+        );
+
+        if (response.payload && response.payload.success) {
+          setTotalPages(
+            Math.ceil(
+              response.payload.paging.total / response.payload.paging.size
+            )
+          );
+
+          const formattedAppointmentsPromises = response.payload.data.map(
+            async (appointment: Appointment) => {
+              const nursingId = appointment["nursing-id"];
+
+              const matchedNurse = nurses.find((nurse) => {
+                const nurseMatches =
+                  String(nurse["nurse-id"]) === String(nursingId);
+                return nurseMatches;
+              });
+
+              return await transformAppointment(
+                appointment,
+                matchedNurse || null
+              );
+            }
+          );
+
+          const formattedAppointments = await Promise.all(
+            formattedAppointmentsPromises
+          );
+          setAppointments(formattedAppointments);
+        } else {
+          setAppointmentError("Không thể tải lịch hẹn. Vui lòng thử lại sau.");
+        }
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Error fetching appointment history:", err);
+        setError("Failed to load appointment history. Please try again later.");
+        setIsLoading(false);
+      }
+    };
+
+    fetchAppointments();
+  }, [selectedPatientId, monthFilter, selectedDay, currentPage]);
+
+  const transformAppointment = async (
+    appointment: Appointment,
+    matchedNurse: NurseItemType | null
+  ): Promise<AppointmentProp> => {
+    // Extract time information from appointment
+    const estDate = appointment["est-date"];
+    const date = new Date(estDate);
+
+    // Định dạng ngày: YYYY-MM-DD
+    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+    // Định dạng giờ: HH:MM (24h format)
+    const formattedTime = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+
+    const endTime = new Date(
+      date.getTime() + appointment["total-est-duration"] * 60000
+    );
+    const formattedEndTime = `${String(endTime.getHours()).padStart(2, "0")}:${String(endTime.getMinutes()).padStart(2, "0")}`;
+
+    let cusPackage = null;
+    // Gọi API để lấy thông tin cusPackage nếu có cusPackageID
+    if (appointment["cuspackage-id"]) {
+      try {
+        const response = await appointmentApiRequest.getCusPackage(
+          appointment["cuspackage-id"],
+          appointment["est-date"]
+        );
+        if (response && response.payload && response.payload.success) {
+          cusPackage = response.payload;
+        } else {
+          console.error("Failed to fetch cusPackage data:", response);
+        }
+      } catch (error) {
+        console.error("Error fetching cusPackage:", error);
+      }
+    }
+
+    // Store additional appointment details in the appointmentDetails state
+    const nursingName = matchedNurse
+      ? matchedNurse["nurse-name"]
+      : "Không có thông tin";
+
+    // Update appointment details in the state
+    setAppointmentDetails((prev) => ({
+      ...prev,
+      [appointment.id]: {
+        nursingName,
+        appointment_date: formattedDate,
+        estTimeFrom: formattedTime,
+        estTimeTo: formattedEndTime,
+        totalPrice: cusPackage?.data?.price || undefined,
+        status: appointment.status,
+      },
+    }));
+
+    // Return formatted appointment data
+    return {
+      time_from_to: formattedTime,
+      apiData: appointment,
+      cusPackage: cusPackage,
+    };
   };
 
+  // Reset trang khi thay đổi bộ lọc
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [monthFilter, selectedDay, selectedPatientId]);
+
   const handleViewDetail = (appointment: any) => {
-    const nurse = nurseData.find((n) => n.id === appointment.id);
+    const nurse = nurses.find(
+      (nurse) => nurse["nurse-id"] === appointment.apiData["nursing-id"]
+    );
     setSelectedAppointment(appointment);
     setSelectedNurse(nurse);
     setIsDialogOpen(true);
   };
 
-  const handleViewMedicalReport = (appointment: any) => {
+  const handleViewMedicalReport = (appointment: AppointmentProp) => {
+    const details = appointmentDetails[appointment.apiData.id];
     const sampleReport = {
-      nurse_name: appointment.nurse_name,
-      avatar: appointment.avatar,
-      report_date: formatDate(new Date(appointment.appointment_date)),
-      report_time: appointment.time_from_to.split("-")[1].trim(),
+      nurse_name: details.nursingName,
+      avatar: "https://github.com/shadcn.png", // Default avatar
+      report_date: formatDate(new Date(appointment.apiData["est-date"])),
+      report_time: `${details.estTimeFrom} - ${details.estTimeTo}`,
       report:
         "Bệnh nhân đến khám trong tình trạng tỉnh táo, các chỉ số sinh tồn trong giới hạn bình thường.\n\nHuyết áp: 120/80 mmHg\nNhịp tim: 75 lần/phút\nNhiệt độ: 36.5°C\n\nĐã thực hiện đầy đủ các kỹ thuật theo yêu cầu. Bệnh nhân hợp tác tốt trong quá trình điều trị.",
       advice: [
@@ -132,14 +269,14 @@ const AppointmentHistory = () => {
         "Uống đủ nước, ít nhất 2 lít mỗi ngày",
         "Theo dõi huyết áp hàng ngày và ghi chép lại",
       ],
-      techniques: appointment.techniques,
+      // techniques: appointment.techniques || [],
     };
 
     setSelectedReport(sampleReport);
     setIsMedicalReportOpen(true);
   };
 
-  const handleSendFeedback = (appointment: any) => {
+  const handleSendFeedback = (appointment: AppointmentProp) => {
     setSelectedAppointment(appointment);
     setIsFeedbackOpen(true);
   };
@@ -149,37 +286,70 @@ const AppointmentHistory = () => {
     content: string;
   }) => {
     console.log("Submitting feedback:", feedback);
+    // Implement API call to submit feedback
   };
-
-  const filteredAppointments = dummyData.filter((appointment) => {
-    const appointmentMonth = appointment.appointment_date.substring(0, 7);
-    return (
-      appointment.status === "completed" &&
-      appointmentMonth === monthFilter &&
-      appointment.patientId === selectedPatientId
-    );
-  });
 
   const handleMonthChange = (year: string, monthIndex: number) => {
     const formattedMonth = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
     setMonthFilter(formattedMonth);
+    setSelectedDay(null);
+  };
+
+  const handleDayChange = (day: string) => {
+    setSelectedDay(day === "" ? null : parseInt(day, 10));
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   const currentYear = monthFilter.split("-")[0];
   const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
-  // Hàm để hiển thị kỹ thuật dưới dạng badges
-  const renderTechniques = (techniquesString: string) => {
-    return techniquesString.split("-").map((technique, index) => (
-      <Badge key={index} variant="secondary" className="mr-1 mb-1 text-[16px]">
-        {technique.trim()}
-      </Badge>
-    ));
+  // Tạo mảng các số trang để hiển thị
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5; // Số trang tối đa hiển thị
+
+    if (totalPages <= maxPagesToShow) {
+      // Nếu tổng số trang ít hơn hoặc bằng số trang tối đa, hiển thị tất cả
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Nếu tổng số trang nhiều hơn số trang tối đa
+      if (currentPage <= Math.ceil(maxPagesToShow / 2)) {
+        // Nếu trang hiện tại gần đầu
+        for (let i = 1; i <= maxPagesToShow - 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(null); // Dấu "..."
+        pageNumbers.push(totalPages);
+      } else if (currentPage >= totalPages - Math.floor(maxPagesToShow / 2)) {
+        // Nếu trang hiện tại gần cuối
+        pageNumbers.push(1);
+        pageNumbers.push(null); // Dấu "..."
+        for (let i = totalPages - (maxPagesToShow - 2); i <= totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Nếu trang hiện tại ở giữa
+        pageNumbers.push(1);
+        pageNumbers.push(null); // Dấu "..."
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push(null); // Dấu "..."
+        pageNumbers.push(totalPages);
+      }
+    }
+
+    return pageNumbers;
   };
 
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
-      <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col gap-8 py-8">
+      <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col ">
         {/* Header */}
         <div>
           <div className="flex items-center space-x-4 mb-6">
@@ -189,85 +359,52 @@ const AppointmentHistory = () => {
             </h2>
           </div>
 
-          {/* Patient Selection */}
-          <div className="flex flex-wrap gap-4 items-center">
-            <p className="text-2xl font-bold">Hồ sơ bệnh nhân:</p>
-            {patients.length > 0 ? (
-              patients.map((patient, index) => (
-                <Button
-                  key={index}
-                  variant={
-                    selectedPatientId === `patient-${index}`
-                      ? "default"
-                      : "outline"
-                  }
-                  className={`px-6 py-8 rounded-full transition-all text-lg ${
-                    selectedPatientId === `patient-${index}`
-                      ? "text-white"
-                      : "border"
-                  }`}
-                  onClick={() => setSelectedPatientId(`patient-${index}`)}
-                >
-                  <span className="text-xl font-semibold">
-                    {patient["full-name"] || `Bệnh nhân ${index + 1}`}
-                  </span>
-                </Button>
-              ))
-            ) : (
-              <p className="text-gray-600 text-xl">
-                Không có hồ sơ bệnh nhân nào
-              </p>
-            )}
-          </div>
+          {/* Patient Selection Component */}
+          <PatientSelection
+            patients={patients}
+            selectedPatientId={selectedPatientId}
+            setSelectedPatientId={setSelectedPatientId}
+          />
         </div>
 
         {selectedPatientId ? (
           <>
-            {/* Month Filter */}
-            <div className="flex justify-end items-center space-x-4 mb-6">
-              <label className="text-xl font-medium">Chọn tháng:</label>
+            {/* Month Filter Component */}
+            <MonthFilter
+              currentYear={currentYear}
+              currentMonthIndex={currentMonthIndex}
+              selectedDay={selectedDay}
+              handleMonthChange={handleMonthChange}
+              handleDayChange={handleDayChange}
+            />
 
-              <select
-                value={currentMonthIndex}
-                onChange={(e) =>
-                  handleMonthChange(currentYear, parseInt(e.target.value, 10))
-                }
-                className="px-4 py-2 border rounded-lg text-xl"
-              >
-                {months.map((month, index) => (
-                  <option key={index} value={index}>
-                    {month}
-                  </option>
-                ))}
-              </select>
+            {loadingNurses && (
+              <div className="mb-4 p-4 bg-blue-50 rounded-md">
+                <p className="text-blue-600 text-lg">
+                  Đang tải thông tin điều dưỡng...
+                </p>
+              </div>
+            )}
 
-              <select
-                value={currentYear}
-                onChange={(e) =>
-                  handleMonthChange(e.target.value, currentMonthIndex)
-                }
-                className="px-4 py-2 border rounded-lg text-xl"
-              >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {nurseError && (
+              <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+                <p className="text-red-600 text-lg">{nurseError}</p>
+              </div>
+            )}
 
+            {appointmentError && (
+              <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+                <p className="text-red-600 text-lg">{appointmentError}</p>
+              </div>
+            )}
             {/* Appointments Table */}
             <div className="rounded-md border shadow-sm">
-              <Table  >
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-semibold text-xl">
                       Điều dưỡng
                     </TableHead>
-                    <TableHead className="font-semibold text-xl">
-                      Số điện thoại
-                    </TableHead>
-                    <TableHead className="font-semibold text-xl">Dịch vụ</TableHead>
                     <TableHead className="font-semibold text-xl">
                       Tổng tiền
                     </TableHead>
@@ -277,7 +414,7 @@ const AppointmentHistory = () => {
                     <TableHead className="font-semibold text-xl">
                       Thời gian
                     </TableHead>
-                    <TableHead className="font-semibold text-xl">
+                    <TableHead className="font-semibold text-xl text-center">
                       Trạng thái
                     </TableHead>
                     <TableHead className="font-semibold text-xl text-center">
@@ -287,81 +424,158 @@ const AppointmentHistory = () => {
                 </TableHeader>
 
                 <TableBody>
-                  {filteredAppointments.length > 0 ? (
-                    filteredAppointments.map((appointment) => (
-                      <TableRow key={appointment.id}>
-                        <TableCell className="text-lg">
-                          {appointment.nurse_name}
-                        </TableCell>
-                        
-                        <TableCell className="text-lg">{appointment.phone_number}</TableCell>
-                        
-                        <TableCell className="max-w-[250px]">
-                          <div className="flex flex-wrap ">
-                            {renderTechniques(appointment.techniques)}
-                          </div>
-                        </TableCell>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <p className="text-gray-600 text-lg">
+                          Đang tải dữ liệu lịch sử cuộc hẹn...
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : appointmentError ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <p className="text-red-600 text-lg">
+                          {appointmentError}
+                        </p>
+                      </TableCell>
+                    </TableRow>
+                  ) : appointments.length > 0 ? (
+                    appointments.map((appointment) => {
+                      const details =
+                        appointment.apiData && appointment.apiData.id
+                          ? appointmentDetails[appointment.apiData.id]
+                          : null;
+                      return (
+                        <TableRow key={appointment.apiData.id}>
+                          <TableCell className="text-lg font-semibold">
+                            {details.nursingName}
+                          </TableCell>
 
-                        <TableCell className="font-semibold text-red-500 text-lg">
-                          {Number(appointment.total_fee).toLocaleString(
-                            "vi-VN"
-                          )}{" "}
-                          VND
-                        </TableCell>
-
-                        <TableCell className="text-lg">
-                          {formatDate(new Date(appointment.appointment_date))}
-                        </TableCell>
-
-                        <TableCell className="text-lg">{appointment.time_from_to}</TableCell>
-                        
-                        <TableCell>
-                          <Badge className="bg-green-500 text-[16px]">Hoàn thành</Badge>
-                        </TableCell>
-
-                        <TableCell>
-                          <div className="flex space-x-2 justify-center">
-                            <Button
-                              variant="outline"
-                              size="default"
-                              onClick={() => handleViewDetail(appointment)}
-                              className="flex items-center text-lg"
+                          <TableCell className="font-semibold text-red-500 text-lg">
+                            {`${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND`}
+                          </TableCell>
+                          <TableCell className="text-lg">
+                            {formatDate(
+                              new Date(appointment.apiData["est-date"])
+                            )}
+                          </TableCell>
+                          <TableCell className="text-lg">
+                            {`${details.estTimeFrom} - ${details.estTimeTo}`}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge
+                              className={`${getStatusColor(appointment.apiData.status)} hover:${getStatusColor(appointment.apiData.status)} text-white text-lg`}
                             >
-                              <Eye className="mr-1 h-4 w-4" /> Chi tiết
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="default"
-                              onClick={() =>
-                                handleViewMedicalReport(appointment)
-                              }
-                              className="flex items-center text-blue-600 text-lg"
-                            >
-                              <FileText className="mr-1 h-4 w-4" /> Báo cáo
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="default"
-                              onClick={() => handleSendFeedback(appointment)}
-                              className="flex items-center text-green-600 text-lg"
-                            >
-                              <MessageCircle className="mr-1 h-4 w-4" /> Đánh giá
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                              {getStatusText(appointment.apiData.status)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2 justify-center">
+                              <Button
+                                variant="outline"
+                                size="default"
+                                onClick={() => handleViewDetail(appointment)}
+                                className="flex items-center text-lg"
+                              >
+                                <Eye className="mr-1 h-4 w-4" /> Chi tiết
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="default"
+                                onClick={() =>
+                                  handleViewMedicalReport(appointment)
+                                }
+                                className="flex items-center text-blue-600 text-lg"
+                              >
+                                <FileText className="mr-1 h-4 w-4" /> Báo cáo
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="default"
+                                onClick={() => handleSendFeedback(appointment)}
+                                className="flex items-center text-green-600 text-lg"
+                              >
+                                <MessageCircle className="mr-1 h-4 w-4" /> Đánh
+                                giá
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : (
                     <TableRow>
                       <TableCell colSpan={8} className="text-center py-8">
                         <p className="text-gray-600 text-lg">
-                          Không có lịch sử cuộc hẹn nào trong tháng này
+                          Không có lịch sử cuộc hẹn nào trong thời gian đã chọn
                         </p>
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
+
+              {/* Pagination */}
+              {appointments.length > 0 && (
+                <div className="py-4 border-t">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() =>
+                            currentPage > 1 && handlePageChange(currentPage - 1)
+                          }
+                          className={
+                            currentPage === 1
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+
+                      {getPageNumbers().map((pageNumber, index) =>
+                        pageNumber === null ? (
+                          <PaginationItem key={`ellipsis-${index}`}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        ) : (
+                          <PaginationItem key={`page-${pageNumber}`}>
+                            <PaginationLink
+                              isActive={currentPage === pageNumber}
+                              onClick={() =>
+                                handlePageChange(pageNumber as number)
+                              }
+                              className="cursor-pointer"
+                            >
+                              {pageNumber}
+                            </PaginationLink>
+                          </PaginationItem>
+                        )
+                      )}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() =>
+                            currentPage < totalPages &&
+                            handlePageChange(currentPage + 1)
+                          }
+                          className={
+                            currentPage === totalPages
+                              ? "pointer-events-none opacity-50"
+                              : "cursor-pointer"
+                          }
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+
+                  <div className="text-center mt-4 text-gray-500">
+                    Trang {currentPage} / {totalPages} • Hiển thị{" "}
+                    {appointments.length} cuộc hẹn
+                  </div>
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -379,7 +593,10 @@ const AppointmentHistory = () => {
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           appointment={selectedAppointment}
-          nurse={selectedNurse}
+          nurse={nurses.find(
+            (nurse) =>
+              nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
+          )}
           patient={patients[0]}
         />
       )}
@@ -400,6 +617,10 @@ const AppointmentHistory = () => {
           onClose={() => setIsFeedbackOpen(false)}
           appointment={selectedAppointment}
           onSubmit={handleSubmitFeedback}
+          nurse={nurses.find(
+            (nurse) =>
+              nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
+          )}
         />
       )}
     </section>

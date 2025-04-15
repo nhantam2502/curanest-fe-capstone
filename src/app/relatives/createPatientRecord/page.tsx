@@ -41,7 +41,7 @@ import {
 } from "@/schemaValidation/relatives.schema";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { useToast } from "@/hooks/use-toast";
 
 interface District {
   name: string;
@@ -69,6 +69,7 @@ export default function CreatePatientRecord() {
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const {
     register,
@@ -178,9 +179,11 @@ export default function CreatePatientRecord() {
       });
       console.log("Patient record created:", response);
 
-      toast.success("Đã tạo thành công hồ sơ bệnh nhân.", {
-        position: "top-right",
-        autoClose: 3000,
+      toast({
+        variant: "default",
+        title: "Tạo thành công",
+        description: "Hồ sơ bệnh nhân đã được tạo thành công.",
+        duration: 2000,
       });
 
       router.push("/relatives/booking");
@@ -188,8 +191,11 @@ export default function CreatePatientRecord() {
       console.error("Error creating patient record:", error);
       setIsSubmitting(false);
 
-      toast.error("Có lỗi xảy ra khi tạo hồ sơ bệnh nhân.", {
-        autoClose: 3000,
+      toast({
+        variant: "destructive",
+        title: "Tạo thất bại",
+        description: "Có lỗi xảy ra khi tạo hồ sơ bệnh nhân.",
+        duration: 2000,
       });
     } finally {
       setIsSubmitting(false);
@@ -370,7 +376,7 @@ export default function CreatePatientRecord() {
                         <p className="text-red-500">{errors.gender.message}</p>
                       )}
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label className="text-xl" htmlFor="phone-number">
                         Số điện thoại

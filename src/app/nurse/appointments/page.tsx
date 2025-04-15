@@ -82,7 +82,7 @@ const NurseScheduleCalendar = () => {
 
   // Phần còn lại của code giữ nguyên
   const handleDateSelect = (date: string) => {
-    console.log("Selected date:", date);
+    // console.log("Selected date:", date);
     setSelectedDate(new Date(date));
   };
 

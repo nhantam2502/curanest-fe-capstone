@@ -11,7 +11,7 @@ const ServiceCard = ({ item, index }: { item: any; index: number }) => {
       <h2 className="text-[26px] leading-9 text-headingColor font-[700]">
         {name}
       </h2>
-      <p className="text-[18px] leading-7 font-[400] text-textColor mt-4">
+      <p className="text-[20px] leading-7 font-[400] text-textColor mt-4">
         {desc}
       </p>
 

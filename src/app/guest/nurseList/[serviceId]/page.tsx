@@ -478,6 +478,7 @@ const NurseList = () => {
                         key={nurse["nurse-id"]}
                         nurse={nurse}
                         service={serviceId}
+                        serviceID={serviceID}
                       />
                     ))}
                   </div>

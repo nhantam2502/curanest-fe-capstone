@@ -218,20 +218,19 @@ export const UpdateRelativesSchema = z.object({
     .optional()
     .transform((val) => val || undefined),
 
-    avatar: z.string()
-    .refine(
-      (value) => value.length > 0, 
-      { message: "Vui lòng chọn ảnh đại diện" }
-    )
+  avatar: z
+    .string()
+    .refine((value) => value.length > 0, {
+      message: "Vui lòng chọn ảnh đại diện",
+    })
     .refine(
       (value) => {
         // Optional: Add URL or base64 validation if needed
-        return value.startsWith('http') || value.startsWith('data:image')
-      }, 
+        return value.startsWith("http") || value.startsWith("data:image");
+      },
       { message: "Định dạng ảnh không hợp lệ" }
-    )
+    ),
 });
-
 
 export type CreatePatientInput = z.infer<typeof CreatePatientSchema>;
 export type UpdatePatientRecord = z.infer<typeof UpdatePatientSchema>;

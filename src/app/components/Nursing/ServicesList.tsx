@@ -104,6 +104,18 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
                   x{service.quantity || 1} lần
                 </div>
               </div>
+              {service.staffAdvice && (
+                <div className="text-sm mt-2">
+                  <span className="text-gray-600 font-medium">Lời khuyên từ nhân viên:</span>
+                  <p className="text-gray-700">{service.staffAdvice}</p>
+                </div>
+              )}
+              {service.clientNote && (
+                <div className="text-sm mt-2">
+                  <span className="text-gray-600 font-medium">Ghi chú từ khách hàng:</span>
+                  <p className="text-gray-700">{service.clientNote}</p>
+                </div>
+              )}
             </div>
           ))}
 
