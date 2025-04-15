@@ -826,7 +826,7 @@ const BookingNurse = () => {
                   <div className="pt-6 border-t border-gray-200">
                     <div className="flex justify-between items-center mb-2">
                       <span className="font-bold text-2xl text-gray-800">
-                        Tổng thời gian
+                        Tổng thời gian của 1 buổi:
                       </span>
                       <span className="font-bold font-be-vietnam-pro text-2xl text-primary">
                         {calculateTotalTime()} phút
@@ -834,7 +834,7 @@ const BookingNurse = () => {
                     </div>
                     <div className="flex justify-between items-center mb-6">
                       <span className="font-bold text-2xl text-gray-800">
-                        Tổng tiền
+                        Tổng tiền (1 buổi)
                       </span>
                       <div className="flex flex-col items-end">
                         {selectedPackage &&
@@ -858,6 +858,43 @@ const BookingNurse = () => {
                         )}
                       </div>
                     </div>
+
+                    {(selectedPackage?.["combo-days"] ?? 0) > 1 && (
+                      <div className="flex justify-between items-center mb-6">
+                        <span className="font-bold text-2xl text-gray-800">
+                          Tổng tiền combo ({selectedPackage?.["combo-days"]}{" "}
+                          buổi)
+                        </span>
+                        <div className="flex flex-col items-end">
+                          {selectedPackage &&
+                          selectedPackage.discount &&
+                          selectedPackage.discount > 0 ? (
+                            <>
+                              <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                                {formatCurrency(
+                                  calculateTotalPrice() *
+                                    (selectedPackage["combo-days"] ?? 0) *
+                                    (1 - selectedPackage.discount / 100)
+                                )}
+                              </span>
+                              <span className="text-gray-500 text-lg line-through">
+                                {formatCurrency(
+                                  calculateTotalPrice() *
+                                    (selectedPackage["combo-days"] ?? 0)
+                                )}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="font-bold font-be-vietnam-pro text-2xl text-red-500">
+                              {formatCurrency(
+                                calculateTotalPrice() *
+                                  (selectedPackage?.["combo-days"] ?? 0)
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     <div className="flex gap-4">
                       {currentStep > 1 && (

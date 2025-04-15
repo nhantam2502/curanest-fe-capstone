@@ -8,9 +8,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 const GuestNursingCard = ({
   nurse,
   service,
+  serviceID,
 }: {
   nurse: NurseItemType;
+  serviceID: string;
   service: string;
+
 }) => {
   const router = useRouter();
 
@@ -32,7 +35,7 @@ const GuestNursingCard = ({
     <Card
       onClick={() =>
         router.push(
-          `/guest/nurseList/${encodeURIComponent(service)}/${nurse["nurse-id"]}`
+          `/guest/nurseList/${encodeURIComponent(service)}/${nurse["nurse-id"]}?serviceID=${encodeURIComponent(serviceID)}`
         )
       }
       data-aos="fade-left"

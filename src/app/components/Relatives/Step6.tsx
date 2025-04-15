@@ -2,8 +2,7 @@ import React from "react";
 import { OrderConfirmationComponent } from "./Step7";
 import { NurseItemType } from "@/types/nurse";
 import { ServiceTaskType } from "@/types/service";
-
-
+import { PatientRecord } from "@/types/patient";
 
 interface Step6Props {
   nurseSelectionMethod: "manual" | "auto";
@@ -36,6 +35,7 @@ interface Step6Props {
   toast: any;
   router: any;
   serviceNotes?: { [key: string]: string };
+  selectedProfile?: PatientRecord | null;
 }
 
 export const Step6Component: React.FC<Step6Props> = ({
@@ -52,7 +52,8 @@ export const Step6Component: React.FC<Step6Props> = ({
   selectedPackage,
   toast,
   router,
-  serviceNotes, 
+  serviceNotes,
+  selectedProfile,
 }) => {
   return (
     <OrderConfirmationComponent
@@ -69,8 +70,10 @@ export const Step6Component: React.FC<Step6Props> = ({
       setCurrentStep={setCurrentStep}
       toast={toast}
       router={router}
-      serviceNotes={serviceNotes} // Thêm prop này
-
+      serviceNotes={serviceNotes}
+      selectedProfile={selectedProfile} 
     />
   );
 };
+
+

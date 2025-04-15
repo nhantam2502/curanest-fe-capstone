@@ -8,6 +8,7 @@ import {
   ActivitySquare,
   Clipboard,
   Home,
+  Loader2,
   Search,
   ShieldAlert,
   Utensils,
@@ -115,11 +116,13 @@ const ServicesPage = () => {
 
   const handleServiceClick = (
     category: string,
-    service: string,
-    id: string
+    serviceName: string,
+    serviceID: string,
+    categoryID: string
   ) => {
+
     router.push(
-      `/relatives/findingNurse/${encodeURIComponent(service)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(id)}`
+      `/relatives/findingNurse/${encodeURIComponent(serviceName)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(serviceID)}&categoryId=${encodeURIComponent(categoryID)}`
     );
   };
 
@@ -342,7 +345,8 @@ const ServicesPage = () => {
                                 handleServiceClick(
                                   category.name,
                                   service.name,
-                                  service.id
+                                  service.id,
+                                  category.id
                                 )
                               }
                             >
@@ -355,10 +359,19 @@ const ServicesPage = () => {
                   </div>
                 ))
               ) : (
-                <div className="w-full p-8 text-center">
-                  <p className="text-2xl text-gray-500">
-                    Không tìm thấy dịch vụ nào phù hợp
-                  </p>
+                <div className="fixed inset-0 flex items-center justify-center bg-white bg-opacity-50 z-50">
+                  <div className="flex flex-col items-center">
+                    <div className="relative">
+                      <div className="absolute -inset-4 rounded-full bg-[#A8E0E9] opacity-30 animate-pulse"></div>
+                      <Loader2
+                        className="h-12 w-12 animate-spin text-[#64D1CB]"
+                        aria-label="Loading..."
+                      />
+                    </div>
+                    <div className="text-[#64D1CB] text-sm font-medium mt-4 animate-fade-in">
+                      Đang tải dịch vụ...
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

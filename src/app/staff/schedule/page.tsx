@@ -539,6 +539,7 @@ const NurseScheduleCalendar = () => {
                 >
                   Hôm nay
                 </Button>
+
                 <div className="flex items-center gap-1 bg-gray-50 rounded-lg p-1">
                   <Button
                     variant="ghost"
@@ -549,6 +550,7 @@ const NurseScheduleCalendar = () => {
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
+
                   <Button
                     variant="ghost"
                     size="icon"
@@ -559,6 +561,7 @@ const NurseScheduleCalendar = () => {
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
+
                 <span className="text-lg font-medium">
                   {/* Display Month/Year only if date is valid */}
                   {selectedDate instanceof Date &&
@@ -570,6 +573,7 @@ const NurseScheduleCalendar = () => {
                     : "Tháng không hợp lệ"}
                 </span>
               </div>
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"

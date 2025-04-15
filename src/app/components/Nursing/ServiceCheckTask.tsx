@@ -65,6 +65,9 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
     onServiceComplete(serviceId, serviceStatus[serviceId].nurseNote);
   };
 
+  console.log("serivces ne2: ", services);
+  
+
   return (
     <Card className="shadow-md">
       <CardContent className="p-5">
@@ -102,6 +105,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                       <p className="text-sm text-gray-700">
                         {service.customerNote || "Không có ghi chú"}
                       </p>
+                      
                     </div>
 
                     <div>
@@ -109,7 +113,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                         Ghi chú của staff:
                       </p>
                       <p className="text-sm text-gray-700">
-                        {service.staffNote || "Không có ghi chú"}
+                        {service.staffNote}
                       </p>
                     </div>
 
@@ -118,7 +122,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                         <p className="text-[16px] font-semibold text-gray-600">
                           Thời gian:
                         </p>
-                        <p className="text-sm text-gray-700">
+                        <p className="text-[14px] text-gray-700">
                           {service.duration}
                         </p>
                       </div>
