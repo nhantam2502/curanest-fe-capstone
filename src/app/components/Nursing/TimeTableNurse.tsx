@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { Appointment } from "@/types/appointment";
 import {
@@ -196,6 +197,88 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
     });
   };
 
+  // Render bảng lịch trình
+  const renderScheduleTable = () => {
+    return (
+      <div className="mt-4">
+        <table className="table-auto w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="border bg-gray-100"></th>
+              {weekDays.map((day, index) => (
+                <th
+                  key={index}
+                  className="text-lg border py-2 bg-gray-100 text-center"
+                >
+                  {index < 6 ? `Thứ ${index + 2}` : "Chủ nhật"}
+                  <p className="mt-1">{day}</p>
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {timeSlots.map((hour) => (
+              <tr key={hour}>
+                <td className="text-lg border border-gray-300 font-semibold text-gray-600 text-center">
+                  {hour}
+                </td>
+                {weekDays.map((day) => {
+                  const appointment = appointments.find((apt) => {
+                    let formattedDate = "";
+                    if (apt.appointment_date) {
+                      const date = new Date(apt.appointment_date);
+                      if (!isNaN(date.getTime())) {
+                        formattedDate = formatDate(date);
+                      }
+                    }
+                    const isSameDay = formattedDate === formatShiftDate(day);
+
+                    const [start, end] = hour
+                      .split(" - ")
+                      .map((time) => time.trim());
+
+                    if (!apt.estTimeFrom || !apt.estTimeTo) return false;
+
+                    // Kiểm tra xem cuộc hẹn có nằm trong khung giờ này không
+                    const appointmentStart = apt.estTimeFrom;
+                    const appointmentEnd = apt.estTimeTo;
+                    
+                    const hasOverlap = (
+                      (appointmentStart <= start && appointmentEnd > start) || 
+                      (appointmentStart >= start && appointmentStart < end)
+                    );
+
+                    return isSameDay && hasOverlap;
+                  });
+
+                  const hasAppointment = appointment !== undefined;
+
+                  return (
+                    <td
+                      key={`${day}-${hour}`}
+                      className={`border border-gray-300 p-1 text-center ${
+                        hasAppointment ? "bg-yellow-100" : "bg-gray-50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-center p-4 rounded-lg">
+                        {hasAppointment && (
+                          <span className="text-yellow-700 font-bold">
+                            {appointment["patient-id"]}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
@@ -218,131 +301,63 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
         </Button>
       </div>
 
-      {/* Bộ chọn khung giờ dạng tab */}
-      <div className="flex border-b border-gray-200">
-        <button
-          className={`py-3 px-6 text-lg font-medium border-b-2 ${
-            activeTimeRange === "morning"
-              ? "border-blue-500 text-blue-600"
-              : "border-transparent hover:border-gray-300"
-          } relative`}
-          onClick={() => setActiveTimeRange("morning")}
-        >
-          Buổi sáng (8h-12h)
-          {hasAppointmentsInTimeRange("morning") && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+      {/* Bộ chọn khung giờ sử dụng Tabs của Shadcn/UI */}
+      <Tabs
+        value={activeTimeRange}
+        onValueChange={(value) => setActiveTimeRange(value as TimeRange)}
+        className="w-full"
+      >
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="morning" className="text-lg relative">
+            Buổi sáng (8h-12h)
+            {hasAppointmentsInTimeRange("morning") && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="afternoon" className="text-lg relative">
+            Buổi chiều (12h-17h)
+            {hasAppointmentsInTimeRange("afternoon") && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="evening" className="text-lg relative">
+            Buổi tối (17h-22h)
+            {hasAppointmentsInTimeRange("evening") && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="morning">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-lg">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            renderScheduleTable()
           )}
-        </button>
-        <button
-          className={`py-3 px-6 text-lg font-medium border-b-2 ${
-            activeTimeRange === "afternoon"
-              ? "border-blue-500 text-blue-600"
-              : "border-transparent hover:border-gray-300"
-          } relative`}
-          onClick={() => setActiveTimeRange("afternoon")}
-        >
-          Buổi chiều (12h-17h)
-          {hasAppointmentsInTimeRange("afternoon") && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+        </TabsContent>
+        
+        <TabsContent value="afternoon">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-lg">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            renderScheduleTable()
           )}
-        </button>
-        <button
-          className={`py-3 px-6 text-lg font-medium border-b-2 ${
-            activeTimeRange === "evening"
-              ? "border-blue-500 text-blue-600"
-              : "border-transparent hover:border-gray-300"
-          } relative`}
-          onClick={() => setActiveTimeRange("evening")}
-        >
-          Buổi tối (17h-22h)
-          {hasAppointmentsInTimeRange("evening") && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+        </TabsContent>
+        
+        <TabsContent value="evening">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-lg">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            renderScheduleTable()
           )}
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-32">
-          <p className="text-lg">Đang tải dữ liệu...</p>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <table className="table-auto w-full border-collapse">
-            <thead>
-              <tr>
-                <th className="border bg-gray-100"></th>
-                {weekDays.map((day, index) => (
-                  <th
-                    key={index}
-                    className="text-lg border py-2 bg-gray-100 text-center"
-                  >
-                    {index < 6 ? `Thứ ${index + 2}` : "Chủ nhật"}
-                    <p className="mt-1">{day}</p>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody>
-              {timeSlots.map((hour) => (
-                <tr key={hour}>
-                  <td className="text-lg border border-gray-300 font-semibold text-gray-600 text-center">
-                    {hour}
-                  </td>
-                  {weekDays.map((day) => {
-                    const appointment = appointments.find((apt) => {
-                      let formattedDate = "";
-                      if (apt.appointment_date) {
-                        const date = new Date(apt.appointment_date);
-                        if (!isNaN(date.getTime())) {
-                          formattedDate = formatDate(date);
-                        }
-                      }
-                      const isSameDay = formattedDate === formatShiftDate(day);
-
-                      const [start, end] = hour
-                        .split(" - ")
-                        .map((time) => time.trim());
-
-                      if (!apt.estTimeFrom || !apt.estTimeTo) return false;
-
-                      // Kiểm tra xem cuộc hẹn có nằm trong khung giờ này không
-                      const appointmentStart = apt.estTimeFrom;
-                      const appointmentEnd = apt.estTimeTo;
-                      
-                      const hasOverlap = (
-                        (appointmentStart <= start && appointmentEnd > start) || 
-                        (appointmentStart >= start && appointmentStart < end)
-                      );
-
-                      return isSameDay && hasOverlap;
-                    });
-
-                    const hasAppointment = appointment !== undefined;
-
-                    return (
-                      <td
-                        key={`${day}-${hour}`}
-                        className={`border border-gray-300 p-1 text-center ${
-                          hasAppointment ? "bg-yellow-100" : "bg-gray-50"
-                        }`}
-                      >
-                        <div className="flex items-center justify-center p-4 rounded-lg">
-                          {hasAppointment && (
-                            <span className="text-yellow-700 font-bold">
-                              {appointment["patient-id"]}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       <div className="mt-4">
         <div className="flex items-center gap-4">

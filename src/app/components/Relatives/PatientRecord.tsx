@@ -19,7 +19,7 @@ import { InfoItemProps, PatientRecord } from "@/types/patient";
 import { useRouter } from "next/navigation";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
-const calculateAge = (dateString: string): number => {
+export const calculateAge = (dateString: string): number => {
   let day: number, month: number, year: number;
 
   if (dateString.includes("/")) {

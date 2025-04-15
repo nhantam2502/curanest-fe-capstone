@@ -47,7 +47,8 @@ export interface Appointment {
   ward: string;
   district: string;
   city: string;
-  description: string;
+  "desc-pathology": string;
+  "note-for-nurse": string;
   note?: string;
 }
 
@@ -114,22 +115,20 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
           </div>
 
           <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                <Stethoscope className="w-5 h-5 text-blue-500" />
-                Mô tả bệnh lý
-              </h4>
-              <p>{appointment.description}</p>
-            </div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <Stethoscope className="w-5 h-5 text-blue-500" />
+              Mô tả bệnh lý
+            </h4>
+            <p>{appointment["desc-pathology"]}</p>
+          </div>
 
-          {appointment.note && (
-            <div className="p-4 bg-amber-50 rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-amber-600" />
-                Lưu ý
-              </h4>
-              <p className="text-amber-800">{appointment.note}</p>
-            </div>
-          )}
+          <div className="p-4 bg-amber-50 rounded-lg">
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              Lưu ý
+            </h4>
+            <p className="text-amber-800">{appointment["note-for-nurse"]}</p>
+          </div>
         </div>
       </CardContent>
     </Card>

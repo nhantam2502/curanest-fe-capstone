@@ -2,13 +2,13 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
-import { getFormattedDate } from "@/lib/utils";
+import { formatCurrency, formatDate, getFormattedDate } from "@/lib/utils";
 
 // Type cho dịch vụ đơn lẻ (đã khớp với EnhancedTask)
 interface Service {
   id: string;
   name: string;
-  duration: string; // Được ánh xạ từ "est-duration" và "unit"
+  duration: string; 
   price?: string; // Optional vì không có trong Task
   quantity?: number; // Ánh xạ từ "total-unit"
   staffAdvice?: string;
@@ -20,11 +20,12 @@ interface ServicePackage {
   id: string;
   name: string;
   appointmentDate: string;
-  appointmentTime: string;
+  estTimeFrom: string;
+  estTimeTo: string;
   status: string;
   services: Service[];
   totalDuration: string;
-  totalPrice: string;
+  totalPrice: number;
 }
 
 interface ServicesListProps {
@@ -65,7 +66,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
         <div className="bg-white p-4 border-b border-gray-100">
           <h3 className="text-xl font-bold flex items-center gap-3">
             <Clock className="w-5 h-5 text-black-600" />
-            {getFormattedDate(servicePackage.appointmentDate)}
+            Ngày hẹn: {formatDate(new Date (servicePackage.appointmentDate))}
           </h3>
         </div>
 
@@ -73,19 +74,19 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
           <div className="flex justify-between items-center">
             <div className="text-gray-600 font-medium">Thời gian:</div>
             <div className="font-semibold">
-              {servicePackage.appointmentTime}
+              {servicePackage.estTimeFrom} - {servicePackage.estTimeTo}
             </div>
           </div>
           <div className="flex justify-between items-center">
             <div className="text-gray-600 font-medium">Trạng thái:</div>
             <div>{getStatusBadge(servicePackage.status)}</div>
           </div>
-          <div className="flex justify-between items-center">
-            <div className="text-gray-600 font-medium">Gói dịch vụ:</div>
-            <div className="text-blue-700 font-semibold pt-1">
-              {servicePackage.name}
-            </div>
-          </div>
+          <div className="flex justify-between items-start">
+  <div className="text-gray-600 font-medium">Gói dịch vụ:</div>
+  <div className="text-blue-700 font-semibold pt-1 text-right max-w-[60%] break-words">
+    {servicePackage.name}
+  </div>
+</div>
         </div>
 
         <div className="px-4 pb-4">
@@ -98,7 +99,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
               <div className="flex justify-between text-gray-500 text-sm mt-1">
                 <div>
                   Thời gian:{" "}
-                  <span className="font-semibold">{service.duration}</span>
+                  <span className="font-semibold">{service.duration} phút</span>
                 </div>
                 <div className="flex justify-end font-semibold text-red-500 text-sm mt-1">
                   x{service.quantity || 1} lần
@@ -123,7 +124,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
             <div className="flex justify-between">
               <div className="text-gray-800 font-semibold">Tổng chi phí:</div>
               <div className="text-red-600 font-semibold text-lg">
-                {servicePackage.totalPrice}
+                {formatCurrency(servicePackage.totalPrice)}
               </div>
             </div>
             <div className="flex justify-between mt-1">

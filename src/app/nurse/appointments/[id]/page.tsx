@@ -20,6 +20,9 @@ import ServiceCheckTask from "@/app/components/Nursing/ServiceCheckTask";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
+import { calculateAge } from "@/app/components/Relatives/PatientRecord";
+import { formatDate } from "@/lib/utils";
 
 // Định nghĩa type từ yêu cầu
 export type CusPackageResponse = {
@@ -64,9 +67,30 @@ type EnhancedTask = Task & {
 
 const DetailAppointment: React.FC = () => {
   const params = useParams();
+  const patientID = params.id as string;
   const searchParams = useSearchParams();
   const [appointment, setAppointment] = useState<CusPackageResponse["data"] | null>(null);
+  const [patientData, setPatientData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [patientLoading, setPatientLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPatientData = async () => {
+      if (!patientID) return;
+      
+      try {
+        setPatientLoading(true);
+        const response = await patientApiRequest.getPatientRecordByID(patientID);
+        setPatientData(response.payload.data);
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+      } finally {
+        setPatientLoading(false);
+      }
+    };
+
+    fetchPatientData();
+  }, [patientID]);
 
   useEffect(() => {
     const fetchAppointmentDetails = async () => {
@@ -102,7 +126,7 @@ const DetailAppointment: React.FC = () => {
           ...task,
           nurseNote: "",
           isCompleted: task.status === "done",
-          duration: `${task["est-duration"]} ${task.unit === "lần" ? "phút" : task.unit}`,
+          duration: `${task["est-duration"]}`,
           description: task["staff-advice"] || "Không có mô tả", // Dùng staff-advice làm mô tả
           times: task["total-unit"], // Ánh xạ từ "total-unit"
         }))
@@ -120,7 +144,7 @@ const DetailAppointment: React.FC = () => {
     );
   };
 
-  if (loading) {
+  if (loading || patientLoading) {
     return <div>Loading...</div>;
   }
 
@@ -128,29 +152,34 @@ const DetailAppointment: React.FC = () => {
     return <div>Không tìm thấy thông tin cuộc hẹn.</div>;
   }
 
+  if (!patientData) {
+    return <div>Không tìm thấy thông tin bệnh nhân.</div>;
+  }
+
   const totalDuration = appointment.tasks.reduce(
     (sum, task) => sum + task["est-duration"],
     0
   );
 
-  const patientData = {
-    id: appointment.package.id,
-    patient_name: "Chưa có thông tin",
-    avatar: "/avatars/patient.jpg",
-    phone_number: "N/A",
-    birth_date: "N/A",
-    age: "N/A",
-    address: "N/A",
-    ward: "N/A",
-    district: "N/A",
-    city: "N/A",
-    description: "N/A",
-    note: "N/A",
+  // Tạo dữ liệu cho component PatientProfile từ thông tin bệnh nhân thực tế
+  const formattedPatientData = {
+    id: patientData.id || appointment.package.id,
+    patient_name: patientData["full-name"] || "Chưa có thông tin",
+    phone_number: patientData["phone-number"] || "N/A",
+    birth_date: formatDate(new Date(patientData.dob)) || "N/A",
+    age:  calculateAge(patientData.dob) || "N/A",
+    address: patientData.address || "N/A",
+    ward: patientData.ward || "N/A",
+    district: patientData.district || "N/A",
+    city: patientData.city || "N/A",
+    "desc-pathology": patientData["desc-pathology"] || "N/A",
+    "note-for-nurse": patientData["note-for-nurse"] || "N/A",
     servicePackage: {
       id: appointment.package.id,
       name: appointment.package.name,
       appointmentDate: searchParams.get("estDate") || "N/A",
-      appointmentTime: new Date(appointment.tasks[0]["est-date"]).toLocaleTimeString(),
+      estTimeFrom: searchParams.get("estTimeFrom") || "N/A",
+      estTimeTo: searchParams.get("estTimeTo") || "N/A",
       status:
         appointment.package["payment-status"] === "unpaid"
           ? "pending"
@@ -164,7 +193,7 @@ const DetailAppointment: React.FC = () => {
         clientNote: task["client-note"],
       })),
       totalDuration: `${totalDuration} phút`,
-      totalPrice: `${appointment.package["total-fee"]} VND`,
+      totalPrice: appointment.package["total-fee"],
     },
   };
 
@@ -180,17 +209,17 @@ const DetailAppointment: React.FC = () => {
           <BreadcrumbSeparator className="text-gray-400" />
           <BreadcrumbItem>
             <BreadcrumbLink className="text-xl">
-              Chi tiết cuộc hẹn: {patientData.patient_name}
+              Chi tiết cuộc hẹn: {formattedPatientData.patient_name}
             </BreadcrumbLink>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div >
+      <div>
         <h2 className="text-3xl font-bold mb-8">Chi tiết cuộc hẹn</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <PatientProfile appointment={patientData as any} />
+          <PatientProfile appointment={formattedPatientData as any} />
           
           <div>
             <Tabs defaultValue="services" className="w-full">
@@ -199,7 +228,7 @@ const DetailAppointment: React.FC = () => {
                 <TabsTrigger value="checklist">Danh sách kiểm tra</TabsTrigger>
               </TabsList>
               <TabsContent value="services">
-                <ServicesList servicePackage={patientData.servicePackage} />
+                <ServicesList servicePackage={formattedPatientData.servicePackage} />
               </TabsContent>
               <TabsContent value="checklist">
                 <ServiceCheckTask
