@@ -37,17 +37,17 @@ export type AppointmentFilter = {
 
 // ----------------------//
 
-export interface ScheduleEvent {
-  id: string;
-  title: string;
-  startTime: string;
-  status: string;
-  name: string;
-  appointment_date: string;
-  estDate?: string;
-  cusPackageID?: string;
-  patientID?: string;
-}
+// export interface ScheduleEvent {
+//   id: string;
+//   title: string;
+//   startTime: string;
+//   status: string;
+//   name: string;
+//   appointment_date: string;
+//   estDate?: string;
+//   cusPackageID?: string;
+//   patientID?: string;
+// }
 
 export type CreateRes = {
   status: number;
@@ -102,6 +102,7 @@ export type HistoryAppointmentRes = {
   };
   success: boolean;
 };
+
 export type CusPackageResponse = {
   success: boolean;
   data: {

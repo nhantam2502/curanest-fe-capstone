@@ -10,10 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle, Hourglass, Loader2 } from "lucide-react";
 import { PatientRecord } from "@/types/patient";
-import {
-  Appointment,
-  CusPackageResponse,
-} from "@/types/appointment";
+import { Appointment, CusPackageResponse } from "@/types/appointment";
 import { formatDate } from "@/lib/utils";
 import { NurseItemType } from "@/types/nurse";
 import { Button } from "@/components/ui/button";
@@ -24,7 +21,8 @@ interface PatientDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
   appointment: {
-    time_from_to: string;
+    estTimeFrom?: string;
+    estTimeTo?: string;
     apiData: Appointment;
     cusPackage?: CusPackageResponse | null;
   };
@@ -125,7 +123,10 @@ const TaskSkeleton = () => (
   <div className="mt-8">
     <div className="h-8 w-48 bg-gray-200 rounded mb-4"></div>
     {[...Array(3)].map((_, i) => (
-      <div key={i} className="border rounded-lg p-4 bg-gray-50 mb-4 animate-pulse">
+      <div
+        key={i}
+        className="border rounded-lg p-4 bg-gray-50 mb-4 animate-pulse"
+      >
         <div className="flex justify-between items-start">
           <div className="space-y-2">
             <div className="h-6 w-64 bg-gray-200 rounded"></div>
@@ -185,11 +186,14 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {
-      if (!isLoading && !isPaymentLoading) {
-        onClose();
-      }
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={() => {
+        if (!isLoading && !isPaymentLoading) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[1500px] max-h-[90vh] overflow-y-auto p-8">
         <DialogHeader className="mb-6">
           <DialogTitle className="text-3xl font-bold text-gray-800">
@@ -207,10 +211,15 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Thông tin bệnh nhân */}
               <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">Bệnh nhân</h3>
+                <h3 className="text-2xl font-semibold text-gray-800">
+                  Bệnh nhân
+                </h3>
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    <AvatarImage src={patient["full-name"]} alt="Patient Avatar" />
+                    <AvatarImage
+                      src={patient["full-name"]}
+                      alt="Patient Avatar"
+                    />
                     <AvatarFallback className="text-xl">
                       {patient["full-name"]
                         ?.split(" ")
@@ -222,7 +231,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                     {patient["full-name"]}
                   </div>
                 </div>
-                <PatientInfo label="Ngày sinh" value={patient.dob} />
+                <PatientInfo label="Ngày sinh" value={formatDate(new Date (patient.dob))} />
                 <PatientInfo
                   label="Số điện thoại"
                   value={patient["phone-number"]}
@@ -245,7 +254,9 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                       src={nurse?.["nurse-picture"]}
                       alt="Nurse Avatar"
                     />
-                    <AvatarFallback>{nurse?.["nurse-name"]?.[0]}</AvatarFallback>
+                    <AvatarFallback>
+                      {nurse?.["nurse-name"]?.[0]}
+                    </AvatarFallback>
                   </Avatar>
                   <div className="text-xl font-semibold">
                     {nurse?.["nurse-name"]}
@@ -255,7 +266,10 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                   label="Ngày hẹn"
                   value={formatDate(new Date(appointment.apiData["est-date"]))}
                 />
-                <PatientInfo label="Thời gian" value={appointment.time_from_to} />
+                <PatientInfo
+                  label="Thời gian"
+                  value={`${appointment.estTimeFrom} - ${appointment.estTimeTo}`}
+                />
 
                 <div className="flex items-center space-x-2">
                   <p className="text-gray-500 text-xl">Trạng thái:</p>

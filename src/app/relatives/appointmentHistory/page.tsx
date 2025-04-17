@@ -269,7 +269,6 @@ const AppointmentHistory = () => {
         "Uống đủ nước, ít nhất 2 lít mỗi ngày",
         "Theo dõi huyết áp hàng ngày và ghi chép lại",
       ],
-      // techniques: appointment.techniques || [],
     };
 
     setSelectedReport(sampleReport);

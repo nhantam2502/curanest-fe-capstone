@@ -319,7 +319,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       toast({
         variant: "default",
         title: "Bạn đã đặt lịch thành công",
-        description: `Tổng tiền: ${formatCurrency(calculateTotalPrice())}`,
       });
 
       // try {
@@ -603,7 +602,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             onPrevious={handlePreviousStep}
             setCurrentStep={setCurrentStep}
             selectedPackage={selectedPackage}
-            updateServiceNote={updateServiceNote} // Thêm prop này
+            updateServiceNote={updateServiceNote}
           />
         );
 

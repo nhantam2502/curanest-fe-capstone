@@ -21,14 +21,14 @@ import {
 // This is sample data.
 const data = {
   navMain: [
-    {
-      title: "Thống kê",
-      url: "/nurse",
-      icon: LayoutDashboard,
-    },
+    // {
+    //   title: "Thống kê",
+    //   url: "/nurse",
+    //   icon: LayoutDashboard,
+    // },
     {
       title: "Lịch hẹn",
-      url: "/nurse/appointments",
+      url: "/nurse",
       icon: CalendarClock,
     },
     {

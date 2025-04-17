@@ -8,8 +8,9 @@ interface AppointmentDisplay {
   avatar: string;
   total_fee?: number;
   appointment_date: string;
-  time_from_to: string;
-  apiData: Appointment;
+  estTimeFrom?: string;
+  estTimeTo?: string;
+    apiData: Appointment;
 }
 
 interface CalendarProps {

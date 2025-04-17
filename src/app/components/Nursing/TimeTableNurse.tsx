@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { Appointment } from "@/types/appointment";
 import {
@@ -7,6 +8,7 @@ import {
   getFormattedDate,
   getStartTimeFromEstDate,
 } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TimeTableNurseProps {
   nurseId: string;
@@ -145,9 +147,9 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
   };
 
   // Tạo khung giờ theo ca
-  const getMorningSlots = () => generateTimeSlots("08:00", "12:00", 30);
-  const getAfternoonSlots = () => generateTimeSlots("12:00", "17:00", 30);
-  const getEveningSlots = () => generateTimeSlots("17:00", "22:00", 30);
+  const getMorningSlots = () => generateTimeSlots("08:00", "12:00", 15);
+  const getAfternoonSlots = () => generateTimeSlots("12:00", "17:00", 15);
+  const getEveningSlots = () => generateTimeSlots("17:00", "22:00", 15);
 
   const formatShiftDate = (date: string) => date;
 
@@ -170,7 +172,7 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
   // Kiểm tra một ca có lịch hẹn nào không
   const hasAppointmentsInTimeRange = (range: TimeRange) => {
     let slots: string[] = [];
-    
+
     switch (range) {
       case "morning":
         slots = getMorningSlots();
@@ -182,91 +184,28 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
         slots = getEveningSlots();
         break;
     }
-    
-    return appointments.some(apt => {
+
+    return appointments.some((apt) => {
       if (!apt.estTimeFrom || !apt.estTimeTo) return false;
-      
-      const aptStartHour = parseInt(apt.estTimeFrom.split(':')[0]);
-      
-      if (range === "morning" && aptStartHour >= 8 && aptStartHour < 12) return true;
-      if (range === "afternoon" && aptStartHour >= 12 && aptStartHour < 17) return true;
-      if (range === "evening" && aptStartHour >= 17 && aptStartHour < 22) return true;
-      
+
+      const aptStartHour = parseInt(apt.estTimeFrom.split(":")[0]);
+
+      if (range === "morning" && aptStartHour >= 8 && aptStartHour < 12)
+        return true;
+      if (range === "afternoon" && aptStartHour >= 12 && aptStartHour < 17)
+        return true;
+      if (range === "evening" && aptStartHour >= 17 && aptStartHour < 22)
+        return true;
+
       return false;
     });
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <Button
-          onClick={() => changeWeek("prev")}
-          className="px-5 py-5 rounded-lg shadow-md text-xl"
-          disabled={weekOffset === 0}
-        >
-          Tuần trước
-        </Button>
-        <p className="text-xl font-semibold">
-          {weekRange.from} - {weekRange.to}
-        </p>
-        <Button
-          onClick={() => changeWeek("next")}
-          className="px-5 py-5 rounded-lg shadow-md text-xl"
-          disabled={weekOffset === 7}
-        >
-          Tuần kế tiếp
-        </Button>
-      </div>
-
-      {/* Bộ chọn khung giờ dạng tab */}
-      <div className="flex border-b border-gray-200">
-        <button
-          className={`py-3 px-6 text-lg font-medium border-b-2 ${
-            activeTimeRange === "morning"
-              ? "border-blue-500 text-blue-600"
-              : "border-transparent hover:border-gray-300"
-          } relative`}
-          onClick={() => setActiveTimeRange("morning")}
-        >
-          Buổi sáng (8h-12h)
-          {hasAppointmentsInTimeRange("morning") && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-          )}
-        </button>
-        <button
-          className={`py-3 px-6 text-lg font-medium border-b-2 ${
-            activeTimeRange === "afternoon"
-              ? "border-blue-500 text-blue-600"
-              : "border-transparent hover:border-gray-300"
-          } relative`}
-          onClick={() => setActiveTimeRange("afternoon")}
-        >
-          Buổi chiều (12h-17h)
-          {hasAppointmentsInTimeRange("afternoon") && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-          )}
-        </button>
-        <button
-          className={`py-3 px-6 text-lg font-medium border-b-2 ${
-            activeTimeRange === "evening"
-              ? "border-blue-500 text-blue-600"
-              : "border-transparent hover:border-gray-300"
-          } relative`}
-          onClick={() => setActiveTimeRange("evening")}
-        >
-          Buổi tối (17h-22h)
-          {hasAppointmentsInTimeRange("evening") && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-          )}
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center items-center h-32">
-          <p className="text-lg">Đang tải dữ liệu...</p>
-        </div>
-      ) : (
-        <div className="mt-4">
+  // Render bảng lịch trình
+  const renderScheduleTable = () => {
+    return (
+      <div className="mt-4">
+        <ScrollArea className="h-96">
           <table className="table-auto w-full border-collapse">
             <thead>
               <tr>
@@ -309,11 +248,10 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
                       // Kiểm tra xem cuộc hẹn có nằm trong khung giờ này không
                       const appointmentStart = apt.estTimeFrom;
                       const appointmentEnd = apt.estTimeTo;
-                      
-                      const hasOverlap = (
-                        (appointmentStart <= start && appointmentEnd > start) || 
-                        (appointmentStart >= start && appointmentStart < end)
-                      );
+
+                      const hasOverlap =
+                        (appointmentStart <= start && appointmentEnd > start) ||
+                        (appointmentStart >= start && appointmentStart < end);
 
                       return isSameDay && hasOverlap;
                     });
@@ -341,8 +279,90 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
+        </ScrollArea>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          onClick={() => changeWeek("prev")}
+          className="px-5 py-5 rounded-lg shadow-md text-xl"
+          disabled={weekOffset === 0}
+        >
+          Tuần trước
+        </Button>
+        <p className="text-xl font-semibold">
+          {weekRange.from} - {weekRange.to}
+        </p>
+        <Button
+          onClick={() => changeWeek("next")}
+          className="px-5 py-5 rounded-lg shadow-md text-xl"
+          disabled={weekOffset === 7}
+        >
+          Tuần kế tiếp
+        </Button>
+      </div>
+
+      {/* Bộ chọn khung giờ sử dụng Tabs của Shadcn/UI */}
+      <Tabs
+        value={activeTimeRange}
+        onValueChange={(value) => setActiveTimeRange(value as TimeRange)}
+        className="w-full"
+      >
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="morning" className="text-lg relative">
+            Buổi sáng (8h-12h)
+            {hasAppointmentsInTimeRange("morning") && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="afternoon" className="text-lg relative">
+            Buổi chiều (12h-17h)
+            {hasAppointmentsInTimeRange("afternoon") && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="evening" className="text-lg relative">
+            Buổi tối (17h-22h)
+            {hasAppointmentsInTimeRange("evening") && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="morning">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-lg">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            renderScheduleTable()
+          )}
+        </TabsContent>
+
+        <TabsContent value="afternoon">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-lg">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            renderScheduleTable()
+          )}
+        </TabsContent>
+
+        <TabsContent value="evening">
+          {loading ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-lg">Đang tải dữ liệu...</p>
+            </div>
+          ) : (
+            renderScheduleTable()
+          )}
+        </TabsContent>
+      </Tabs>
 
       <div className="mt-4">
         <div className="flex items-center gap-4">

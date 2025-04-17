@@ -1,11 +1,6 @@
 "use client";
-import { signOut, useSession } from "next-auth/react"; 
-import {
-  Bell,
-  ChevronsUpDown,
-  LogOut,
-  User,
-} from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { Bell, ChevronsUpDown, LogOut, User } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -28,7 +23,7 @@ import { useRouter } from "next/navigation";
 export function NavUser() {
   const { data: session } = useSession();
   const { isMobile } = useSidebar();
-  const router = useRouter(); 
+  const router = useRouter();
 
   if (!session?.user) {
     return null;
@@ -45,9 +40,14 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-full">
-                <AvatarImage src={avatar || "https://github.com/shadcn.png"} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+              <Avatar className="w-8 h-8">
+                <AvatarImage
+                  src={avatar || "/placeholder.png"}
+                  alt={name || "User"}
+                />
+                <AvatarFallback>
+                  {name ? name.charAt(0).toUpperCase() : "U"}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{name}</span>
@@ -80,9 +80,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem
-                onClick={() => router.push('/nurse/profile')} 
-              >
+              <DropdownMenuItem onClick={() => router.push("/nurse/profile")}>
                 <User />
                 Thông tin
               </DropdownMenuItem>
