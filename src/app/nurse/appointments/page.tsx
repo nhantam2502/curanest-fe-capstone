@@ -20,6 +20,7 @@ import { useSession } from "next-auth/react";
 import { PatientRecord } from "@/types/patient";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ScheduleEvent {
   id: string;
@@ -99,8 +100,8 @@ const NurseScheduleCalendar = () => {
         for (const item of response.payload.data) {
           const patientId = item["patient-id"];
           const startTime = getStartTimeFromEstDate(item["est-date"]);
-            const duration = item["total-est-duration"] || 0;
-            const endTime = calculateEndTime(startTime, duration);
+          const duration = item["total-est-duration"] || 0;
+          const endTime = calculateEndTime(startTime, duration);
 
           if (patientId && patientId !== "Chưa có thông tin") {
             try {
@@ -160,7 +161,7 @@ const NurseScheduleCalendar = () => {
     };
 
     fetchAppointments();
-  }, [selectedDate, nursingId, status]);
+  }, [nursingId, status]);
 
   // Phần còn lại của code giữ nguyên
   const handleDateSelect = (date: string) => {
@@ -173,25 +174,29 @@ const NurseScheduleCalendar = () => {
     if (type === "waiting") return "bg-yellow-50 border-yellow-100";
   };
 
-  // Tạo khoảng thời gian 15 phút thay vì 30 phút
+  // Sửa hàm getTimeSlotsForShift để bao gồm cả thời điểm cuối
   const getTimeSlotsForShift = (shiftId: string) => {
     const selectedShift = shifts.find((shift) => shift.id === shiftId);
     if (!selectedShift) return [];
 
-    const [startHour, startMinute] = selectedShift.timeStart.split(":").map(Number);
+    const [startHour, startMinute] = selectedShift.timeStart
+      .split(":")
+      .map(Number);
     const [endHour, endMinute] = selectedShift.timeEnd.split(":").map(Number);
-    
+
     const startTimeInMinutes = startHour * 60 + startMinute;
     const endTimeInMinutes = endHour * 60 + endMinute;
-    
-    // Tạo khoảng thời gian 15 phút
+
+    // Tạo khoảng thời gian 15 phút và bao gồm cả thời điểm cuối
     const slots = [];
-    for (let time = startTimeInMinutes; time < endTimeInMinutes; time += 15) {
+    for (let time = startTimeInMinutes; time <= endTimeInMinutes; time += 15) {
       const hours = Math.floor(time / 60);
       const minutes = time % 60;
-      slots.push(`${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`);
+      slots.push(
+        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+      );
     }
-    
+
     return slots;
   };
 
@@ -212,49 +217,58 @@ const NurseScheduleCalendar = () => {
     const currentDate = new Date(getStartOfWeek(selectedDate));
     currentDate.setDate(currentDate.getDate() + dayIndex);
     const eventDate = new Date(event.appointment_date);
-  
+
     if (currentDate.toDateString() !== eventDate.toDateString()) return false;
-  
+
     const [slotHour, slotMinutes] = timeSlot.split(":").map(Number);
-    const [startHour, startMinutes] = (event.estTimeFrom ?? "00:00").split(":").map(Number);
-  
+    const [startHour, startMinutes] = (event.estTimeFrom ?? "00:00")
+      .split(":")
+      .map(Number);
+
     const slotTime = slotHour * 60 + slotMinutes;
     const startTime = startHour * 60 + startMinutes;
-  
+
     return slotTime === startTime;
   };
 
   const calculateEventHeight = (startTime: string, endTime: string) => {
     if (!startTime || !endTime) return 1;
-    
+
     const [startHour, startMinute] = startTime.split(":").map(Number);
     const [endHour, endMinute] = endTime.split(":").map(Number);
-    
+
     // Tính tổng số phút
     const startMinutes = startHour * 60 + startMinute;
     const endMinutes = endHour * 60 + endMinute;
-    
+
     // Tính số khoảng thời gian 15 phút (thay vì 30 phút)
     return Math.ceil((endMinutes - startMinutes) / 15);
   };
 
   // Lọc sự kiện theo ca làm việc hiện tại
-  const filteredScheduleData = scheduleData.filter(event => {
+  const filteredScheduleData = scheduleData.filter((event) => {
     if (!event.estTimeFrom) return false;
-    
-    const selectedShift = shifts.find(shift => shift.id === activeShift);
+
+    const selectedShift = shifts.find((shift) => shift.id === activeShift);
     if (!selectedShift) return false;
-    
+
     const [eventHour, eventMinute] = event.estTimeFrom.split(":").map(Number);
     const eventTimeInMinutes = eventHour * 60 + eventMinute;
-    
-    const [shiftStartHour, shiftStartMinute] = selectedShift.timeStart.split(":").map(Number);
+
+    const [shiftStartHour, shiftStartMinute] = selectedShift.timeStart
+      .split(":")
+      .map(Number);
     const shiftStartInMinutes = shiftStartHour * 60 + shiftStartMinute;
-    
-    const [shiftEndHour, shiftEndMinute] = selectedShift.timeEnd.split(":").map(Number);
+
+    const [shiftEndHour, shiftEndMinute] = selectedShift.timeEnd
+      .split(":")
+      .map(Number);
     const shiftEndInMinutes = shiftEndHour * 60 + shiftEndMinute;
-    
-    return eventTimeInMinutes >= shiftStartInMinutes && eventTimeInMinutes < shiftEndInMinutes;
+
+    return (
+      eventTimeInMinutes >= shiftStartInMinutes &&
+      eventTimeInMinutes <= shiftEndInMinutes
+    );
   });
 
   if (loading) {
@@ -266,99 +280,104 @@ const NurseScheduleCalendar = () => {
 
   const renderShiftContent = (shiftId: string) => {
     const shiftTimeSlots = getTimeSlotsForShift(shiftId);
-    
-    return (
-      <div className="grid grid-cols-8 min-w-[1000px]">
-        <div className="col-span-1 p-4 border-r border-b">
-          <div className="text-sm font-medium text-gray-500">Giờ</div>
-        </div>
-        {Array.from({ length: 7 }).map((_, dayIndex) => {
-          const currentDate = new Date(getStartOfWeek(selectedDate));
-          currentDate.setDate(currentDate.getDate() + dayIndex);
-          const isToday =
-            currentDate.toDateString() === new Date().toDateString();
 
-          return (
-            <div
-              key={dayIndex}
-              className="col-span-1 p-4 border-b text-center"
-            >
-              <div className="text-sm text-gray-500">
-                {currentDate.toLocaleDateString("vi-VN", {
-                  weekday: "short",
-                })}
-              </div>
+    return (
+      <ScrollArea className="h-[calc(100vh-260px)]">
+        <div className="grid grid-cols-8 min-w-[1000px]">
+          <div className="col-span-1 p-4 border-r border-b border-t sticky left-0 bg-white z-10">
+            <div className="text-sm font-medium text-gray-500">Giờ</div>
+          </div>
+          {Array.from({ length: 7 }).map((_, dayIndex) => {
+            const currentDate = new Date(getStartOfWeek(selectedDate));
+            currentDate.setDate(currentDate.getDate() + dayIndex);
+            const isToday =
+              currentDate.toDateString() === new Date().toDateString();
+
+            return (
               <div
-                className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center mx-auto mt-1",
-                  isToday
-                    ? "bg-blue-100 text-blue-600 font-medium"
-                    : "text-gray-900"
-                )}
+                key={dayIndex}
+                className="col-span-1 p-4 border-b border-t border-r text-center bg-white z-10"
               >
-                {currentDate.getDate()}
+                <div className="text-sm text-gray-500">
+                  {currentDate.toLocaleDateString("vi-VN", {
+                    weekday: "short",
+                  })}
+                </div>
+                <div
+                  className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center mx-auto mt-1",
+                    isToday
+                      ? "bg-blue-100 text-blue-600 font-medium"
+                      : "text-gray-900"
+                  )}
+                >
+                  {currentDate.getDate()}
+                </div>
               </div>
-            </div>
-          );
-        })}
-        {shiftTimeSlots.map((timeSlot) => (
-          <React.Fragment key={timeSlot}>
-            <div className="col-span-1 border-r border-b h-16 p-4">
-              <div className="text-sm text-gray-500">{timeSlot}</div>
-            </div>
-            {Array.from({ length: 7 }).map((_, dayIndex) => (
-              <div
-                key={`${timeSlot}-${dayIndex}`}
-                className="col-span-1 border-b border-r h-16 relative flex items-center justify-center"
-              >
-                {filteredScheduleData.map((event) => {
-                  if (shouldShowEvent(event, timeSlot, dayIndex)) {
-                    const eventHeight = calculateEventHeight(event.estTimeFrom || "", event.estTimeTo || "");
-                    
-                    return (
-                      <div
-                        key={event.id}
-                        className={cn(
-                          "w-11/12 p-2 rounded-md border shadow-sm transition-all cursor-pointer hover:bg-opacity-90 hover:shadow-md absolute z-10",
-                          getEventColor(event.status)
-                        )}
-                        style={{
-                          height: `${eventHeight * 4}rem`, // 4rem là chiều cao của mỗi khoảng thời gian 15 phút (h-16)
-                          top: 0,
-                          left: '4%' // Để căn giữa trong ô
-                        }}
-                        onClick={() =>
-                          router.push(
-                            `/nurse/appointments/${event.patientInfo?.id}?estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}&estTimeFrom=${encodeURIComponent(event.estTimeFrom || "")}&estTimeTo=${encodeURIComponent(event.estTimeTo || "")}`
-                          )
-                        }
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="min-w-0">
-                            <div className="text-sm leading-tight">
-                              {event.estTimeFrom} - {event.estTimeTo}
+            );
+          })}
+          {shiftTimeSlots.map((timeSlot) => (
+            <React.Fragment key={timeSlot}>
+              <div className="col-span-1 border-r border-b h-16 p-4 sticky left-0 bg-white z-10">
+                <div className="text-sm text-gray-500">{timeSlot}</div>
+              </div>
+              {Array.from({ length: 7 }).map((_, dayIndex) => (
+                <div
+                  key={`${timeSlot}-${dayIndex}`}
+                  className="col-span-1 border-b border-r h-16 relative flex items-center justify-center"
+                >
+                  {filteredScheduleData.map((event) => {
+                    if (shouldShowEvent(event, timeSlot, dayIndex)) {
+                      const eventHeight = calculateEventHeight(
+                        event.estTimeFrom || "",
+                        event.estTimeTo || ""
+                      );
+
+                      return (
+                        <div
+                          key={event.id}
+                          className={cn(
+                            "w-11/12 p-2 rounded-md border shadow-sm transition-all cursor-pointer hover:bg-opacity-90 hover:shadow-md absolute z-10",
+                            getEventColor(event.status)
+                          )}
+                          style={{
+                            height: `${eventHeight * 4.7}rem`, // 4rem là chiều cao của mỗi khoảng thời gian 15 phút (h-16)
+                            top: 2,
+                            left: "4%", // Để căn giữa trong ô
+                          }}
+                          onClick={() =>
+                            router.push(
+                              `/nurse/appointments/${event.patientInfo?.id}?estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}&estTimeFrom=${encodeURIComponent(event.estTimeFrom || "")}&estTimeTo=${encodeURIComponent(event.estTimeTo || "")}`
+                            )
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className="min-w-0">
+                              <div className="text-sm leading-tight">
+                                {event.estTimeFrom} - {event.estTimeTo}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 mt-2">
+                            <Users className="w-3 h-3 text-gray-600 flex-shrink-0" />
+                            <div>
+                              <span className="text-xs font-medium truncate">
+                                {event.patientInfo?.["full-name"]}
+                              </span>
                             </div>
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-1 mt-2">
-                          <Users className="w-3 h-3 text-gray-600 flex-shrink-0" />
-                          <div>
-                            <span className="text-xs font-medium truncate">
-                              {event.patientInfo?.["full-name"]}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-                  return null;
-                })}
-              </div>
-            ))}
-          </React.Fragment>
-        ))}
-      </div>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              ))}
+            </React.Fragment>
+          ))}
+        </div>
+      </ScrollArea>
     );
   };
 
@@ -441,7 +460,11 @@ const NurseScheduleCalendar = () => {
           </CardHeader>
 
           <div className="p-4 border-b">
-            <Tabs defaultValue="morning" value={activeShift} onValueChange={setActiveShift}>
+            <Tabs
+              defaultValue="morning"
+              value={activeShift}
+              onValueChange={setActiveShift}
+            >
               <TabsList className="grid grid-cols-3">
                 {shifts.map((shift) => (
                   <TabsTrigger key={shift.id} value={shift.id}>
@@ -449,10 +472,10 @@ const NurseScheduleCalendar = () => {
                   </TabsTrigger>
                 ))}
               </TabsList>
-              
-              {/* Move TabsContent components inside the Tabs component */}
+
+              {/* TabsContent components với ScrollArea */}
               {shifts.map((shift) => (
-                <TabsContent key={shift.id} value={shift.id} className="mt-0">
+                <TabsContent key={shift.id} value={shift.id} className="mt-5">
                   {renderShiftContent(shift.id)}
                 </TabsContent>
               ))}

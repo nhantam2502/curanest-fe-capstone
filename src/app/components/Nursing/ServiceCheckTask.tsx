@@ -9,10 +9,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 interface EnhancedService {
   id: string;
   name: string;
-  description: string;
   duration: string;
   customerNote?: string;
-  staffNote?: string;
+  staffAdvice?: string;
   times: number;
   isCompleted?: boolean;
   nurseNote?: string;
@@ -35,7 +34,8 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
         ...acc,
         [service.id]: {
           isChecked: service.isCompleted || false,
-          nurseNote: service.nurseNote || "",
+        nurseNote: service.nurseNote || "",
+          
         },
       };
     }, {})
@@ -64,6 +64,8 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
   const handleSaveNote = (serviceId: string) => {
     onServiceComplete(serviceId, serviceStatus[serviceId].nurseNote);
   };
+
+  
 
   console.log("serivces ne2: ", services);
   
@@ -113,7 +115,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                         Ghi chú của staff:
                       </p>
                       <p className="text-sm text-gray-700">
-                        {service.staffNote}
+                        {service.staffAdvice}
                       </p>
                     </div>
 
@@ -123,7 +125,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                           Thời gian:
                         </p>
                         <p className="text-[14px] text-gray-700">
-                          {service.duration}
+                          {service.duration} phút
                         </p>
                       </div>
 

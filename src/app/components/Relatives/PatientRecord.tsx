@@ -355,12 +355,12 @@ const PatientRecords: React.FC = () => {
           <div className="text-center text-2xl text-gray-500 mb-4">
             Chưa có hồ sơ bệnh nhân nào
           </div>
-          <Button
+          {/* <Button
             onClick={fetchPatientRecords}
             className="px-6 py-2 bg-[#71DDD7] hover:bg-[#5fc4c0] text-white rounded-full"
           >
             Làm mới
-          </Button>
+          </Button> */}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

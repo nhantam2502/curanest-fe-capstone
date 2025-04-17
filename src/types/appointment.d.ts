@@ -102,6 +102,7 @@ export type HistoryAppointmentRes = {
   };
   success: boolean;
 };
+
 export type CusPackageResponse = {
   success: boolean;
   data: {

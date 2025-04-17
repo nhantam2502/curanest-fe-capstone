@@ -63,7 +63,7 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
     <Card className="shadow-md">
       <CardContent className="p-6">
         <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-          <Info className="w-5 h-5 text-black-600" />
+          {/* <Info className="w-5 h-5 text-black-600" /> */}
           Thông tin bệnh nhân
         </h3>
 

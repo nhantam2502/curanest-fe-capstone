@@ -28,7 +28,7 @@ const data = {
     // },
     {
       title: "Lịch hẹn",
-      url: "/nurse/appointments",
+      url: "/nurse",
       icon: CalendarClock,
     },
     {

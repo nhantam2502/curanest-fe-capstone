@@ -22,11 +22,11 @@ interface AppointmentDisplay {
   avatar: string;
   total_fee?: number;
   appointment_date: string;
-  time_from_to: string;
+  estTimeFrom?: string;
+  estTimeTo?: string;
   apiData: Appointment;
   cusPackage?: CusPackageResponse | null;
 }
-
 
 const AppointmentPage: React.FC = () => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
@@ -122,16 +122,21 @@ const AppointmentPage: React.FC = () => {
               const matchedNurse = nurses.find((nurse) => {
                 const nurseMatches =
                   String(nurse["nurse-id"]) === String(nursingId);
-                return nurseMatches;  
+                return nurseMatches;
               });
 
-              return await transformAppointment(appointment, matchedNurse || null);
+              return await transformAppointment(
+                appointment,
+                matchedNurse || null
+              );
             }
           );
 
-          const formattedAppointments = await Promise.all(formattedAppointmentsPromises);
+          const formattedAppointments = await Promise.all(
+            formattedAppointmentsPromises
+          );
           setAppointments(formattedAppointments);
-          // console.log("Formatted appointments:", formattedAppointments);
+          console.log("Formatted appointments:", formattedAppointments);
         } else {
           setAppointmentError("Không thể tải lịch hẹn. Vui lòng thử lại sau.");
         }
@@ -163,12 +168,20 @@ const AppointmentPage: React.FC = () => {
     // Định dạng giờ: HH:MM (24h format)
     const formattedTime = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 
+    const endTime = new Date(
+      date.getTime() + appointment["total-est-duration"] * 60000
+    );
+    const formattedEndTime = `${String(endTime.getHours()).padStart(2, "0")}:${String(endTime.getMinutes()).padStart(2, "0")}`;
+
     let cusPackageData = null;
 
     // Gọi API để lấy thông tin cusPackage nếu có cusPackageID
     if (appointment["cuspackage-id"]) {
       try {
-        const response = await appointmentApiRequest.getCusPackage( appointment["cuspackage-id"], appointment["est-date"]);
+        const response = await appointmentApiRequest.getCusPackage(
+          appointment["cuspackage-id"],
+          appointment["est-date"]
+        );
         if (response && response.payload && response.payload.success) {
           cusPackageData = response.payload;
         } else {
@@ -185,7 +198,8 @@ const AppointmentPage: React.FC = () => {
       avatar: matchedNurse?.["nurse-picture"] || "",
       total_fee: cusPackageData?.data?.price || undefined,
       appointment_date: formattedDate,
-      time_from_to: formattedTime,
+      estTimeFrom: formattedTime,
+      estTimeTo: formattedEndTime,
       apiData: appointment,
       cusPackage: cusPackageData,
     };
@@ -396,7 +410,7 @@ const AppointmentPage: React.FC = () => {
                                         Thời gian
                                       </p>
                                       <p className="font-semibold text-xl text-gray-900">
-                                        {appointment.time_from_to}
+                                        {appointment.estTimeFrom} - {appointment.estTimeTo}
                                       </p>
                                     </div>
                                   </div>
@@ -478,12 +492,10 @@ const AppointmentPage: React.FC = () => {
           isOpen={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           appointment={selectedAppointment}
-          nurse={
-            nurses.find(
-              (nurse) => nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
-            )
-          }
-          
+          nurse={nurses.find(
+            (nurse) =>
+              nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
+          )}
           patient={
             patients.find((p) => p.id === selectedPatientId) || patients[0]
           }

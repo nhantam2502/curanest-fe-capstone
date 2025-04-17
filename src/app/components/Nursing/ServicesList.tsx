@@ -8,8 +8,7 @@ import { formatCurrency, formatDate, getFormattedDate } from "@/lib/utils";
 interface Service {
   id: string;
   name: string;
-  duration: string; 
-  price?: string; // Optional vì không có trong Task
+  duration: string;
   quantity?: number; // Ánh xạ từ "total-unit"
   staffAdvice?: string;
   clientNote?: string;
@@ -37,15 +36,15 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
     const statusMap: Record<string, { label: string; color: string }> = {
       pending: {
         label: "Chờ thực hiện",
-        color: "bg-yellow-100 text-yellow-800",
+        color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-pointer",
       },
       "in-progress": {
         label: "Đang thực hiện",
-        color: "bg-blue-100 text-blue-800",
+        color: "bg-blue-100 text-blue-800 hover:bg-blue-100 cursor-pointer",
       },
       completed: {
         label: "Đã hoàn thành",
-        color: "bg-green-100 text-green-800",
+        color: "bg-green-100 text-green-800 hover:bg-green-100 cursor-pointer",
       },
       cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-800" },
     };
@@ -66,7 +65,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
         <div className="bg-white p-4 border-b border-gray-100">
           <h3 className="text-xl font-bold flex items-center gap-3">
             <Clock className="w-5 h-5 text-black-600" />
-            Ngày hẹn: {formatDate(new Date (servicePackage.appointmentDate))}
+            Ngày hẹn: {formatDate(new Date(servicePackage.appointmentDate))}
           </h3>
         </div>
 
@@ -82,18 +81,18 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
             <div>{getStatusBadge(servicePackage.status)}</div>
           </div>
           <div className="flex justify-between items-start">
-  <div className="text-gray-600 font-medium">Gói dịch vụ:</div>
-  <div className="text-blue-700 font-semibold pt-1 text-right max-w-[60%] break-words">
-    {servicePackage.name}
-  </div>
-</div>
+            <div className="text-gray-600 font-medium">Gói dịch vụ:</div>
+            <div className="text-blue-700 font-semibold pt-1 text-right max-w-[60%] break-words">
+              {servicePackage.name}
+            </div>
+          </div>
         </div>
 
         <div className="px-4 pb-4">
           {servicePackage.services.map((service) => (
             <div
               key={service.id}
-              className="py-3 border-t border-gray-100 first:border-t-0"
+              className="py-3 border-t-2 border-gray-200 first:border-t-0"
             >
               <div className="font-medium text-gray-800">{service.name}</div>
               <div className="flex justify-between text-gray-500 text-sm mt-1">
@@ -107,20 +106,24 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
               </div>
               {service.staffAdvice && (
                 <div className="text-sm mt-2">
-                  <span className="text-gray-600 font-medium">Lời khuyên từ nhân viên:</span>
+                  <span className="text-gray-600 font-medium">
+                    Lời khuyên từ nhân viên:
+                  </span>
                   <p className="text-gray-700">{service.staffAdvice}</p>
                 </div>
               )}
               {service.clientNote && (
                 <div className="text-sm mt-2">
-                  <span className="text-gray-600 font-medium">Ghi chú từ khách hàng:</span>
+                  <span className="text-gray-600 font-medium">
+                    Ghi chú từ khách hàng:
+                  </span>
                   <p className="text-gray-700">{service.clientNote}</p>
                 </div>
               )}
             </div>
           ))}
 
-          <div className="mt-4 pt-3 border-t border-gray-200">
+          <div className="mt-4 pt-3 border-t-2 border-gray-200">
             <div className="flex justify-between">
               <div className="text-gray-800 font-semibold">Tổng chi phí:</div>
               <div className="text-red-600 font-semibold text-lg">

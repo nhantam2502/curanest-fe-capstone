@@ -8,6 +8,7 @@ import {
   getFormattedDate,
   getStartTimeFromEstDate,
 } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface TimeTableNurseProps {
   nurseId: string;
@@ -146,9 +147,9 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
   };
 
   // Tạo khung giờ theo ca
-  const getMorningSlots = () => generateTimeSlots("08:00", "12:00", 30);
-  const getAfternoonSlots = () => generateTimeSlots("12:00", "17:00", 30);
-  const getEveningSlots = () => generateTimeSlots("17:00", "22:00", 30);
+  const getMorningSlots = () => generateTimeSlots("08:00", "12:00", 15);
+  const getAfternoonSlots = () => generateTimeSlots("12:00", "17:00", 15);
+  const getEveningSlots = () => generateTimeSlots("17:00", "22:00", 15);
 
   const formatShiftDate = (date: string) => date;
 
@@ -171,7 +172,7 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
   // Kiểm tra một ca có lịch hẹn nào không
   const hasAppointmentsInTimeRange = (range: TimeRange) => {
     let slots: string[] = [];
-    
+
     switch (range) {
       case "morning":
         slots = getMorningSlots();
@@ -183,16 +184,19 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
         slots = getEveningSlots();
         break;
     }
-    
-    return appointments.some(apt => {
+
+    return appointments.some((apt) => {
       if (!apt.estTimeFrom || !apt.estTimeTo) return false;
-      
-      const aptStartHour = parseInt(apt.estTimeFrom.split(':')[0]);
-      
-      if (range === "morning" && aptStartHour >= 8 && aptStartHour < 12) return true;
-      if (range === "afternoon" && aptStartHour >= 12 && aptStartHour < 17) return true;
-      if (range === "evening" && aptStartHour >= 17 && aptStartHour < 22) return true;
-      
+
+      const aptStartHour = parseInt(apt.estTimeFrom.split(":")[0]);
+
+      if (range === "morning" && aptStartHour >= 8 && aptStartHour < 12)
+        return true;
+      if (range === "afternoon" && aptStartHour >= 12 && aptStartHour < 17)
+        return true;
+      if (range === "evening" && aptStartHour >= 17 && aptStartHour < 22)
+        return true;
+
       return false;
     });
   };
@@ -201,80 +205,81 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
   const renderScheduleTable = () => {
     return (
       <div className="mt-4">
-        <table className="table-auto w-full border-collapse">
-          <thead>
-            <tr>
-              <th className="border bg-gray-100"></th>
-              {weekDays.map((day, index) => (
-                <th
-                  key={index}
-                  className="text-lg border py-2 bg-gray-100 text-center"
-                >
-                  {index < 6 ? `Thứ ${index + 2}` : "Chủ nhật"}
-                  <p className="mt-1">{day}</p>
-                </th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {timeSlots.map((hour) => (
-              <tr key={hour}>
-                <td className="text-lg border border-gray-300 font-semibold text-gray-600 text-center">
-                  {hour}
-                </td>
-                {weekDays.map((day) => {
-                  const appointment = appointments.find((apt) => {
-                    let formattedDate = "";
-                    if (apt.appointment_date) {
-                      const date = new Date(apt.appointment_date);
-                      if (!isNaN(date.getTime())) {
-                        formattedDate = formatDate(date);
-                      }
-                    }
-                    const isSameDay = formattedDate === formatShiftDate(day);
-
-                    const [start, end] = hour
-                      .split(" - ")
-                      .map((time) => time.trim());
-
-                    if (!apt.estTimeFrom || !apt.estTimeTo) return false;
-
-                    // Kiểm tra xem cuộc hẹn có nằm trong khung giờ này không
-                    const appointmentStart = apt.estTimeFrom;
-                    const appointmentEnd = apt.estTimeTo;
-                    
-                    const hasOverlap = (
-                      (appointmentStart <= start && appointmentEnd > start) || 
-                      (appointmentStart >= start && appointmentStart < end)
-                    );
-
-                    return isSameDay && hasOverlap;
-                  });
-
-                  const hasAppointment = appointment !== undefined;
-
-                  return (
-                    <td
-                      key={`${day}-${hour}`}
-                      className={`border border-gray-300 p-1 text-center ${
-                        hasAppointment ? "bg-yellow-100" : "bg-gray-50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-center p-4 rounded-lg">
-                        {hasAppointment && (
-                          <span className="text-yellow-700 font-bold">
-                            {appointment["patient-id"]}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  );
-                })}
+        <ScrollArea className="h-96">
+          <table className="table-auto w-full border-collapse">
+            <thead>
+              <tr>
+                <th className="border bg-gray-100"></th>
+                {weekDays.map((day, index) => (
+                  <th
+                    key={index}
+                    className="text-lg border py-2 bg-gray-100 text-center"
+                  >
+                    {index < 6 ? `Thứ ${index + 2}` : "Chủ nhật"}
+                    <p className="mt-1">{day}</p>
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {timeSlots.map((hour) => (
+                <tr key={hour}>
+                  <td className="text-lg border border-gray-300 font-semibold text-gray-600 text-center">
+                    {hour}
+                  </td>
+                  {weekDays.map((day) => {
+                    const appointment = appointments.find((apt) => {
+                      let formattedDate = "";
+                      if (apt.appointment_date) {
+                        const date = new Date(apt.appointment_date);
+                        if (!isNaN(date.getTime())) {
+                          formattedDate = formatDate(date);
+                        }
+                      }
+                      const isSameDay = formattedDate === formatShiftDate(day);
+
+                      const [start, end] = hour
+                        .split(" - ")
+                        .map((time) => time.trim());
+
+                      if (!apt.estTimeFrom || !apt.estTimeTo) return false;
+
+                      // Kiểm tra xem cuộc hẹn có nằm trong khung giờ này không
+                      const appointmentStart = apt.estTimeFrom;
+                      const appointmentEnd = apt.estTimeTo;
+
+                      const hasOverlap =
+                        (appointmentStart <= start && appointmentEnd > start) ||
+                        (appointmentStart >= start && appointmentStart < end);
+
+                      return isSameDay && hasOverlap;
+                    });
+
+                    const hasAppointment = appointment !== undefined;
+
+                    return (
+                      <td
+                        key={`${day}-${hour}`}
+                        className={`border border-gray-300 p-1 text-center ${
+                          hasAppointment ? "bg-yellow-100" : "bg-gray-50"
+                        }`}
+                      >
+                        <div className="flex items-center justify-center p-4 rounded-lg">
+                          {hasAppointment && (
+                            <span className="text-yellow-700 font-bold">
+                              {appointment["patient-id"]}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </ScrollArea>
       </div>
     );
   };
@@ -337,7 +342,7 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
             renderScheduleTable()
           )}
         </TabsContent>
-        
+
         <TabsContent value="afternoon">
           {loading ? (
             <div className="flex justify-center items-center h-32">
@@ -347,7 +352,7 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
             renderScheduleTable()
           )}
         </TabsContent>
-        
+
         <TabsContent value="evening">
           {loading ? (
             <div className="flex justify-center items-center h-32">
