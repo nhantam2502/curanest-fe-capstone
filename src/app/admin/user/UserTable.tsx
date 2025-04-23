@@ -184,8 +184,8 @@ export default function UserTable({
                     {getSortIcon("phone-number")}
                   </div>
                 </TableHead>
-                <TableHead className="text-right w-[100px] font-semibold text-lg pr-4">
-                  Thao tác
+                <TableHead className="text-right w-[120px] font-semibold text-lg pr-4">
+                  Trạng thái
                 </TableHead>
               </TableRow>
             </TableHeader>

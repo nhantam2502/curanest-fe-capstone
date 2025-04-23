@@ -25,20 +25,37 @@ export default function NurseManagementPage() {
 
   const fetchNurses = useCallback(async () => {
     try {
-      const filter = {
+      const filterPayload = {
         "nurse-name": filters["nurse-name"],
         "service-id": filters["service-id"],
         rate: filters.rate,
       };
-      // Subtract 1 from currentPage if API expects 0-indexed pages
       const paging = {
         page: currentPage,
         size: itemsPerPage,
       };
-      const response = await nurseApiRequest.getAllNurse({ filter, paging });
+      const response = await nurseApiRequest.getAllNurse({ filter: filterPayload, paging });
+  
       if (response.status === 200 && response.payload) {
-        setNurses(response.payload.data || []);
-        setTotalPages(response.payload.paging.total || 1);
+        const receivedNurses = response.payload.data || [];
+        const totalPagesFromApi = response.payload.paging.total || 1;
+
+        const hasActiveFilters =
+          filters["nurse-name"] !== "" ||
+          filters["service-id"] !== "" ||
+          filters.rate !== "";
+
+        if (hasActiveFilters && receivedNurses.length === 0) {
+          toast({
+            title: "Không tìm thấy",
+            // Using "điều dưỡng" instead of "người thân" as per component context
+            description: "Không có điều dưỡng nào khớp với bộ lọc.",
+          });
+        }
+  
+        setNurses(receivedNurses);
+        setTotalPages(totalPagesFromApi);
+  
       } else {
         toast({
           title: "Lỗi tải điều dưỡng",
@@ -46,6 +63,9 @@ export default function NurseManagementPage() {
             response.payload?.message || "Không thể tải danh sách điều dưỡng.",
           variant: "destructive",
         });
+        // Optionally clear nurses if the fetch failed significantly
+        // setNurses([]);
+        // setTotalPages(1);
       }
     } catch (error) {
       console.error("Error fetching nurses:", error);
@@ -55,19 +75,29 @@ export default function NurseManagementPage() {
         variant: "destructive",
       });
     }
-  }, [filters, currentPage, itemsPerPage, toast]);
+  }, [filters, currentPage, itemsPerPage, toast]); 
+  
+
 
   useEffect(() => {
     fetchNurses();
   }, [fetchNurses]);
 
-  const handleSearch = (newFilters: GetAllNurseFilter) => {
-    setFilters(newFilters);
+  const handleSearch = (newFilters: Partial<GetAllNurseFilter>) => {
+    setFilters({
+      "nurse-name": newFilters["nurse-name"] ?? filters["nurse-name"],
+      "service-id": newFilters["service-id"] ?? filters["service-id"],
+      rate: newFilters.rate ?? filters.rate,
+    });
     setCurrentPage(1);
   };
 
   const resetFilters = () => {
     setFilters({ "nurse-name": "", "service-id": "", rate: "" });
+    toast({
+      title: "Đã xóa bộ lọc",
+      description: "Hiển thị lại tất cả người thân.",
+    });
   };
   const [sortColumn, setSortColumn] = useState<keyof GetAllNurse | "">("");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -88,22 +118,22 @@ export default function NurseManagementPage() {
     const valueB = b[sortColumn] ?? "";
 
     if (typeof valueA === "string" && typeof valueB === "string") {
-        return sortDirection === "asc"
-            ? valueA.localeCompare(valueB)
-            : valueB.localeCompare(valueA);
+      return sortDirection === "asc"
+        ? valueA.localeCompare(valueB)
+        : valueB.localeCompare(valueA);
     }
 
     if (typeof valueA === "number" && typeof valueB === "number") {
-        return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
     }
 
     return 0;
-});
+  });
 
   return (
     <div>
       <div className="flex justify-between">
-        <h1 className="text-2xl font-bold mb-4">Quản lý điều dưỡng</h1>     
+        <h1 className="text-2xl font-bold mb-4">Quản lý điều dưỡng</h1>
       </div>
       <NurseFilter onSearch={handleSearch} onReset={resetFilters} />
       <NurseTable

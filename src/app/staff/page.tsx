@@ -3,7 +3,6 @@
 import React from "react";
 
 const StaffPage = () => {
-
   return (
     <div className="relative flex items-center justify-center min-h-screen">
       <div className="relative bg-white shadow-xl rounded-lg p-10 max-w-2xl text-center transform transition duration-500 hover:scale-105">

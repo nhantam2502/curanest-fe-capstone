@@ -4,7 +4,6 @@ import AdminNavbar from "@/app/layout/adminLayout/AdminNavbar";
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Toaster } from "@/components/ui/toaster";
 import { NurseProvider } from "@/app/context/NurseContext";
 
 export default function AdminLayout({
@@ -20,10 +19,7 @@ export default function AdminLayout({
 
   return (
     <NurseProvider>
-      {/* Root container sets the absolute boundary */}
       <main className="flex h-screen overflow-hidden bg-gray-100">
-        <Toaster />
-        {/* Navbar (assumed fixed/absolute positioned, outside the main flow) */}
         <AdminNavbar
           onToggleSidebar={handleToggleSidebar}
           isCollapsed={isCollapsed}

@@ -1,7 +1,8 @@
-import LoadingPage from "./loading";
+
 import { Suspense } from "react";
 import StaffLayout from "../layout/staffLayout/StaffLayout";
 import { Toaster } from "@/components/ui/toaster";
+import LoadingPage from "../loading";
 
 export default function RootLayout({
   children,

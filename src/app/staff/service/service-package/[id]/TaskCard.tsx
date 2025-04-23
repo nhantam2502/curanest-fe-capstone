@@ -20,6 +20,7 @@ interface SortableTaskCardProps {
   servicePackageId: string;
   onTaskUpdated: () => void;
   getTaskStatusColor: (status: string) => string;
+  getStatusText: (status: string) => string; // <-- Added prop
 }
 
 export function SortableTaskCard({
@@ -28,6 +29,7 @@ export function SortableTaskCard({
   servicePackageId,
   onTaskUpdated,
   getTaskStatusColor,
+  getStatusText, // <-- Destructured prop
 }: SortableTaskCardProps) {
   const {
     attributes,
@@ -46,19 +48,21 @@ export function SortableTaskCard({
     cursor: isReorderingEnabled ? "grab" : "default",
   };
 
+  // Handle potential null/undefined status gracefully
+  const status = serviceTask.status ?? "unavailable"; // Default if status is missing
+
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      {" "}
       <Card
-        className={`border-2 transition-shadow duration-150 ${
-          isReorderingEnabled ? "hover:shadow-lg" : "hover:shadow-md"
-        }`}
+        className={`border transition-shadow duration-150 ${ // Using default border
+          isReorderingEnabled ? "hover:shadow-md" : "hover:shadow-sm" // Slightly reduced hover shadow
+        } ${isDragging ? "shadow-lg border-primary" : ""}`} // Add emphasis when dragging
       >
-        <CardContent className="p-4 sm:p-6 space-y-4 flex justify-between items-start gap-4">
+        <CardContent className="p-4 flex justify-between items-start gap-3"> {/* Adjusted gap */}
           {isReorderingEnabled && (
             <div
               {...listeners} // Apply listeners only to the handle
-              className="cursor-grab touch-none p-2 -ml-2 text-muted-foreground hover:bg-accent rounded"
+              className="cursor-grab touch-none p-2 -ml-2 -my-2 text-muted-foreground hover:bg-accent rounded self-center" // Center handle vertically, adjust padding/margin
               aria-label="Drag to reorder"
             >
               <GripVertical size={20} />
@@ -70,47 +74,57 @@ export function SortableTaskCard({
             className={`flex-grow space-y-2 ${isReorderingEnabled ? "pointer-events-none select-none" : ""}`}
           >
             <div>
-              <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"> {/* Style adjustment */}
                 Tên công việc
               </h4>
-              <p className="text-base sm:text-lg font-bold">
+              <p className="text-base font-bold"> {/* Adjusted size */}
                 {serviceTask.name}
               </p>
             </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground">
-                Mô tả
-              </h4>
-              <p className="text-xs sm:text-sm text-gray-700">
-                {serviceTask.description}
-              </p>
-            </div>
-            <div className="flex items-center justify-between ">
+           {serviceTask.description && ( // Only show if description exists
+             <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Mô tả
+                </h4>
+                <p className="text-sm text-gray-700 line-clamp-2"> {/* Added line-clamp */}
+                    {serviceTask.description}
+                </p>
+             </div>
+           )}
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pt-1"> {/* Added gap and padding top */}
               <div>
-                <h4 className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Trạng thái
                 </h4>
-                <Badge className={getTaskStatusColor(serviceTask.status)}>
-                  {serviceTask.status}
+                <Badge
+                  variant="outline" // Use outline variant
+                  className={`${getTaskStatusColor(status)} text-xs`} // Use computed classes
+                >
+                  {getStatusText(status)} {/* <-- Use getStatusText here */}
                 </Badge>
               </div>
 
-              <div className="flex">
-                <h4 className="text-xs sm:text-sm font-bold text-muted-foreground mr-2">
-                  Giá:
+              <div>
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Giá (VNĐ)
                 </h4>
-                <p className="text-xs sm:text-sm text-gray-700">
-                  {serviceTask.cost}
+                 {/* Format currency */}
+                 <p className="text-sm font-medium text-gray-900">
+                    {new Intl.NumberFormat('vi-VN').format(serviceTask.cost ?? 0)}
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Edit Button (only when not reordering) */}
           {!isReorderingEnabled && servicePackageId && (
-            <EditServiceTask
-              serviceTask={serviceTask}
-              svcpackageId={servicePackageId}
-              onTaskUpdated={onTaskUpdated}
-            />
+            <div className="flex-shrink-0 self-start"> {/* Keep button at the top right */}
+              <EditServiceTask
+                serviceTask={serviceTask}
+                svcpackageId={servicePackageId}
+                onTaskUpdated={onTaskUpdated}
+              />
+            </div>
           )}
         </CardContent>
       </Card>

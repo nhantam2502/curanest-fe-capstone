@@ -22,7 +22,8 @@ import {
   GraduationCap,
   Award,
   Link as LinkIcon, // Link icon
-  FileText, // Generic document icon
+  FileText,
+  Loader2, // Generic document icon
 } from "lucide-react";
 import { StarRating } from "../components/StarRatings";
 
@@ -118,21 +119,8 @@ export default function NurseDetailPageRenovated() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-6">
-        <Skeleton className="h-9 w-32 mb-6" /> {/* Back button */}
-        <div className="flex items-center gap-6 mb-6">
-          <Skeleton className="h-24 w-24 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="h-4 w-64" />
-            <Skeleton className="h-5 w-32" />
-          </div>
-        </div>
-        <Separator />
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          <Skeleton className="h-48 md:col-span-1" />
-          <Skeleton className="h-64 md:col-span-2" />
-        </div>
+      <div className="flex justify-center items-center p-4 md:p-6 lg:p-8 space-y-6">
+        <Loader2 className="animate-spin h-8 w-8 text-emerald-500 mx-auto" />
       </div>
     );
   }
@@ -153,7 +141,6 @@ export default function NurseDetailPageRenovated() {
     );
   }
 
-  // --- Not Found State ---
   if (!nurseDetail) {
     return (
       <div className="container mx-auto p-4 md:p-6 lg:p-8 text-center">
@@ -171,11 +158,10 @@ export default function NurseDetailPageRenovated() {
 
   // --- Render Details ---
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-4 space-y-6">
-      {/* Back Button */}
+    <div className="mx-auto p-4 lg:p-2 space-y-6">
       <Button variant="outline" onClick={() => router.back()} className="mb-2">
         <ChevronLeft className="mr-2 h-4 w-4" />
-        Trở lại danh sách
+        Trở lại
       </Button>
 
       {/* Header Section */}

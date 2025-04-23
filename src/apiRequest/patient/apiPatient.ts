@@ -17,6 +17,9 @@ const patientApiRequest = {
   getPatientRecord: () =>
     http.get<PatientRecordRes>("/patient/api/v1/patients/relatives"),
 
+  getPatientById: (id:string) =>
+    http.get<PatientRecordRes>(`/patient/api/v1/patients/${id}`),
+
   getPatientRecordByID: (id: string) =>
     http.get<PatientRecordRes>(`/patient/api/v1/patients/${id}`),
 

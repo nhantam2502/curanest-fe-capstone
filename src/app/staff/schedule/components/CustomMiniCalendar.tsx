@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-// Removed GetAppointment import as it's no longer used here
+
 
 interface CalendarProps {
   onDateSelect: (date: string) => void; // Callback with YYYY-MM-DD string
@@ -199,6 +199,16 @@ const CustomMiniCalendar: React.FC<CalendarProps> = ({ onDateSelect, initialDate
         <div className="grid grid-cols-7 gap-y-1 justify-items-center"> {/* Center items horizontally */}
           {header}
           {dayElements}
+        </div>
+        <div className='mt-4 space-y-1 text-sm ml-2'>
+          <div className='flex items-center gap-2'>
+            <div className='h-4 w-4 rounded-sm bg-blue-700'></div>
+            <span>Tuần hiện tại</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='h-4 w-4 rounded-sm border border-green-400 bg-white'></div>
+            <span>Ngày hôm nay</span>
+          </div>
         </div>
       </div>
     );
