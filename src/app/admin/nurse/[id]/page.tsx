@@ -7,26 +7,22 @@ import serviceApiRequest from "@/apiRequest/service/apiServices";
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import NurseDetailPage from "./NurseDetail";
 import { useParams } from "next/navigation";
+import { ServiceCate } from "@/types/service";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
-interface ServiceCategory {
-  id: string;
-  name: string;
-}
-interface Service {
-  id: number;
-  name: string;
-  category_id: string;
-}
 interface ServiceChipProps {
-  service: Service;
+  service: ServiceCate;
   selected: boolean;
-  onToggle: (serviceId: number, newState: boolean) => void;
+  onToggle: (serviceId: string, newState: boolean) => void;
 }
 const ServiceChip: React.FC<ServiceChipProps> = ({ service, selected, onToggle }) => {
+
+  const serviceIdStr = String(service.id);
   return (
     <button
       type="button"
-      onClick={() => onToggle(service.id, !selected)}
+      onClick={() => onToggle(serviceIdStr, !selected)}
       className={`px-3 py-1 rounded-full text-sm transition-colors border ${
         selected
           ? "bg-blue-500 text-white border-blue-500"
@@ -40,15 +36,15 @@ const ServiceChip: React.FC<ServiceChipProps> = ({ service, selected, onToggle }
 
 const NurseServiceMappingPage: React.FC = () => {
   const { id } = useParams();
+  const { toast } = useToast(); // Initialize useToast
 
   // State for categories and a mapping for services by category
-  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
-  const [servicesByCategory, setServicesByCategory] = useState<Record<string, Service[]>>({});
+  const [serviceCategories, setServiceCategories] = useState<ServiceCate[]>([]);
+  const [servicesByCategory, setServicesByCategory] = useState<Record<string, ServiceCate[]>>({});
   // This state holds the service ids (as strings) that the nurse already has mapped
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
-  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  // const [showConfirmationModal, setShowConfirmationModal] = useState(false); // You might not need this if toast is sufficient
 
-  // Fetch service categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -57,19 +53,24 @@ const NurseServiceMappingPage: React.FC = () => {
           setServiceCategories(response.payload.data || []);
         } else {
           console.error("Error fetching categories:", response);
+          // Optional: Add toast for category fetch failure
+          // toast({ title: "Lỗi", description: "Không thể tải danh mục dịch vụ.", variant: "destructive" });
         }
       } catch (error) {
         console.error("Error fetching categories:", error);
+        // Optional: Add toast for category fetch error
+        // toast({ title: "Lỗi", description: "Lỗi khi tải danh mục dịch vụ.", variant: "destructive" });
       }
     };
     fetchCategories();
-  }, []);
+  }, []); // Removed toast dependency here to avoid potential loops if toast triggers re-renders
 
-  // Once categories are loaded, fetch services for each category and build a mapping.
   useEffect(() => {
     if (serviceCategories.length === 0) return;
+    let isMounted = true; // Prevent state updates on unmounted component
+
     const fetchAllServices = async () => {
-      const mapping: Record<string, Service[]> = {};
+      const mapping: Record<string, ServiceCate[]> = {};
       await Promise.all(
         serviceCategories.map(async (category) => {
           try {
@@ -85,13 +86,20 @@ const NurseServiceMappingPage: React.FC = () => {
           }
         })
       );
-      setServicesByCategory(mapping);
+      if (isMounted) {
+        setServicesByCategory(mapping);
+      }
     };
+
     fetchAllServices();
+
+    return () => {
+      isMounted = false; // Cleanup function
+    };
   }, [serviceCategories]);
 
-  // NEW: Fetch the nurse's mapped services so the corresponding chips appear as selected.
   useEffect(() => {
+    let isMounted = true; // Prevent state updates on unmounted component
     const fetchNurseService = async () => {
       if (!id) {
         console.error("No nurse id found in URL");
@@ -103,109 +111,149 @@ const NurseServiceMappingPage: React.FC = () => {
         console.log("Nurse mapped services response:", response);
         if (
           response.status === 200 &&
-          response.payload &&
-          response.payload.data &&
-          response.payload.data["service-ids"]
+          response.payload?.data?.["service-ids"] 
         ) {
           const mappedServices = response.payload.data["service-ids"];
-          setSelectedServices(mappedServices);
+           if (isMounted) {
+             setSelectedServices(mappedServices.map(String));
+           }
         } else {
           console.error("Error fetching nurse services:", response);
+          // toast({ title: "Lỗi", description: "Không thể tải dịch vụ hiện tại của điều dưỡng.", variant: "destructive" });
         }
       } catch (error) {
         console.error("Error fetching nurse services:", error);
+        // toast({ title: "Lỗi", description: "Lỗi khi tải dịch vụ hiện tại của điều dưỡng.", variant: "destructive" });
       }
     };
     fetchNurseService();
+    return () => {
+        isMounted = false; // Cleanup function
+      };
   }, [id]);
-  
+
   // Toggle selected services
-  const handleServiceChipToggle = (serviceId: number, newState: boolean) => {
-    setSelectedServices((prev) =>
-      newState
-        ? [...prev, serviceId.toString()]
-        : prev.filter((id) => id !== serviceId.toString())
-    );
+  const handleServiceChipToggle = (serviceId: string, newState: boolean) => {
+    setSelectedServices((prev) => {
+      const currentSet = new Set(prev);
+      if (newState) {
+        currentSet.add(serviceId);
+      } else {
+        currentSet.delete(serviceId);
+      }
+      return Array.from(currentSet); // Convert back to array
+    });
   };
 
-  // Submit mapping API call using nurse id from URL parameters
+
   const handleSubmitMapping = async () => {
     if (!id) {
       console.error("No nurse id found in URL");
+      toast({ 
+        title: "Lỗi",
+        description: "Không tìm thấy ID điều dưỡng trong URL.",
+        variant: "destructive",
+      });
       return;
     }
+    const nurseId = Array.isArray(id) ? id[0] : id;
+    const body = { "service-ids": selectedServices };
+
     try {
-      const nurseId = Array.isArray(id) ? id[0] : id;
-      const body = { "service-ids": selectedServices };
       const response = await nurseApiRequest.mapNurseToService(nurseId, body);
-      console.log("Mapping response:", response);
-      setShowConfirmationModal(true);
-    } catch (error) {
+      console.log("Mapping response:", response); // Keep for debugging
+
+      if (response.status === 201) { // Check for successful status code
+        toast({
+          title: "Thành công",
+          description: "Đã cập nhật danh sách dịch vụ cho điều dưỡng.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Lỗi cập nhật",
+          description: response.payload?.message || "Không thể cập nhật dịch vụ. Máy chủ phản hồi không thành công.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) { // Catch block for network errors or exceptions
       console.error("Error mapping nurse to service:", error);
+      toast({
+        title: "Lỗi hệ thống",
+        description: error.message || "Đã xảy ra lỗi khi cố gắng cập nhật dịch vụ. Vui lòng thử lại.",
+        variant: "destructive",
+      });
     }
   };
 
-  // Flatten all services for the top display (to show selected service names)
-  const allServices: Service[] = Object.values(servicesByCategory).flat();
+  const allServices: ServiceCate[] = Object.values(servicesByCategory).flat();
+
+  const serviceIdToNameMap = new Map(
+    allServices.map(service => [String(service.id), service.name])
+  );
+
 
   return (
-    <div className="mx-auto flex">
-      {/* Left Panel: Nurse Detail */}
-      <div className="w-1/2">
+    <div className="mx-auto flex h-full">
+      <div className="w-1/2 pr-4 border-r border-gray-300 overflow-y-auto"> {/* Added padding and border */}
         <NurseDetailPage />
       </div>
 
-      {/* Separator using a div with inline CSS */}
-      <div style={{ width: "1px", backgroundColor: "#ccc", margin: "0 16px" }} />
-
-      {/* Right Panel: Service Mapping */}
-      <div className="w-1/2">
-        {/* Top Part: Selected Services & Submit */}
+      <div className="w-1/2 pl-4 flex flex-col"> {/* Added padding and flex column */}
         <div className="mb-4 border-b pb-4">
-          <h2 className="text-xl font-bold mb-2">Dịch vụ đã chọn</h2>
+          <div className="flex justify-between items-center mb-2">
+             <h2 className="text-xl font-bold">Dịch vụ đã chọn</h2>
+          </div>
           {selectedServices.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {allServices
-                .filter((service) =>
-                  selectedServices.includes(service.id.toString())
-                )
-                .map((service) => (
+            <div className="flex flex-wrap gap-2 ">
+              {selectedServices
+                .map((serviceId) => (
                   <span
-                    key={service.id}
-                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded"
+                    key={serviceId}
+                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm"
                   >
-                    {service.name}
+                    {serviceIdToNameMap.get(serviceId) || `ID: ${serviceId}`} {/* Fallback if name not found */}
                   </span>
                 ))}
             </div>
           ) : (
-            <p>Chưa chọn dịch vụ nào.</p>
+            <p className="text-gray-500">Chưa chọn dịch vụ nào.</p>
           )}
           <div className="mt-4 flex justify-end">
             <Button onClick={handleSubmitMapping}>Thêm</Button>
           </div>
         </div>
-        
-        <div className="overflow-y-auto h-[calc(80vh-120px)]">
-          {serviceCategories.map((category) => (
-            <div key={category.id} className="mb-4">
-              <h3 className="font-semibold mb-2">{category.name}</h3>
-              <div className="flex flex-wrap gap-2">
-                {servicesByCategory[category.id] && servicesByCategory[category.id].length > 0 ? (
-                  servicesByCategory[category.id].map((service) => (
-                    <ServiceChip
-                      key={service.id}
-                      service={service}
-                      selected={selectedServices.includes(service.id.toString())}
-                      onToggle={handleServiceChipToggle}
-                    />
-                  ))
-                ) : (
-                  <p className="text-gray-500 text-sm">Điều dưỡng này hiện chưa có dịch vụ.</p>
-                )}
+
+        {/* Service Selection Area (Scrollable) */}
+        <div className="flex-grow pr-1 overflow-y-auto h-[calc(80vh-130px)]"> {/* Takes remaining height and allows scrolling */}
+          {serviceCategories.length > 0 ? (
+            serviceCategories.map((category) => (
+              <div key={category.id} className="mb-4">
+                <h3 className="font-semibold mb-2 text-base">{category.name}</h3> {/* Adjusted heading size */}
+                <div className="flex flex-wrap gap-2">
+                  {servicesByCategory[category.id] && servicesByCategory[category.id].length > 0 ? (
+                    servicesByCategory[category.id].map((service) => {
+                      const serviceIdStr = String(service.id); // Ensure string ID
+                      return (
+                        <ServiceChip
+                          key={serviceIdStr}
+                          service={service}
+                          selected={selectedServices.includes(serviceIdStr)}
+                          onToggle={handleServiceChipToggle}
+                        />
+                      );
+                    })
+                  ) : (
+                    <p className="text-gray-500 text-sm italic">Không có dịch vụ trong danh mục này.</p> /* Improved message */
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="flex justify-center items-center p-4 md:p-6 lg:p-8 space-y-6">
+            <Loader2 className="animate-spin h-8 w-8 text-emerald-500 mx-auto" />
+          </div> 
+          )}
         </div>
       </div>
     </div>

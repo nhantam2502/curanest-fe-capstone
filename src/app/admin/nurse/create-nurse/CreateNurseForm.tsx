@@ -12,12 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"; // <-- Import Tabs components
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,20 +26,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast"; // Make sure this hook is correctly set up
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-// import { BirthDatePicker } from "@/components/date-picker"; // Keep if you want to use a custom date picker
+// import { BirthDatePicker } from "@/components/date-picker";
 
 interface Geo {
   code: number | string;
   name: string;
 }
 
-// Schema remains the same
 const formSchema = z.object({
   "full-name": z.string().min(2, { message: "Tên không được để trống." }),
-  dob: z.string().min(1, { message: "Ngày sinh không được để trống." }), // Ensure date is picked
+  dob: z.string().min(1, { message: "Ngày sinh không được để trống." }),
   "citizen-id": z
     .string()
     .min(9, { message: "CCCD phải có 9-12 số." })
@@ -87,20 +81,19 @@ type NurseFormValues = z.infer<typeof formSchema>;
 
 const NurseForm: React.FC = () => {
   const router = useRouter();
-  const { toast } = useToast();
+  const { toast } = useToast(); // Initialize toast hook
   const [districts, setDistricts] = useState<Geo[]>([]);
   const [wards, setWards] = useState<Geo[]>([]);
   const cityCode = "79"; // Ho Chi Minh City Code
   const [selectedDistrictCode, setSelectedDistrictCode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [submissionSuccess, setSubmissionSuccess] = useState<boolean>(false);
+  // Removed submissionError and submissionSuccess states as toasts are called directly
 
   const form = useForm<NurseFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       "full-name": "",
-      dob: "", // Initialize date as empty string
+      dob: "",
       "citizen-id": "",
       "phone-number": "",
       email: "",
@@ -118,10 +111,10 @@ const NurseForm: React.FC = () => {
       "google-drive-url": "",
       "nurse-picture": "",
     },
-    mode: "onSubmit", // Validate on submit
+    mode: "onSubmit",
   });
 
-  // --- Fetching Logic (remains the same) ---
+  // Fetching Districts - Includes Toast on Error
   useEffect(() => {
     const fetchDistricts = async () => {
       try {
@@ -134,18 +127,21 @@ const NurseForm: React.FC = () => {
       } catch (error) {
         console.error("Error fetching districts:", error);
         toast({
+          // Toast for district fetch error
           variant: "destructive",
-          title: "Lỗi",
-          description: "Không thể tải danh sách Quận/Huyện.",
+          title: "Lỗi tải dữ liệu",
+          description: "Không thể tải danh sách Quận/Huyện. Vui lòng thử lại.",
         });
       }
     };
     fetchDistricts();
-  }, [toast]);
+  }, [toast]); // Keep toast in dependency array for this useEffect
 
+  // Fetching Wards - Includes Toast on Error
   useEffect(() => {
     if (selectedDistrictCode) {
       const fetchWards = async () => {
+        setWards([]); // Clear wards immediately when district changes
         try {
           const response = await fetch(
             `https://provinces.open-api.vn/api/d/${selectedDistrictCode}?depth=2`
@@ -153,52 +149,40 @@ const NurseForm: React.FC = () => {
           if (!response.ok) throw new Error("Failed to fetch wards");
           const data = await response.json();
           setWards(data.wards || []);
+          if (!data.wards || data.wards.length === 0) {
+            toast({
+              // Optional: Inform user if no wards found for the district
+              variant: "default",
+              title: "Thông báo",
+              description: "Không tìm thấy Phường/Xã cho Quận/Huyện đã chọn.",
+            });
+          }
         } catch (error) {
           console.error("Error fetching wards:", error);
           toast({
+            // Toast for ward fetch error
             variant: "destructive",
-            title: "Lỗi",
-            description: "Không thể tải danh sách Phường/Xã.",
+            title: "Lỗi tải dữ liệu",
+            description: "Không thể tải danh sách Phường/Xã. Vui lòng thử lại.",
           });
-          setWards([]); // Clear wards on error
+          setWards([]); // Ensure wards are cleared on error
         }
       };
       fetchWards();
     } else {
       setWards([]); // Clear wards if no district selected
     }
-  }, [selectedDistrictCode, toast]);
+  }, [selectedDistrictCode, toast]); // Keep toast in dependency array
 
-  // --- Toast Logic (remains the same) ---
-  useEffect(() => {
-    if (submissionError) {
-      toast({
-        variant: "destructive",
-        title: "Đã có lỗi xảy ra.",
-        description: submissionError,
-      });
-    }
-    if (submissionSuccess) {
-      toast({
-        title: "Thành công!",
-        description: "Đã tạo hồ sơ điều dưỡng thành công.",
-      });
-    }
-  }, [submissionError, submissionSuccess, toast]);
-
-  // --- Submission Logic (remains the same, includes formatting) ---
+  // --- Submission Logic with Direct Toasts ---
   const onSubmit: SubmitHandler<NurseFormValues> = async (data) => {
     setIsSubmitting(true);
-    setSubmissionError(null);
-    setSubmissionSuccess(false);
-    console.log("Form Data Submitted:", data); // Log data before sending
+    console.log("Form Data Submitted:", data);
 
     try {
       const formattedData = {
         ...data,
-        // Date should already be a string 'YYYY-MM-DD' from the input type="date"
-        dob: data.dob,
-        // Ensure optional fields are sent correctly (empty string if not provided)
+        dob: data.dob, // Already string 'YYYY-MM-DD'
         "current-work-place": data["current-work-place"] || "",
         experience: data["experience"] || "",
         "education-level": data["education-level"] || "",
@@ -206,34 +190,44 @@ const NurseForm: React.FC = () => {
         slogan: data["slogan"] || "",
         "google-drive-url": data["google-drive-url"] || "",
         "nurse-picture": data["nurse-picture"] || "",
-        // Convert gender string ("true"/"false") to boolean for the API
-        gender: data.gender === "true",
+        gender: data.gender === "true", // Convert to boolean
       };
 
-      console.log("Formatted Data for API:", formattedData); // Log formatted data
+      console.log("Formatted Data for API:", formattedData);
 
       const response = await nurseApiRequest.createNurse(formattedData);
 
       if (response.status === 201) {
-        setSubmissionSuccess(true);
-        form.reset(); // Reset form fields
-        setSelectedDistrictCode(""); // Reset district selection
-        setWards([]); // Clear wards list
-        // Optionally navigate away or show a success message permanently
-        // router.push('/nurses'); // Example navigation
+        toast({
+          title: "Thành công!",
+          description: "Đã tạo hồ sơ điều dưỡng thành công.",
+        });
+        form.reset();
+        setSelectedDistrictCode("");
+        setWards([]);
+        // Optional: Redirect after a short delay or immediately
+        // setTimeout(() => router.push('/admin/nurse'), 1500); // Example redirect after 1.5s
+        router.push('/admin/nurse');
       } else {
-        // Try to get a more specific error message
         const errorReason =
-          response.payload?.error?.message ||
+          response.payload?.error?.message || // More specific error field if exists
           response.payload?.message ||
           "Lỗi không xác định từ máy chủ.";
-        setSubmissionError(errorReason);
+        toast({
+          variant: "destructive",
+          title: "Tạo hồ sơ thất bại",
+          description: errorReason,
+        });
         console.error("API Error:", response.payload);
       }
     } catch (error: any) {
-      setSubmissionError("Có lỗi xảy ra khi gửi yêu cầu tạo điều dưỡng.");
+      toast({
+        variant: "destructive",
+        title: "Đã có lỗi xảy ra",
+        description:
+          "Không thể gửi yêu cầu tạo điều dưỡng. Vui lòng thử lại.",
+      });
       console.error("Error creating nurse:", error);
-      // Log detailed error if available
       if (error.response) {
         console.error("Error Response Data:", error.response.data);
         console.error("Error Response Status:", error.response.status);
@@ -255,10 +249,13 @@ const NurseForm: React.FC = () => {
   return (
     <Form {...form}>
       <h1 className="text-2xl font-bold mb-4">Thêm thông tin điều dưỡng</h1>
-      <Separator className="mb-6" /> {/* Increased bottom margin */}
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <Separator className="mb-6" />
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+        noValidate
+      >
         <Tabs defaultValue="personal-info" className="w-full">
-          {/* Tab Triggers */}
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 mb-6">
             <TabsTrigger value="personal-info">Thông tin cá nhân</TabsTrigger>
             <TabsTrigger value="contact-address">Liên hệ & Địa chỉ</TabsTrigger>
@@ -268,7 +265,7 @@ const NurseForm: React.FC = () => {
 
           {/* Tab Content: Personal Information */}
           <TabsContent value="personal-info" className="mt-4">
-            <div className="space-y-5 rounded-md border p-6 shadow h-96">
+            <div className="space-y-5 rounded-md border p-6 shadow h-[calc(100vh-350px)] overflow-y-auto">
               <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-3">
                 {/* Full Name */}
                 <FormField
@@ -296,9 +293,11 @@ const NurseForm: React.FC = () => {
                         Ngày sinh <Req />
                       </FormLabel>
                       <FormControl>
-                        {/* Use standard HTML5 date input */}
-                        <Input type="date" {...field} />
-                        {/* If using BirthDatePicker: <BirthDatePicker field={field} /> */}
+                        <Input
+                          type="date"
+                          {...field}
+                          className="cursor-pointer"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -313,7 +312,10 @@ const NurseForm: React.FC = () => {
                       <FormLabel>
                         Giới tính <Req />
                       </FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn giới tính" />
@@ -353,8 +355,11 @@ const NurseForm: React.FC = () => {
 
           {/* Tab Content: Contact & Address */}
           <TabsContent value="contact-address" className="mt-4">
-             <div className="space-y-5 rounded-md border p-6 shadow">
+            <div className="space-y-5 rounded-md border p-6 shadow h-[calc(100vh-350px)] overflow-y-auto">
+              {" "}
+              {/* Adjusted height and scroll */}
               <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2 lg:grid-cols-3">
+                {/* Fields remain the same */}
                 {/* Phone Number */}
                 <FormField
                   control={form.control}
@@ -468,7 +473,7 @@ const NurseForm: React.FC = () => {
                             setSelectedDistrictCode(
                               selected ? String(selected.code) : ""
                             );
-                            form.setValue("ward", ""); // Reset ward on district change
+                            form.setValue("ward", "", { shouldValidate: true }); // Reset and validate ward
                           }}
                           value={field.value}
                         >
@@ -518,6 +523,15 @@ const NurseForm: React.FC = () => {
                           </SelectContent>
                         </Select>
                       </FormControl>
+                      {/* Show message if district selected but no wards fetched/available */}
+                      {!field.value &&
+                        selectedDistrictCode &&
+                        wards.length === 0 &&
+                        !form.formState.isSubmitting && (
+                          <FormDescription className="text-destructive text-xs">
+                            Không có Phường/Xã cho Quận/Huyện này hoặc đang tải.
+                          </FormDescription>
+                        )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -528,8 +542,11 @@ const NurseForm: React.FC = () => {
 
           {/* Tab Content: Professional Information */}
           <TabsContent value="professional" className="mt-4">
-             <div className="space-y-5 rounded-md border p-6 shadow">
+            <div className="space-y-5 rounded-md border p-6 shadow h-[calc(100vh-350px)] overflow-y-auto">
+              {" "}
+              {/* Adjusted height and scroll */}
               <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
+                {/* Fields remain the same */}
                 {/* Current Work Place */}
                 <FormField
                   control={form.control}
@@ -619,8 +636,11 @@ const NurseForm: React.FC = () => {
 
           {/* Tab Content: Links & Media */}
           <TabsContent value="media" className="mt-4">
-             <div className="space-y-5 rounded-md border p-6 shadow">
+            <div className="space-y-5 rounded-md border p-6 shadow h-[calc(100vh-350px)] overflow-y-auto">
+              {" "}
+              {/* Adjusted height and scroll */}
               <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
+                {/* Fields remain the same */}
                 {/* Google Drive URL */}
                 <FormField
                   control={form.control}
@@ -629,10 +649,16 @@ const NurseForm: React.FC = () => {
                     <FormItem>
                       <FormLabel>URL Google Drive (Hồ sơ)</FormLabel>
                       <FormControl>
-                        <Input type="url" placeholder="https://" {...field} />
+                        <Input
+                          type="url"
+                          placeholder="https://"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                       </FormControl>
                       <FormDescription className="text-xs">
-                        Liên kết đến thư mục chứa hồ sơ, chứng chỉ (không bắt buộc).
+                        Liên kết đến thư mục chứa hồ sơ, chứng chỉ (không bắt
+                        buộc).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -646,7 +672,12 @@ const NurseForm: React.FC = () => {
                     <FormItem>
                       <FormLabel>URL Hình ảnh</FormLabel>
                       <FormControl>
-                        <Input type="url" placeholder="https://" {...field} />
+                        <Input
+                          type="url"
+                          placeholder="https://"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
                       </FormControl>
                       <FormDescription className="text-xs">
                         Liên kết đến ảnh đại diện (không bắt buộc).
@@ -660,7 +691,7 @@ const NurseForm: React.FC = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Submit/Back Buttons - Placed outside Tabs but inside the form */}
+        {/* Submit/Back Buttons */}
         <div className="flex justify-end pt-4 space-x-3">
           <Button type="button" variant="outline" onClick={handleBack}>
             Quay lại
@@ -668,7 +699,7 @@ const NurseForm: React.FC = () => {
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
-                <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-primary-foreground rounded-full mr-2"></span>
+                <span className="animate-spin inline-block h-4 w-4 border-t-2 border-b-2 border-primary-foreground rounded-full mr-2"></span>
                 Đang xử lý...
               </>
             ) : (

@@ -119,6 +119,7 @@ export type GetAppointment = {
   "patient-id": string;
   "est-date": string;
   "act-date": string | null;
+  "total-est-duration": number;
   status: string;
   "created-at": string;
 };
@@ -131,5 +132,4 @@ export type AppointmentFilter = {
   "had-nurse"?: string;
   "appointment-status"?: string;
   "est-date-from"?: string;
-  "est-date-to"?: string;
 };

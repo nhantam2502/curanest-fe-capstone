@@ -91,3 +91,30 @@ export const calculatePackageTotalTime = (
     0
   );
 };
+
+
+export const translateStatusToVietnamese = (status: string | null | undefined): string => {
+
+  if (status === null || status === undefined) {
+      return "Không xác định";
+  }
+  const lowerCaseStatus = status.toLowerCase();
+
+  switch (lowerCaseStatus) {
+      case "waiting":
+          return "Đang chờ";
+      case "confirmed":
+          return "Đã xác nhận";
+      case "completed": // Combine common completion statuses
+      case "success":
+          return "Hoàn thành";
+      case "cancelled":
+          return "Đã hủy";
+      case "refused":
+          return "Đã từ chối";
+      case "changed":
+          return "Đã đổi lịch";
+      default:
+          return status;
+  }
+};
