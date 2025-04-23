@@ -72,27 +72,27 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
   const [expandedDays, setExpandedDays] = useState<string>("0");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // Function to get the days in the next 30 days
-  const getDaysInRange = (): Date[] => {
-    const days: Date[] = [];
-    const startOfRange = new Date();
+ // Function to get the days in the next 14 days
+const getDaysInRange = (): Date[] => {
+  const days: Date[] = [];
+  const startOfRange = new Date();
 
-    for (let i = 0; i <= 29; i++) {
-      const date = new Date(startOfRange);
-      date.setDate(startOfRange.getDate() + i);
-      days.push(date);
-    }
-    return days;
-  };
+  for (let i = 0; i <= 14; i++) {
+    const date = new Date(startOfRange);
+    date.setDate(startOfRange.getDate() + i);
+    days.push(date);
+  }
+  return days;
+};
 
   // Function to generate available time slots based on start time
   const getTimeSlots = (startTimeStr: string): TimeSlot[] => {
     const slots: TimeSlot[] = [];
     const [startHourNum, startMinute] = startTimeStr.split(":").map(Number);
     const startTime = startHourNum * 60 + startMinute;
-    const endTime = 22 * 60; // Thay đổi từ 20:00 thành 22:00
+    const endTime = 22 * 60; 
 
-    const interval = 30; // 30 phút mỗi slot
+    const interval = 30; 
 
     for (let i = startTime; i <= endTime - totalTime; i += interval) {
       const startHour = Math.floor(i / 60);

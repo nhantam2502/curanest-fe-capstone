@@ -13,13 +13,13 @@ const FaqItem = ({ item, index }: { item: any, index: number }) => {
     data-aos="fade-left"
       data-aos-duration="1200"
       data-aos-easing="ease-in-out-back"
-      data-aos-delay={index * 100} // Tăng thời gian delay dựa trên index
+      data-aos-delay={index * 100} 
     className="p-3 lg:p-5 rounded-[12px] border border-solid border-[#D9DCE2] mb-5 cursor-pointer">
       <div
         className="flex items-center justify-between gap-5"
         onClick={toggleAccordion}
       >
-        <h4 className="text-[16px] leading-7 lg:text-[22px] leading-8 text-headingColor">
+        <h4 className="text-[26px] leading-7 lg:text-[22px] leading-8 text-headingColor font-semibold">
           {item.question}
         </h4>
 
@@ -35,7 +35,7 @@ const FaqItem = ({ item, index }: { item: any, index: number }) => {
 
       {isOpen && (
         <div className="mt-4">
-          <p className="text-[14px] leading-6 lg:text-[16] lg:leading-7 font-[400]">
+          <p className="text-[20px] leading-6 lg:text-[16] lg:leading-7 font-[400]">
             {item.content}
           </p>
         </div>

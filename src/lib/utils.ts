@@ -10,6 +10,32 @@ export const normalizePath = (path: string) => {
   return path.startsWith("/") ? path.slice(1) : path;
 };
 
+export const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "completed":
+      return "bg-green-500";
+    case "waiting":
+      return "bg-yellow-500";
+    case "canceled":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
+  }
+};
+
+export const getStatusText = (status: string) => {
+  switch (status.toLowerCase()) {
+    case "completed":
+      return "Hoàn thành";
+    case "pending":
+      return "Đang chờ";
+    case "canceled":
+      return "Đã hủy";
+    default:
+      return status;
+  }
+};
+
 // Hàm lấy ngày định dạng YYYY-MM-DD
 export const getFormattedDate = (estDate: string) => {
   const date = new Date(estDate);

@@ -69,7 +69,8 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
 
       {selectedServiceTask.length > 0 ? (
         <div className="space-y-6">
-          <ScrollArea className="h-96">
+          {/* <ScrollArea className="h-full max-h-[500px] overflow-y-auto"> */}
+          <ScrollArea className="h-100">
             <div className="flex flex-col gap-6">
               {selectedServiceTask.map((service) => {
                 const currentQuantity = serviceQuantities[service.name] || 1;
@@ -217,12 +218,12 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
 
           <div className="pt-4 mt-6 border-t bg-white p-4 rounded-lg shadow-md">
             <div className="flex justify-between items-center text-2xl font-semibold text-gray-800">
-              <span className="font-medium">Tổng thời gian:</span>
+              <span className="font-medium">Tổng thời gian (1 buổi): </span>
               <span className="text-primary">{calculateTotalTime()} phút</span>
             </div>
             <div className="flex justify-between items-center text-2xl mt-3 font-semibold text-gray-900">
               <span className="font-bold text-2xl text-gray-800">
-                Tổng tiền
+                Tổng tiền (1 buổi):
               </span>
               <div className="flex flex-col items-end">
                 {selectedPackage &&
@@ -246,6 +247,42 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
                 )}
               </div>
             </div>
+
+            {(selectedPackage?.["combo-days"] ?? 0) > 1 && (
+              <div className="flex justify-between items-center border-t border-gray-200 pt-4">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  Tổng tiền combo ({selectedPackage?.["combo-days"]} buổi):
+                </h3>
+                <div className="flex flex-col items-end">
+                  {selectedPackage &&
+                  selectedPackage.discount &&
+                  selectedPackage.discount > 0 ? (
+                    <>
+                      <span className="font-bold font-be-vietnam-pro text-2xl text-red-600">
+                        {formatCurrency(
+                          calculateTotalPrice() *
+                            (selectedPackage["combo-days"] ?? 0) *
+                            (1 - selectedPackage.discount / 100)
+                        )}
+                      </span>
+                      <span className="text-gray-500 text-lg line-through">
+                        {formatCurrency(
+                          calculateTotalPrice() *
+                            (selectedPackage["combo-days"] ?? 0)
+                        )}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="font-bold font-be-vietnam-pro text-2xl text-red-600">
+                      {formatCurrency(
+                        calculateTotalPrice() *
+                          (selectedPackage?.["combo-days"] ?? 0)
+                      )}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (

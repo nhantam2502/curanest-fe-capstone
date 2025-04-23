@@ -20,6 +20,9 @@ const patientApiRequest = {
   getPatientById: (id:string) =>
     http.get<PatientRecordRes>(`/patient/api/v1/patients/${id}`),
 
+  getPatientRecordByID: (id: string) =>
+    http.get<PatientRecordRes>(`/patient/api/v1/patients/${id}`),
+
   updatePatientRecord: (body: UpdatePatientRecord) => {
     const { id, ...updateBody } = body;
     return http.put<CreateRes>(`/patient/api/v1/patients/${body.id}`, updateBody);

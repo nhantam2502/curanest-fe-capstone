@@ -64,11 +64,13 @@ type EnhancedTask = Task & {
   times: number; // Ánh xạ từ "total-unit"
 };
 
-const DetailAppointment: React.FC = () => {
+const DetailHistoryAppointment: React.FC = () => {
   const params = useParams();
   const patientID = params.id as string;
   const searchParams = useSearchParams();
-  const [appointment, setAppointment] = useState<CusPackageResponse["data"] | null>(null);
+  const [appointment, setAppointment] = useState<
+    CusPackageResponse["data"] | null
+  >(null);
   const [patientData, setPatientData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [patientLoading, setPatientLoading] = useState(true);
@@ -76,10 +78,11 @@ const DetailAppointment: React.FC = () => {
   useEffect(() => {
     const fetchPatientData = async () => {
       if (!patientID) return;
-      
+
       try {
         setPatientLoading(true);
-        const response = await patientApiRequest.getPatientRecordByID(patientID);
+        const response =
+          await patientApiRequest.getPatientRecordByID(patientID);
         setPatientData(response.payload.data);
       } catch (error) {
         console.error("Error fetching patient data:", error);
@@ -102,7 +105,10 @@ const DetailAppointment: React.FC = () => {
 
       try {
         setLoading(true);
-        const response = await appointmentApiRequest.getCusPackage(cusPackageID, estDate);
+        const response = await appointmentApiRequest.getCusPackage(
+          cusPackageID,
+          estDate
+        );
         const data = response.payload.data;
 
         setAppointment(data);
@@ -128,12 +134,12 @@ const DetailAppointment: React.FC = () => {
           duration: `${task["est-duration"]}`,
           times: task["total-unit"],
           staffAdvice: task["staff-advice"], // Đổi thành staffAdvice
-          customerNote: task["client-note"] // Đổi thành customerNote
+          customerNote: task["client-note"], // Đổi thành customerNote
         }))
       );
     }
   }, [appointment]);
-  console.log("updatedTasks: ", updatedTasks)
+  console.log("updatedTasks: ", updatedTasks);
 
   const handleServiceComplete = (taskId: string, nurseNote: string) => {
     setUpdatedTasks((prev) =>
@@ -168,7 +174,7 @@ const DetailAppointment: React.FC = () => {
     patient_name: patientData["full-name"] || "Chưa có thông tin",
     phone_number: patientData["phone-number"] || "N/A",
     birth_date: formatDate(new Date(patientData.dob)) || "N/A",
-    age:  calculateAge(patientData.dob) || "N/A",
+    age: calculateAge(patientData.dob) || "N/A",
     address: patientData.address || "N/A",
     ward: patientData.ward || "N/A",
     district: patientData.district || "N/A",
@@ -192,7 +198,6 @@ const DetailAppointment: React.FC = () => {
         quantity: task["total-unit"],
         staffAdvice: task["staff-advice"],
         clientNote: task["client-note"],
-        
       })),
       totalDuration: `${totalDuration} phút`,
       totalPrice: appointment.package["total-fee"],
@@ -204,8 +209,11 @@ const DetailAppointment: React.FC = () => {
       <Breadcrumb className=" py-5">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/nurse/appointments" className="text-xl">
-              Danh sách cuộc hẹn sắp tới
+            <BreadcrumbLink
+              href="/nurse/appointmentHistory"
+              className="text-xl"
+            >
+              Danh sách lịch sử cuộc hẹn
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator className="text-gray-400" />
@@ -222,7 +230,7 @@ const DetailAppointment: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <PatientProfile appointment={formattedPatientData as any} />
-          
+
           <div>
             <Tabs defaultValue="services" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
@@ -230,7 +238,9 @@ const DetailAppointment: React.FC = () => {
                 <TabsTrigger value="checklist">Danh sách kiểm tra</TabsTrigger>
               </TabsList>
               <TabsContent value="services">
-                <ServicesList servicePackage={formattedPatientData.servicePackage} />
+                <ServicesList
+                  servicePackage={formattedPatientData.servicePackage}
+                />
               </TabsContent>
               <TabsContent value="checklist">
                 <ServiceCheckTask
@@ -246,4 +256,4 @@ const DetailAppointment: React.FC = () => {
   );
 };
 
-export default DetailAppointment;
+export default DetailHistoryAppointment;

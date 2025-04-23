@@ -15,7 +15,7 @@ export default function EditPatientPage() {
   useEffect(() => {
     const fetchProfiles = async () => {
       try {
-        const response = await patientApiRequest.getPatientRecord(); // Fetch all patient records
+        const response = await patientApiRequest.getPatientRecord(); 
         const foundProfile = response.payload.data.find(
           (p: PatientRecord) => p.id === id
         );

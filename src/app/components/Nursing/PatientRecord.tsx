@@ -47,7 +47,8 @@ export interface Appointment {
   ward: string;
   district: string;
   city: string;
-  description: string;
+  "desc-pathology": string;
+  "note-for-nurse": string;
   note?: string;
 }
 
@@ -62,7 +63,7 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
     <Card className="shadow-md">
       <CardContent className="p-6">
         <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-          <Info className="w-5 h-5 text-black-600" />
+          {/* <Info className="w-5 h-5 text-black-600" /> */}
           Thông tin bệnh nhân
         </h3>
 
@@ -114,22 +115,20 @@ export const PatientProfile: React.FC<PatientProfileProps> = ({
           </div>
 
           <div className="p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                <Stethoscope className="w-5 h-5 text-blue-500" />
-                Mô tả bệnh lý
-              </h4>
-              <p>{appointment.description}</p>
-            </div>
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <Stethoscope className="w-5 h-5 text-blue-500" />
+              Mô tả bệnh lý
+            </h4>
+            <p>{appointment["desc-pathology"]}</p>
+          </div>
 
-          {appointment.note && (
-            <div className="p-4 bg-amber-50 rounded-lg">
-              <h4 className="font-semibold mb-2 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 text-amber-600" />
-                Lưu ý
-              </h4>
-              <p className="text-amber-800">{appointment.note}</p>
-            </div>
-          )}
+          <div className="p-4 bg-amber-50 rounded-lg">
+            <h4 className="font-semibold mb-2 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              Lưu ý
+            </h4>
+            <p className="text-amber-800">{appointment["note-for-nurse"]}</p>
+          </div>
         </div>
       </CardContent>
     </Card>

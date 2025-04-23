@@ -11,19 +11,44 @@ export interface AppointmentDummy {
   time_from_to: string;
 }
 
-export interface ScheduleEvent {
+// 
+export type GetAppointment = {
   id: string;
-  title: string;
-  startTime: string;
+  "service-id": string;
+  "cuspackage-id": string;
+  "nursing-id": string;
+  "patient-id": string;
+  "est-date": string;
+  "act-date": string | null;
   status: string;
-  name: string;
-  appointment_date: string;
-  estDate?: string;
-  cusPackageID?: string;
-  patientID?: string;
-}
+  "created-at": string;
+};
+
+export type AppointmentFilter = {
+  "service-id"?: string;
+  "cuspackage-id"?: string;
+  "nursing-id"?: string;
+  "patient-id"?: string;
+  "had-nurse"?: string;
+  "appointment-status"?: string;
+  "est-date-from"?: string;
+  "est-date-to"?: string;
+};
 
 // ----------------------//
+
+// export interface ScheduleEvent {
+//   id: string;
+//   title: string;
+//   startTime: string;
+//   status: string;
+//   name: string;
+//   appointment_date: string;
+//   estDate?: string;
+//   cusPackageID?: string;
+//   patientID?: string;
+// }
+
 export type CreateRes = {
   status: number;
   message: string;
@@ -54,13 +79,28 @@ export interface Appointment {
   "act-date": string;
   status: string;
   "created-at": string;
+  "total-est-duration": number;
   appointment_date?: string;
+  estTimeFrom?: string;
+  estTimeTo?: string;
 }
 
 export type AppointmentRes = {
   success: boolean;
-  message: string;
   data: Appointment[];
+};
+
+export type HistoryAppointmentRes = {
+  data: Appointment[];
+  filters: {
+   "apply-paging"?: boolean;
+  };
+  paging: {
+    page: number;
+    size: number;
+    total: number;
+  };
+  success: boolean;
 };
 
 export type CusPackageResponse = {

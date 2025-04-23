@@ -29,12 +29,24 @@ import Feedback from "./Feedbacks";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import Link from "next/link";
+import NursingCard from "./NursingCard"; // Đảm bảo bạn import đúng component NursingCard
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
+import RelativesNursingCard from "./RelativesNursingCard";
 
-const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; serviceID: string }) => {
+const DetailNurse = ({
+  nurse,
+  serviceID,
+}: {
+  nurse: DetailNurseItemType;
+  serviceID: string;
+}) => {
   const [isMobile, setIsMobile] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [relatedNurses, setRelatedNurses] = useState<DetailNurseItemType[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const params = useParams();
   const serviceIdRaw = params.serviceId;
@@ -43,8 +55,36 @@ const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; service
   const [searchTerm, setSearchTerm] = useState(
     serviceId ? decodeURIComponent(decodeURIComponent(serviceId)) : ""
   );
-  // const searchParams = useSearchParams();
-  // const category = searchParams.get("category") || "";
+
+  // Fetch danh sách điều dưỡng liên quan dựa vào serviceID
+  useEffect(() => {
+    const fetchRelatedNurses = async () => {
+      if (!serviceID) return;
+
+      setIsLoading(true);
+      try {
+        const response = await nurseApiRequest.getListNurse(
+          serviceID,
+          null,
+          1,
+          null
+        );
+
+        // Lọc để loại bỏ điều dưỡng hiện tại khỏi danh sách
+        const filtered = response.payload.data.filter(
+          (item: DetailNurseItemType) => item["nurse-id"] !== nurse["nurse-id"]
+        );
+
+        setRelatedNurses(filtered);
+      } catch (error) {
+        console.error("Error fetching related nurses:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRelatedNurses();
+  }, [serviceID, nurse]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -84,12 +124,11 @@ const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; service
     // Điều hướng tới trang đặt lịch
     router.push(
       `/relatives/findingNurse/${serviceId}/${nurse["nurse-id"]}/bookingNurse?serviceID=${serviceID}`
-      
     );
   };
 
   return (
-    <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen">
+    <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen pb-16">
       {/* Breadcrumb */}
       <Breadcrumb className="px-10 py-10">
         <BreadcrumbList>
@@ -151,19 +190,6 @@ const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; service
                     {nurse["nurse-name"]}
                   </h1>
 
-                  {/* <div className="lg:mt-4 flex items-center justify-center">
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {nurse.services.map((service, index) => (
-                        <span
-                          key={index}
-                          className="bg-[#CCF0F3] text-irisBlueColor py-2 px-4 text-sm lg:text-base font-semibold rounded-lg text-center"
-                        >
-                          {service}
-                        </span>
-                      ))}
-                    </div>
-                  </div> */}
-
                   <div className="flex items-center gap-3 mt-4 mb-4">
                     <StarIcon className="w-6 h-6 fill-yellow-400 text-yellow-200" />
                     <span className="font-semibold text-xl">
@@ -220,14 +246,6 @@ const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; service
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* <div>
-                    <h3 className="font-semibold text-xl mb-3">
-                      Số bệnh nhân đã điều trị
-                    </h3>
-                    <p className="text-4xl font-bold text-[#e5ab47]">
-                      {nurse.totalPatients}+
-                    </p>
-                  </div> */}
                   <div>
                     <h3 className="font-semibold text-xl mb-3">
                       Đánh giá trung bình
@@ -250,51 +268,53 @@ const DetailNurse = ({ nurse, serviceID }: { nurse: DetailNurseItemType; service
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TimeTableNurse />
+              <TimeTableNurse nurseId={nurse["nurse-id"]} />
+
               </CardContent>
             </Card>
-
-            {/* <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Heart className="w-7 h-7 text-[#e5ab47]" />
-                  Dịch vụ chăm sóc
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {nurse.services?.map((service, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-[#e5ab47]" />
-                      <span className="text-xl">{service}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card> */}
           </div>
         </div>
 
         {/* Feedback */}
-
         {/* <Feedback nurse={nurse} /> */}
 
         {/* Related Nurse */}
-        {/* <div className="mt-10 mb-10">
-          <h2 className="text-4xl font-bold mb-5">
-            Xem thêm Điều dưỡng cùng chuyên ngành
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {relatedNurse.map((relatedNurse) => (
-              <Link
-                href={`/guest/nurseList/${relatedNurse.id}`}
-                key={relatedNurse.id}
-              >
-                <NursingCard nurse={relatedNurse} service={searchTerm} />
-              </Link>
-            ))}
+        {isLoading ? (
+          <div className="mt-10 mb-10">
+            <h2 className="text-3xl font-bold mb-5">
+              Đang tải điều dưỡng liên quan...
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="space-y-4">
+                  <Skeleton className="w-full h-40 rounded-lg" />
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
           </div>
-        </div> */}
+        ) : relatedNurses.length > 0 ? (
+          <div className="mt-10 mb-10">
+            <h2 className="text-3xl font-bold mb-5">
+              Điều dưỡng khác liên quan đến dịch vụ: {searchTerm}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 ">
+              {relatedNurses.map((relatedNurse) => (
+                <Link
+                  href={`/relatives/findingNurse/${serviceId}/${relatedNurse["nurse-id"]}?serviceID=${serviceID}`}
+                  key={relatedNurse["nurse-id"]}
+                >
+                  <RelativesNursingCard
+                    nurse={relatedNurse}
+                    service={searchTerm}
+                    serviceID=""
+                  />
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
