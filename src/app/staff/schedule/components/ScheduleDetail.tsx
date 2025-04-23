@@ -90,7 +90,6 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
   onOpenChange,
   event,
 }) => {
-
   const [users, setUsers] = useState<NurseItemType[]>([]);
   const [patientDetails, setPatientDetails] = useState<PatientRecord | null>(
     null
@@ -178,16 +177,14 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
             setPatientFetchError("Dữ liệu bệnh nhân không hợp lệ.");
             setPatientDetails(null);
           }
-        }
-        else if (response.status === 200) {
+        } else if (response.status === 200) {
           console.warn(
             "Patient fetch successful but payload.data missing:",
             response.payload
           );
           setPatientFetchError("Không tìm thấy dữ liệu bệnh nhân.");
           setPatientDetails(null); // Ensure state is cleared
-        }
-        else {
+        } else {
           console.error(
             "Failed to fetch patient details (status !== 200):",
             response
@@ -296,8 +293,8 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                   Tổng thời gian (dự kiến):
                 </span>
                 <span className="ml-1 font-semibold text-gray-800">
-                  {event["total-est-duration"]
-                    ? `${event["total-est-duration"]} phút`
+                  {(event as any)["total-est-duration"]
+                    ? `${(event as any)["total-est-duration"]} phút`
                     : "N/A"}
                 </span>
               </div>
@@ -334,7 +331,7 @@ const EventDetailsDialog: React.FC<EventDetailsDialogProps> = ({
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusClass(event.status)}`}
                 >
-                   {translateStatusToVietnamese(event.status)}
+                  {translateStatusToVietnamese(event.status)}
                 </span>
               </div>
             </div>
