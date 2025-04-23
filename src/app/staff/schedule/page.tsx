@@ -334,7 +334,7 @@ const NurseScheduleCalendar = () => {
   );
 
   const getEventDuration = useCallback((event: GetAppointment): number => {
-    const estimatedDurationMinutes = event["total-est-duration"];
+    const estimatedDurationMinutes = (event as any)["total-est-duration"];
 
     if (
       estimatedDurationMinutes &&
@@ -657,7 +657,7 @@ const NurseScheduleCalendar = () => {
                                       zIndex: 5,
                                     }}
                                     onClick={() => handleEventClick(event)}
-                                    title={`Thời gian: ${startTimeString} (~${event["total-est-duration"] || "?"} phút)\nTrạng thái: ${translateStatusToVietnamese(
+                                    title={`Thời gian: ${startTimeString} (~${(event as any)["total-est-duration"] || "?"} phút)\nTrạng thái: ${translateStatusToVietnamese(
                                       event.status
                                     )}`} // Update title slightly
                                   >
