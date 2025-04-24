@@ -21,19 +21,51 @@ import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
 export const calculateAge = (dateString: string): number => {
   let day: number, month: number, year: number;
+  let today = new Date();
+  let defaultAge = 0;
 
+  // Add validation for empty string or null/undefined
+  if (!dateString) {
+    console.error("Invalid date format: empty date string");
+    return defaultAge;
+  }
+
+  // For dd/mm/yyyy format
   if (dateString.includes("/")) {
-    // Định dạng dd/mm/yyyy
-    [day, month, year] = dateString.split("/").map(Number);
-  } else if (dateString.includes("-")) {
-    // Định dạng yyyy-mm-dd
-    [year, month, day] = dateString.split("-").map(Number);
-  } else {
-    throw new Error("Invalid date format");
+    const parts = dateString.split("/").map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) {
+      console.error("Invalid date format: expected dd/mm/yyyy");
+      return defaultAge;
+    }
+    [day, month, year] = parts;
+  } 
+  // For yyyy-mm-dd format
+  else if (dateString.includes("-")) {
+    const parts = dateString.split("-").map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) {
+      console.error("Invalid date format: expected yyyy-mm-dd");
+      return defaultAge;
+    }
+    [year, month, day] = parts;
+  } 
+  else {
+    console.error("Invalid date format: must contain '/' or '-'");
+    return defaultAge;
+  }
+
+  // Validate date values
+  if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 9999) {
+    console.error("Invalid date values");
+    return defaultAge;
   }
 
   const birthDate = new Date(year, month - 1, day);
-  const today = new Date();
+  
+  // Additional validation to ensure date is valid (e.g., Feb 30 would be invalid)
+  if (birthDate.getDate() !== day) {
+    console.error("Invalid date: day does not exist in specified month");
+    return defaultAge;
+  }
 
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -49,19 +81,62 @@ export const calculateAge = (dateString: string): number => {
 };
 
 const formatDOB = (dob: string): string => {
+  // Giá trị mặc định khi có lỗi
+  const defaultFormat = "";
+  
+  // Kiểm tra nếu chuỗi rỗng hoặc null/undefined
+  if (!dob) {
+    console.error("Invalid date format: empty date string");
+    return defaultFormat;
+  }
+
   if (dob.includes("/")) {
-    // Nếu là định dạng dd/mm/yyyy, giữ nguyên
+    // Kiểm tra định dạng dd/mm/yyyy
+    const parts = dob.split("/").map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) {
+      console.error("Invalid date format: expected dd/mm/yyyy");
+      return defaultFormat;
+    }
+    
+    // Nếu là định dạng dd/mm/yyyy hợp lệ, giữ nguyên
     return dob;
   } else if (dob.includes("-")) {
-    // Nếu là định dạng yyyy-mm-dd, chuyển sang dd/mm/yyyy
-    const date = new Date(dob);
-    const day = date.getDate().toString().padStart(2, "0");
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const year = date.getFullYear().toString();
-
-    return `${day}/${month}/${year}`;
+    // Kiểm tra định dạng yyyy-mm-dd
+    const parts = dob.split("-").map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) {
+      console.error("Invalid date format: expected yyyy-mm-dd");
+      return defaultFormat;
+    }
+    
+    try {
+      // Nếu là định dạng yyyy-mm-dd, chuyển sang dd/mm/yyyy
+      const [year, month, day] = parts;
+      
+      // Kiểm tra tính hợp lệ của ngày tháng
+      if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 9999) {
+        console.error("Invalid date values");
+        return defaultFormat;
+      }
+      
+      // Tạo date object để kiểm tra ngày hợp lệ
+      const date = new Date(year, month - 1, day);
+      if (date.getDate() !== day) {
+        console.error("Invalid date: day does not exist in specified month");
+        return defaultFormat;
+      }
+      
+      // Format lại ngày theo dd/mm/yyyy
+      const formattedDay = day.toString().padStart(2, "0");
+      const formattedMonth = month.toString().padStart(2, "0");
+      
+      return `${formattedDay}/${formattedMonth}/${year}`;
+    } catch (error) {
+      console.error("Error processing date: ", error);
+      return defaultFormat;
+    }
   } else {
-    throw new Error("Invalid date format");
+    console.error("Invalid date format: must contain '/' or '-'");
+    return defaultFormat;
   }
 };
 
