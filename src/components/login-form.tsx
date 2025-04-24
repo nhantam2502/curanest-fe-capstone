@@ -47,6 +47,7 @@ export function LoginForm({
   
       if (result?.error) {
         setError("Thông tin đăng nhập không chính xác."); 
+        console.error("Đăng nhập thất bại:", result.error);
         return;
       }
   
@@ -138,7 +139,7 @@ export function LoginForm({
             </Link>
           </div>
 
-          {error && <div className="text-red-500 text-base">{error}</div>}
+          {error && <div className="text-red-500 text-lg">{error}</div>}
 
           <Button
             type="submit"

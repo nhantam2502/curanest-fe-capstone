@@ -46,8 +46,7 @@ export function RegisterForm() {
   async function onSubmit(values: RegisterInput) {
     try {
       setIsLoading(true);
-
-      // Chuyển đổi dữ liệu từ form sang định dạng API cần
+  
       const registerData: RegisterBodyType = {
         "full-name": values["full-name"],
         email: values.email,
@@ -55,16 +54,21 @@ export function RegisterForm() {
         password: values.password,
         confirmPassword: values.confirmPassword,
       };
-
+  
       const response = await authApiRequest.register(registerData);
       console.log("response register: ", response);
-
+  
+      // Hiển thị thông báo trước
       toast({
         title: "Đăng ký thành công",
         description: "Tài khoản của bạn đã được tạo thành công",
       });
-      
-      router.push(`/auth/signIn?role=${role}`);
+  
+      // Chuyển hướng sau khi thông báo được hiển thị
+      setTimeout(() => {
+        router.push(`/auth/signIn?role=${role}`);
+      }, 2000); // Đợi 2 giây để người dùng thấy thông báo
+  
     } catch (error: any) {
       console.error("Lỗi đăng ký:", error);
       toast({
