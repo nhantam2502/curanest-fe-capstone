@@ -62,7 +62,7 @@ export const ServiceAdjustment: React.FC<Step3Props> = ({
   return (
     <div className="space-y-6 text-lg">
       <h2 className="text-3xl font-bold">Điều chỉnh gói dịch vụ</h2>
-      <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-red-500 mt-[18px]">
+      <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-primary mt-[18px]">
         <Info className="mr-2" />
         Bạn có thể điều chỉnh số lượng hoặc loại bỏ các dịch vụ không cần thiết
       </p>

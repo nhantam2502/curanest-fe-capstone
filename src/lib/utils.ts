@@ -16,6 +16,8 @@ export const getStatusColor = (status: string) => {
       return "bg-green-500";
     case "waiting":
       return "bg-yellow-500";
+    case "confirmed":
+      return "bg-blue-500";
     case "canceled":
       return "bg-red-500";
     default:

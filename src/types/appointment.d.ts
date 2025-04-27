@@ -56,8 +56,11 @@ export type CreateRes = {
 };
 
 export type CreateAppointmentCusPackage = {
-  dates: string[];
-  "nursing-id"?: string;
+  "date-nurse-mappings": {
+    date: string;
+    "nursing-id"?: string;
+  }[];
+  "patient-address": string;
   "patient-id": string;
   "svcpackage-id": string;
   "task-infos": {
@@ -75,6 +78,8 @@ export interface Appointment {
   "cuspackage-id": string;
   "nursing-id": string;
   "patient-id": string;
+  "patient-address": string;
+  "patient-lat-lng": string;
   "est-date": string;
   "act-date": string;
   status: string;

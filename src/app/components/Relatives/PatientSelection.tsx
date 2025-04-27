@@ -6,12 +6,16 @@ interface PatientSelectionProps {
   patients: PatientRecord[];
   selectedPatientId: string | null;
   setSelectedPatientId: (id: string) => void;
+  isFilter?: boolean; // Thêm prop để xác định đây là bộ lọc
+
+  
 }
 
 const PatientSelection = ({
   patients,
   selectedPatientId,
   setSelectedPatientId,
+  isFilter = false, // Giá trị mặc định là false
 }: PatientSelectionProps) => {
   return (
     <div className="flex flex-wrap gap-4 items-center">

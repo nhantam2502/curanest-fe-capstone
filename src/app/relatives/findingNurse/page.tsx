@@ -120,7 +120,6 @@ const ServicesPage = () => {
     serviceID: string,
     categoryID: string
   ) => {
-
     router.push(
       `/relatives/findingNurse/${encodeURIComponent(serviceName)}?category=${encodeURIComponent(category)}&serviceId=${encodeURIComponent(serviceID)}&categoryId=${encodeURIComponent(categoryID)}`
     );
@@ -220,7 +219,12 @@ const ServicesPage = () => {
             </CardHeader>
 
             <CardContent className="p-6">
-              <Accordion type="single" collapsible className="w-full space-y-4">
+              <Accordion
+                type="single"
+                defaultValue="search"
+                collapsible
+                className="w-full space-y-4"
+              >
                 {/* Search Filter */}
                 <AccordionItem value="search" className="border-b-2">
                   <AccordionTrigger className="text-xl py-4">

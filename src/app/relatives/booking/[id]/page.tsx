@@ -227,6 +227,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     // console.log("selectedTime:", selectedTime);
     // console.log("selectedTimes:", selectedTimes);
     // console.log("nurseSelectionMethod:", nurseSelectionMethod);
+    // console.log("select profile: ", selectedProfile)
 
     const isMultiDayPackage =
       selectedPackage?.["combo-days"] && selectedPackage["combo-days"] > 1;
@@ -237,56 +238,61 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     if (
       !selectedServicesTask.length ||
       !hasValidTime ||
-      !nurseSelectionMethod
+      !nurseSelectionMethod ||
+      !selectedProfile
     ) {
       toast({
         variant: "destructive",
         title: "Đặt lịch không thành công",
-        description: "Vui lòng chọn đầy đủ thông tin!",
+        description:
+          "Vui lòng chọn đầy đủ thông tin (dịch vụ, thời gian, hồ sơ bệnh nhân)!",
       });
       return;
     }
 
     try {
-      const convertToUTCString = (dateTime: SelectedDateTime) => {
-        const date = dateTime.date;
-        const startTime = dateTime.timeSlot.start;
-
-        const formattedDate = date.toISOString().split("T")[0];
-        const localDate = new Date(`${formattedDate}T${startTime}:00+07:00`);
-
-        // console.log("date: ", date);
-        // console.log("startTime: ", startTime);
-        // console.log("formattedDate: ", formattedDate);
-        // console.log("localDate: ", localDate);
-
+      const convertToUTCString = (date: Date, startTime: string): string => {
+        const year = date.getFullYear();
+        const month = date.getMonth(); // 0-11
+        const day = date.getDate();
+        
+        const [hours, minutes] = startTime.split(':').map(Number);
+        
+        const localDate = new Date(year, month, day, hours, minutes);
+        
+        console.log("date: ", date);
+        console.log("startTime: ", startTime);
+        console.log("Ngày đã chọn (local): ", `${day}/${month + 1}/${year}`);
+        console.log("localDate: ", localDate);
+        
         if (isNaN(localDate.getTime())) {
           throw new Error("Không thể tạo Date hợp lệ từ date và time");
         }
-
-        const isoString = localDate.toISOString(); // Ví dụ: "2025-03-30T03:00:00.000Z"
-        return isoString.replace(".000Z", "Z"); // Thay .000Z bằng Z để được "2025-03-30T03:00:00Z"
+        
+        // Chuyển đổi thành chuỗi ISO UTC
+        const isoString = localDate.toISOString();
+        return isoString.replace(".000Z", "Z");
       };
+      
+      const dateNurseMappings = isMultiDayPackage
+      ? selectedTimes.map((time) => ({
+          date: convertToUTCString(time.date, time.timeSlot.start),
+        }))
+      : selectedTime !== null
+        ? [
+            {
+              date: convertToUTCString(
+                selectedTime.date,
+                selectedTime.timeSlot.value.split("-")[0]
+              ),
+            },
+          ]
+        : [];
+    console.log("dateNurseMappings: ", dateNurseMappings);
 
-      const datesToSend: string[] = isMultiDayPackage
-        ? selectedTimes.map((time) => convertToUTCString(time))
-        : selectedTime !== null
-          ? [
-              convertToUTCString({
-                date: selectedTime.date,
-                timeSlot: {
-                  start: selectedTime.timeSlot.value.split("-")[0],
-                  end: selectedTime.timeSlot.value.split("-")[1],
-                },
-              }),
-            ]
-          : [];
-
-      // console.log("datesToSend: ", datesToSend);
-
-      // Tạo appointmentData không có nursing-id mặc định
       const appointmentData: CreateAppointmentCusPackage = {
-        dates: datesToSend,
+        "date-nurse-mappings": dateNurseMappings,
+        "patient-address": `${selectedProfile.address},${selectedProfile.ward},${selectedProfile.district},${selectedProfile.city}`,
         "patient-id": patientId,
         "svcpackage-id": selectedPackage?.id ?? "",
         "task-infos": selectedServicesTask.map((service) => {
@@ -304,11 +310,14 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         }),
       };
 
-      // Chỉ thêm nursing-id nếu nurseSelectionMethod là "manual"
       if (nurseSelectionMethod === "manual") {
-        appointmentData["nursing-id"] = selectedNurse?.["nurse-id"] ?? "";
+        appointmentData["date-nurse-mappings"].forEach((mapping) => {
+          mapping["nursing-id"] = selectedNurse?.["nurse-id"] ?? "";
+        });
       }
+
       console.log("appointmentData: ", appointmentData);
+     
       const response =
         await appointmentApiRequest.createAppointmentCusPackage(
           appointmentData
@@ -322,12 +331,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       });
 
       // try {
-      //   const invoiceResponse =
-      //     await appointmentApiRequest.getInvoice(newAppointmentId);
+      //   const invoiceResponse = await appointmentApiRequest.getInvoice(newAppointmentId);
       //   const invoiceData = invoiceResponse.payload.data;
-      //   // console.log("invoiceData: ", invoiceData);
-
-      //   // Chuyển hướng đến URL thanh toán nếu có
       //   if (invoiceData && invoiceData.length > 0) {
       //     router.push(invoiceData[0]["payos-url"]);
       //   }
@@ -752,8 +757,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         );
     }
   };
-
-  console.log("selectedProfile: ", selectedProfile);
 
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed">

@@ -498,7 +498,7 @@ const NurseList = () => {
                     <h3 className="text-xl font-medium text-gray-700 mb-2">
                       Không tìm thấy điều dưỡng
                     </h3>
-                    <p className="text-[18px] text-gray-500">
+                    {/* <p className="text-[18px] text-gray-500">
                       Thử điều chỉnh bộ lọc để xem nhiều kết quả hơn.
                     </p>
                     <Button
@@ -507,7 +507,7 @@ const NurseList = () => {
                       onClick={resetFilters}
                     >
                       Đặt lại bộ lọc
-                    </Button>
+                    </Button> */}
                   </div>
                 )}
 
