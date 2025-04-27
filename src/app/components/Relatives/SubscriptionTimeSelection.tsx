@@ -536,11 +536,11 @@ const getDaysInRange = (): Date[] => {
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-lg text-gray-700">
+                        <p className="text-xl text-gray-700">
                           <span className="font-semibold">Ngày: </span>
                           {getFormattedDate(selectedDate!.date)}
                         </p>
-                        <p className="text-lg text-gray-700">
+                        <p className="text-xl text-gray-700">
                           <span className="font-semibold">Thời gian: </span>
                           {selectedDate!.timeSlot.display}
                         </p>                      
