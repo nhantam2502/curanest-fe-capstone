@@ -11,6 +11,7 @@ import {
   Clipboard,
   Search,
   X,
+  BabyIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ServiceItem, TransformedCategory } from "@/types/service";
@@ -20,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const categoryIcons: { [key: string]: React.ReactNode } = {
-  "Chăm sóc cho bé yêu": <Baby className="w-7 h-7 text-pink-500" />,
+  "Chăm sóc Mẹ và Bé": <BabyIcon className="w-7 h-7 text-pink-500" />,
   "Chăm sóc cơ bản": <Heart className="w-7 h-7 text-blue-500" />,
   "Y tế tại nhà": <Home className="w-7 h-7 text-green-500" />,
   "Phục hồi chức năng": <ActivitySquare className="w-7 h-7 text-purple-500" />,
@@ -85,7 +86,7 @@ export const ServiceCategorySelection: React.FC<Step1Props> = ({
   return (
     <div className="space-y-6 text-lg">
       <h2 className="text-4xl font-bold">Chọn loại dịch vụ</h2>
-      <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-red-500 mt-[18px]">
+      <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-primary mt-[18px]">
         <Info className="mr-2" />
         Chọn loại dịch vụ phù hợp với nhu cầu của bạn
       </p>
@@ -173,7 +174,7 @@ export const ServiceCategorySelection: React.FC<Step1Props> = ({
                 <div className="flex items-center mb-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mr-4">
                     {categoryIcons[category.name] || (
-                      <Info className="w-7 h-7 text-primary" />
+                      <BabyIcon className="w-7 h-7 text-primary" />
                     )}
                   </div>
                   <h3 className="text-2xl font-semibold">{category.name}</h3>

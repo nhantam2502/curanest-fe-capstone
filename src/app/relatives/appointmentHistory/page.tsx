@@ -37,6 +37,7 @@ interface AppointmentProp {
   time_from_to: string;
   apiData: Appointment;
   cusPackage?: CusPackageResponse | null;
+  patientInfo?: PatientRecord | null; // Thêm thông tin bệnh nhân vào prop
 }
 
 const AppointmentHistory = () => {
@@ -120,8 +121,6 @@ const AppointmentHistory = () => {
 
   useEffect(() => {
     const fetchAppointments = async () => {
-      if (!selectedPatientId) return;
-
       try {
         setIsLoading(true);
         const estDateFrom = selectedDay
@@ -131,7 +130,7 @@ const AppointmentHistory = () => {
         const response = await appointmentApiRequest.getHistoryAppointment(
           currentPage,
           undefined,
-          selectedPatientId,
+          undefined, // Giờ đây có thể là null nếu không chọn bệnh nhân
           estDateFrom
         );
 
@@ -145,6 +144,7 @@ const AppointmentHistory = () => {
           const formattedAppointmentsPromises = response.payload.data.map(
             async (appointment: Appointment) => {
               const nursingId = appointment["nursing-id"];
+              const patientId = appointment["patient-id"];
 
               const matchedNurse = nurses.find((nurse) => {
                 const nurseMatches =
@@ -152,9 +152,15 @@ const AppointmentHistory = () => {
                 return nurseMatches;
               });
 
+              // Tìm thông tin bệnh nhân
+              const patientInfo = patients.find(
+                (patient) => String(patient.id) === String(patientId)
+              );
+
               return await transformAppointment(
                 appointment,
-                matchedNurse || null
+                matchedNurse || null,
+                patientInfo || null
               );
             }
           );
@@ -174,12 +180,14 @@ const AppointmentHistory = () => {
       }
     };
 
+    // Gọi API lấy lịch sử cuộc hẹn mỗi khi filter thay đổi
     fetchAppointments();
-  }, [selectedPatientId, monthFilter, selectedDay, currentPage]);
+  }, [selectedPatientId, monthFilter, selectedDay, currentPage, patients.length, nurses.length]);
 
   const transformAppointment = async (
     appointment: Appointment,
-    matchedNurse: NurseItemType | null
+    matchedNurse: NurseItemType | null,
+    patientInfo: PatientRecord | null
   ): Promise<AppointmentProp> => {
     // Extract time information from appointment
     const estDate = appointment["est-date"];
@@ -229,6 +237,7 @@ const AppointmentHistory = () => {
         estTimeTo: formattedEndTime,
         totalPrice: cusPackage?.data?.price || undefined,
         status: appointment.status,
+        patientName: patientInfo ? patientInfo["full-name"] : "Không có thông tin", // Thêm tên bệnh nhân
       },
     }));
 
@@ -237,6 +246,7 @@ const AppointmentHistory = () => {
       time_from_to: formattedTime,
       apiData: appointment,
       cusPackage: cusPackage,
+      patientInfo: patientInfo,
     };
   };
 
@@ -358,232 +368,238 @@ const AppointmentHistory = () => {
             </h2>
           </div>
 
-          {/* Patient Selection Component */}
+          {/* Patient Selection Component - Hiện tại sẽ dùng để lọc theo bệnh nhân */}
           <PatientSelection
             patients={patients}
             selectedPatientId={selectedPatientId}
             setSelectedPatientId={setSelectedPatientId}
+            isFilter={true} // Thêm prop để biết đây là bộ lọc
           />
         </div>
 
-        {selectedPatientId ? (
-          <>
-            {/* Month Filter Component */}
-            <MonthFilter
-              currentYear={currentYear}
-              currentMonthIndex={currentMonthIndex}
-              selectedDay={selectedDay}
-              handleMonthChange={handleMonthChange}
-              handleDayChange={handleDayChange}
-            />
+        {/* Month Filter Component */}
+        <MonthFilter
+          currentYear={currentYear}
+          currentMonthIndex={currentMonthIndex}
+          selectedDay={selectedDay}
+          handleMonthChange={handleMonthChange}
+          handleDayChange={handleDayChange}
+        />
 
-            {loadingNurses && (
-              <div className="mb-4 p-4 bg-blue-50 rounded-md">
-                <p className="text-blue-600 text-lg">
-                  Đang tải thông tin điều dưỡng...
-                </p>
-              </div>
-            )}
-
-            {nurseError && (
-              <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
-                <p className="text-red-600 text-lg">{nurseError}</p>
-              </div>
-            )}
-
-            {appointmentError && (
-              <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
-                <p className="text-red-600 text-lg">{appointmentError}</p>
-              </div>
-            )}
-            {/* Appointments Table */}
-            <div className="rounded-md border shadow-sm">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-semibold text-xl">
-                      Điều dưỡng
-                    </TableHead>
-                    <TableHead className="font-semibold text-xl">
-                      Tổng tiền
-                    </TableHead>
-                    <TableHead className="font-semibold text-xl">
-                      Ngày hẹn
-                    </TableHead>
-                    <TableHead className="font-semibold text-xl">
-                      Thời gian
-                    </TableHead>
-                    <TableHead className="font-semibold text-xl text-center">
-                      Trạng thái
-                    </TableHead>
-                    <TableHead className="font-semibold text-xl text-center">
-                      Thao tác
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        <p className="text-gray-600 text-lg">
-                          Đang tải dữ liệu lịch sử cuộc hẹn...
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ) : appointmentError ? (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        <p className="text-red-600 text-lg">
-                          {appointmentError}
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  ) : appointments.length > 0 ? (
-                    appointments.map((appointment) => {
-                      const details =
-                        appointment.apiData && appointment.apiData.id
-                          ? appointmentDetails[appointment.apiData.id]
-                          : null;
-                      return (
-                        <TableRow key={appointment.apiData.id}>
-                          <TableCell className="text-lg font-semibold">
-                            {details.nursingName}
-                          </TableCell>
-
-                          <TableCell className="font-semibold text-red-500 text-lg">
-                            {`${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND`}
-                          </TableCell>
-                          <TableCell className="text-lg">
-                            {formatDate(
-                              new Date(appointment.apiData["est-date"])
-                            )}
-                          </TableCell>
-                          <TableCell className="text-lg">
-                            {`${details.estTimeFrom} - ${details.estTimeTo}`}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge
-                              className={`${getStatusColor(appointment.apiData.status)} hover:${getStatusColor(appointment.apiData.status)} text-white text-lg`}
-                            >
-                              {getStatusText(appointment.apiData.status)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-2 justify-center">
-                              <Button
-                                variant="outline"
-                                size="default"
-                                onClick={() => handleViewDetail(appointment)}
-                                className="flex items-center text-lg"
-                              >
-                                <Eye className="mr-1 h-4 w-4" /> Chi tiết
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="default"
-                                onClick={() =>
-                                  handleViewMedicalReport(appointment)
-                                }
-                                className="flex items-center text-blue-600 text-lg"
-                              >
-                                <FileText className="mr-1 h-4 w-4" /> Báo cáo
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="default"
-                                onClick={() => handleSendFeedback(appointment)}
-                                className="flex items-center text-green-600 text-lg"
-                              >
-                                <MessageCircle className="mr-1 h-4 w-4" /> Đánh
-                                giá
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
-                        <p className="text-gray-600 text-lg">
-                          Không có lịch sử cuộc hẹn nào trong thời gian đã chọn
-                        </p>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {appointments.length > 0 && (
-                <div className="py-4 border-t">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() =>
-                            currentPage > 1 && handlePageChange(currentPage - 1)
-                          }
-                          className={
-                            currentPage === 1
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-
-                      {getPageNumbers().map((pageNumber, index) =>
-                        pageNumber === null ? (
-                          <PaginationItem key={`ellipsis-${index}`}>
-                            <PaginationEllipsis />
-                          </PaginationItem>
-                        ) : (
-                          <PaginationItem key={`page-${pageNumber}`}>
-                            <PaginationLink
-                              isActive={currentPage === pageNumber}
-                              onClick={() =>
-                                handlePageChange(pageNumber as number)
-                              }
-                              className="cursor-pointer"
-                            >
-                              {pageNumber}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )
-                      )}
-
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() =>
-                            currentPage < totalPages &&
-                            handlePageChange(currentPage + 1)
-                          }
-                          className={
-                            currentPage === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : "cursor-pointer"
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-
-                  <div className="text-center mt-4 text-gray-500">
-                    Trang {currentPage} / {totalPages} • Hiển thị{" "}
-                    {appointments.length} cuộc hẹn
-                  </div>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          <div className="text-center py-12 flex-1 flex items-center justify-center min-h-[50vh]">
-            <p className="text-gray-600 text-xl font-medium">
-              Vui lòng chọn hồ sơ bệnh nhân để xem lịch sử cuộc hẹn
+        {loadingNurses && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-md">
+            <p className="text-blue-600 text-lg">
+              Đang tải thông tin điều dưỡng...
             </p>
           </div>
         )}
+
+        {nurseError && (
+          <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+            <p className="text-red-600 text-lg">{nurseError}</p>
+          </div>
+        )}
+
+        {appointmentError && (
+          <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+            <p className="text-red-600 text-lg">{appointmentError}</p>
+          </div>
+        )}
+        
+        {/* Appointments Table */}
+        <div className="rounded-md border shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="font-semibold text-xl">
+                  Điều dưỡng
+                </TableHead>
+                <TableHead className="font-semibold text-xl">
+                  Bệnh nhân
+                </TableHead>
+                <TableHead className="font-semibold text-xl">
+                  Tổng tiền
+                </TableHead>
+                <TableHead className="font-semibold text-xl">
+                  Ngày hẹn
+                </TableHead>
+                <TableHead className="font-semibold text-xl">
+                  Thời gian
+                </TableHead>
+                <TableHead className="font-semibold text-xl text-center">
+                  Trạng thái
+                </TableHead>
+                <TableHead className="font-semibold text-xl text-center">
+                  Thao tác
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-gray-600 text-lg">
+                      Đang tải dữ liệu lịch sử cuộc hẹn...
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : appointmentError ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-red-600 text-lg">
+                      {appointmentError}
+                    </p>
+                  </TableCell>
+                </TableRow>
+              ) : appointments.length > 0 ? (
+                appointments.map((appointment) => {
+                  const details =
+                    appointment.apiData && appointment.apiData.id
+                      ? appointmentDetails[appointment.apiData.id]
+                      : null;
+                  return (
+                    <TableRow key={appointment.apiData.id}>
+                      <TableCell className="text-lg font-semibold">
+                        {details?.nursingName}
+                      </TableCell>
+                      
+                      {/* Hiển thị tên bệnh nhân */}
+                      <TableCell className="text-lg font-semibold">
+                        {details?.patientName || "Không có thông tin"}
+                      </TableCell>
+
+                      <TableCell className="font-semibold text-red-500 text-lg">
+                        {appointment.cusPackage?.data.package["total-fee"] 
+                          ? `${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND` 
+                          : "Không có thông tin"}
+                      </TableCell>
+                      
+                      <TableCell className="text-lg">
+                        {formatDate(
+                          new Date(appointment.apiData["est-date"])
+                        )}
+                      </TableCell>
+                      
+                      <TableCell className="text-lg">
+                        {details ? `${details.estTimeFrom} - ${details.estTimeTo}` : "Không có thông tin"}
+                      </TableCell>
+                      
+                      <TableCell className="text-center">
+                        <Badge
+                          className={`${getStatusColor(appointment.apiData.status)} hover:${getStatusColor(appointment.apiData.status)} text-white text-lg`}
+                        >
+                          {getStatusText(appointment.apiData.status)}
+                        </Badge>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="flex space-x-2 justify-center">
+                          <Button
+                            variant="outline"
+                            size="default"
+                            onClick={() => handleViewDetail(appointment)}
+                            className="flex items-center text-lg"
+                          >
+                            <Eye className="mr-1 h-4 w-4" /> Chi tiết
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="default"
+                            onClick={() =>
+                              handleViewMedicalReport(appointment)
+                            }
+                            className="flex items-center text-blue-600 text-lg"
+                          >
+                            <FileText className="mr-1 h-4 w-4" /> Báo cáo
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="default"
+                            onClick={() => handleSendFeedback(appointment)}
+                            className="flex items-center text-green-600 text-lg"
+                          >
+                            <MessageCircle className="mr-1 h-4 w-4" /> Đánh
+                            giá
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-gray-600 text-lg">
+                      Không có lịch sử cuộc hẹn nào trong thời gian đã chọn
+                    </p>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+
+          {/* Pagination */}
+          {appointments.length > 0 && (
+            <div className="py-4 border-t">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() =>
+                        currentPage > 1 && handlePageChange(currentPage - 1)
+                      }
+                      className={
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+
+                  {getPageNumbers().map((pageNumber, index) =>
+                    pageNumber === null ? (
+                      <PaginationItem key={`ellipsis-${index}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={`page-${pageNumber}`}>
+                        <PaginationLink
+                          isActive={currentPage === pageNumber}
+                          onClick={() =>
+                            handlePageChange(pageNumber as number)
+                          }
+                          className="cursor-pointer"
+                        >
+                          {pageNumber}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        currentPage < totalPages &&
+                        handlePageChange(currentPage + 1)
+                      }
+                      className={
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : "cursor-pointer"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+
+              <div className="text-center mt-4 text-gray-500">
+                Trang {currentPage} / {totalPages} • Hiển thị{" "}
+                {appointments.length} cuộc hẹn
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Detail Dialog */}
@@ -596,7 +612,14 @@ const AppointmentHistory = () => {
             (nurse) =>
               nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
           )}
-          patient={patients[0]}
+          patient={
+            selectedAppointment.patientInfo ||
+            patients.find(
+              (patient) =>
+                patient.id === selectedAppointment.apiData["patient-id"]
+            ) ||
+            ({} as PatientRecord) // Provide a fallback empty object casted as PatientRecord
+          }
         />
       )}
 

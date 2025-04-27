@@ -195,7 +195,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
   return (
     <div className="space-y-6 text-lg">
       <h2 className="text-4xl font-bold">Chọn gói dịch vụ</h2>
-      <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-red-500 mt-[18px]">
+      <p className="flex items-center justify-center text-[18px] leading-[30px] font-[400] text-primary mt-[18px]">
         <Info className="mr-2" /> Mỗi đơn hàng chỉ được chọn một gói dịch vụ
       </p>
 
@@ -222,7 +222,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                   : "text-gray-500"
               }`}
               onClick={() => handleServiceTypeChange("oneTime")}
-              disabled={!hasOneTimeData}
+              // disabled={!hasOneTimeData}
             >
               Gói dịch vụ sử dụng 1 lần
             </button>
@@ -233,7 +233,7 @@ export const ServicePackageSelection: React.FC<Step2Props> = ({
                   : "text-gray-500"
               }`}
               onClick={() => handleServiceTypeChange("subscription")}
-              disabled={!hasSubscriptionData}
+              // disabled={!hasSubscriptionData}
             >
               Gói dịch vụ áp dụng nhiều ngày
             </button>

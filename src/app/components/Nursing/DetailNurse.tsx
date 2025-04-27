@@ -30,7 +30,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import NursingCard from "./NursingCard"; // Đảm bảo bạn import đúng component NursingCard
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import RelativesNursingCard from "./RelativesNursingCard";
 

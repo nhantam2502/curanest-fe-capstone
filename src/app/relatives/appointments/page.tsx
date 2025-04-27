@@ -300,9 +300,9 @@ const AppointmentPage: React.FC = () => {
         {/* Show calendar and appointments only after patient selection */}
         {selectedPatientId ? (
           <>
-            <div className="bg-amber-50 rounded-lg p-4 my-6 flex items-center justify-center text-[18px] leading-[30px] font-medium text-amber-700">
+            <div className="bg-amber-50 rounded-lg p-4 my-6 flex items-center justify-center text-xl leading-[30px] font-medium text-amber-700">
               <Info className="mr-3 h-6 w-6 flex-shrink-0" />
-              <span>Những ngày nào có lịch hẹn sẽ được tô vàng lên</span>
+              <span>Lịch hẹn sẽ được tô vàng</span>
             </div>
 
             {/* Main Content - Side by Side Layout */}
