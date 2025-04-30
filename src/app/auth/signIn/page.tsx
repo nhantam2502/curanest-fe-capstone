@@ -68,7 +68,7 @@ const LoginPage = () => {
         animate={{ x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="absolute top-[20%] left-[10%] z-10 flex flex-col">
+        {/* <div className="absolute top-[20%] left-[10%] z-10 flex flex-col">
           <p className="text_para text-white drop-shadow-lg">
             Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eligendi
             nam dolorum aliquam, quibusdam aperiam voluptatum.
@@ -76,7 +76,7 @@ const LoginPage = () => {
           <div className="mt-4">
             <QrCode size={128} className="text-white" />
           </div>
-        </div>
+        </div> */}
         <img
           src="https://png.pngtree.com/thumb_back/fw800/background/20230117/pngtree-nurturing-asian-nurse-providing-care-for-patients-and-elderly-adults-in-home-settingsemphasizing-the-concept-of-athome-nursing-photo-image_49286924.jpg"
           alt=""
