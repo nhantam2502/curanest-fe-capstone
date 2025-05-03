@@ -62,9 +62,10 @@ const NursingCard: React.FC<NursingCardProps> = ({
         {/* Workplace */}
         <div className="flex items-center justify-center">
           <Hospital className="w-5 h-5 mr-2 text-red-500 flex-shrink-0" />
-          <p className="text-base text-gray-600">
-            {nurse["current-work-place"]}
-          </p>
+          <div className="text-base text-gray-600">
+  {nurse["current-work-place"]}
+</div>
+
         </div>
       </CardContent>
     </Card>

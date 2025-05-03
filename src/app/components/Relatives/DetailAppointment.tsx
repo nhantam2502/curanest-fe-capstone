@@ -147,6 +147,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   nurse,
   patient,
 }) => {
+
   const router = useRouter();
   const packageData = appointment.cusPackage?.data?.package;
   const tasks = appointment.cusPackage?.data?.tasks || [];

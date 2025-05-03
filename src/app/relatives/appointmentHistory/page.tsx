@@ -34,7 +34,8 @@ import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { formatDate, getStatusColor, getStatusText } from "@/lib/utils";
 
 interface AppointmentProp {
-  time_from_to: string;
+  estTimeFrom: string;
+  estTimeTo: string;
   apiData: Appointment;
   cusPackage?: CusPackageResponse | null;
   patientInfo?: PatientRecord | null; // Thêm thông tin bệnh nhân vào prop
@@ -76,7 +77,7 @@ const AppointmentHistory = () => {
   // Thêm state cho phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-
+  const pageSize = 10; // Mặc định hiển thị 10 mục trên mỗi trang
   useEffect(() => {
     const fetchPatients = async () => {
       try {
@@ -129,17 +130,14 @@ const AppointmentHistory = () => {
 
         const response = await appointmentApiRequest.getHistoryAppointment(
           currentPage,
+          pageSize,
           undefined,
-          undefined, // Giờ đây có thể là null nếu không chọn bệnh nhân
+          selectedPatientId || undefined,
           estDateFrom
         );
 
         if (response.payload && response.payload.success) {
-          setTotalPages(
-            Math.ceil(
-              response.payload.paging.total / response.payload.paging.size
-            )
-          );
+          setTotalPages(response.payload.paging.total);
 
           const formattedAppointmentsPromises = response.payload.data.map(
             async (appointment: Appointment) => {
@@ -179,10 +177,16 @@ const AppointmentHistory = () => {
         setIsLoading(false);
       }
     };
-
     // Gọi API lấy lịch sử cuộc hẹn mỗi khi filter thay đổi
     fetchAppointments();
-  }, [selectedPatientId, monthFilter, selectedDay, currentPage, patients.length, nurses.length]);
+  }, [
+    selectedPatientId,
+    monthFilter,
+    selectedDay,
+    currentPage,
+    patients.length,
+    nurses.length,
+  ]);
 
   const transformAppointment = async (
     appointment: Appointment,
@@ -237,13 +241,16 @@ const AppointmentHistory = () => {
         estTimeTo: formattedEndTime,
         totalPrice: cusPackage?.data?.price || undefined,
         status: appointment.status,
-        patientName: patientInfo ? patientInfo["full-name"] : "Không có thông tin", // Thêm tên bệnh nhân
+        patientName: patientInfo
+          ? patientInfo["full-name"]
+          : "Không có thông tin", // Thêm tên bệnh nhân
       },
     }));
 
     // Return formatted appointment data
     return {
-      time_from_to: formattedTime,
+      estTimeFrom: formattedTime,
+      estTimeTo: formattedEndTime,
       apiData: appointment,
       cusPackage: cusPackage,
       patientInfo: patientInfo,
@@ -356,6 +363,7 @@ const AppointmentHistory = () => {
     return pageNumbers;
   };
 
+  console.log("selectedAppointment meow:", selectedAppointment);
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
       <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col ">
@@ -405,7 +413,7 @@ const AppointmentHistory = () => {
             <p className="text-red-600 text-lg">{appointmentError}</p>
           </div>
         )}
-        
+
         {/* Appointments Table */}
         <div className="rounded-md border shadow-sm">
           <Table>
@@ -447,9 +455,7 @@ const AppointmentHistory = () => {
               ) : appointmentError ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
-                    <p className="text-red-600 text-lg">
-                      {appointmentError}
-                    </p>
+                    <p className="text-red-600 text-lg">{appointmentError}</p>
                   </TableCell>
                 </TableRow>
               ) : appointments.length > 0 ? (
@@ -463,28 +469,28 @@ const AppointmentHistory = () => {
                       <TableCell className="text-lg font-semibold">
                         {details?.nursingName}
                       </TableCell>
-                      
+
                       {/* Hiển thị tên bệnh nhân */}
                       <TableCell className="text-lg font-semibold">
                         {details?.patientName || "Không có thông tin"}
                       </TableCell>
 
                       <TableCell className="font-semibold text-red-500 text-lg">
-                        {appointment.cusPackage?.data.package["total-fee"] 
-                          ? `${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND` 
+                        {appointment.cusPackage?.data.package["total-fee"]
+                          ? `${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND`
                           : "Không có thông tin"}
                       </TableCell>
-                      
+
                       <TableCell className="text-lg">
-                        {formatDate(
-                          new Date(appointment.apiData["est-date"])
-                        )}
+                        {formatDate(new Date(appointment.apiData["est-date"]))}
                       </TableCell>
-                      
+
                       <TableCell className="text-lg">
-                        {details ? `${details.estTimeFrom} - ${details.estTimeTo}` : "Không có thông tin"}
+                        {details
+                          ? `${details.estTimeFrom} - ${details.estTimeTo}`
+                          : "Không có thông tin"}
                       </TableCell>
-                      
+
                       <TableCell className="text-center">
                         <Badge
                           className={`${getStatusColor(appointment.apiData.status)} hover:${getStatusColor(appointment.apiData.status)} text-white text-lg`}
@@ -492,7 +498,7 @@ const AppointmentHistory = () => {
                           {getStatusText(appointment.apiData.status)}
                         </Badge>
                       </TableCell>
-                      
+
                       <TableCell>
                         <div className="flex space-x-2 justify-center">
                           <Button
@@ -506,9 +512,7 @@ const AppointmentHistory = () => {
                           <Button
                             variant="outline"
                             size="default"
-                            onClick={() =>
-                              handleViewMedicalReport(appointment)
-                            }
+                            onClick={() => handleViewMedicalReport(appointment)}
                             className="flex items-center text-blue-600 text-lg"
                           >
                             <FileText className="mr-1 h-4 w-4" /> Báo cáo
@@ -519,8 +523,7 @@ const AppointmentHistory = () => {
                             onClick={() => handleSendFeedback(appointment)}
                             className="flex items-center text-green-600 text-lg"
                           >
-                            <MessageCircle className="mr-1 h-4 w-4" /> Đánh
-                            giá
+                            <MessageCircle className="mr-1 h-4 w-4" /> Đánh giá
                           </Button>
                         </div>
                       </TableCell>
@@ -566,9 +569,7 @@ const AppointmentHistory = () => {
                       <PaginationItem key={`page-${pageNumber}`}>
                         <PaginationLink
                           isActive={currentPage === pageNumber}
-                          onClick={() =>
-                            handlePageChange(pageNumber as number)
-                          }
+                          onClick={() => handlePageChange(pageNumber as number)}
                           className="cursor-pointer"
                         >
                           {pageNumber}

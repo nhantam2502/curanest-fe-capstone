@@ -4,6 +4,7 @@ import { Calendar, Clock, FileText, User } from "lucide-react";
 import { NurseItemType } from "@/types/nurse";
 import { ServiceTaskType } from "@/types/service";
 import { PatientRecord } from "@/types/patient";
+import { SelectedDateTime } from "@/app/components/Relatives/SubscriptionTimeSelection";
 
 interface OrderConfirmationProps {
   nurseSelectionMethod?: "manual" | "auto";
@@ -15,10 +16,7 @@ interface OrderConfirmationProps {
     timeSlot: { display: string; value: string };
     date: Date | string;
   } | null;
-  selectedTimes: Array<{
-    date: Date | string;
-    timeSlot: { display?: string; value?: string };
-  }>;
+  selectedTimes: SelectedDateTime[];
   selectedPackage: {
     id: string;
     name: string;
@@ -28,9 +26,6 @@ interface OrderConfirmationProps {
   } | null;
   calculateTotalTime: () => number;
   calculateTotalPrice: () => number;
-  setCurrentStep: (step: number) => void;
-  toast: any;
-  router: any;
   serviceNotes?: { [key: string]: string };
   selectedProfile?: PatientRecord | null;
 }
@@ -45,9 +40,6 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
   selectedPackage,
   calculateTotalPrice,
   calculateTotalTime,
-  setCurrentStep,
-  toast,
-  router,
   serviceNotes = {},
   selectedProfile,
 }) => {
@@ -55,6 +47,28 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
     selectedPackage &&
     selectedPackage["combo-days"] &&
     selectedPackage["combo-days"] > 1;
+
+  // Hàm lấy danh sách tên điều dưỡng đã chọn
+  const getSelectedNurseNames = () => {
+    const nurseNames: string[] = [];
+
+    // Trường hợp gói một buổi
+    if (selectedNurse) {
+      nurseNames.push(selectedNurse["nurse-name"]);
+    }
+
+    // Trường hợp gói nhiều buổi
+    if (selectedTimes && selectedTimes.length > 0) {
+      selectedTimes.forEach((timeItem) => {
+        if (timeItem.nurse && timeItem.nurse["nurse-name"]) {
+          nurseNames.push(timeItem.nurse["nurse-name"]);
+        }
+      });
+    }
+
+    // Loại bỏ trùng lặp và trả về danh sách
+    return Array.from(new Set(nurseNames));
+  };
 
   return (
     <div className="space-y-6 text-lg">
@@ -189,20 +203,26 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
           )}
         </div>
 
-        <Separator className="my-6" />
+        {/* <Separator className="my-6" /> */}
 
-        {/* Hiển thị điều dưỡng đã chọn */}
-        {selectedNurse && (
-          <div className="mb-6">
-            <h3 className="text-2xl font-semibold mb-3">Điều dưỡng đã chọn</h3>
-            <div className="text-xl text-gray-800 bg-gray-50 p-3 rounded-lg">
-              <div className="flex items-center ">
-                <User className="mr-2 text-gray-500" size={20} />
-                <span>{selectedNurse["nurse-name"]}</span>
-              </div>
-            </div>
+        {/* Hiển thị danh sách điều dưỡng đã chọn */}
+        {/* <div className="mb-6">
+          <h3 className="text-2xl font-semibold mb-3">Danh sách điều dưỡng đã chọn</h3>
+          <div className="bg-gray-50 p-4 rounded-lg space-y-2 text-xl">
+            {getSelectedNurseNames().length > 0 ? (
+              getSelectedNurseNames().map((nurseName, index) => (
+                <div key={index} className="flex items-center space-x-2 text-gray-800">
+                  <User className="text-gray-500" size={20} />
+                  <span>{nurseName}</span>
+                </div>
+              ))
+            ) : (
+              <span className="text-gray-500 italic">Chưa chọn điều dưỡng</span>
+            )}
           </div>
-        )}
+        </div> */}
+
+        <Separator className="my-6" />
 
         {/* Hiển thị thời gian đã chọn - cho gói một lần */}
         {!isSubscription && selectedTime && (
@@ -210,18 +230,33 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
             <h3 className="text-2xl font-semibold mb-3">Thời gian đã chọn</h3>
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="text-lg text-gray-800 space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Calendar className="text-primary" size={20} />
-                  <span className="text-xl">
+                <div className="flex items-center space-x-2 text-xl">
+                  <Calendar className="text-primary" size={22} />
+                  <span>
                     {typeof selectedTime.date === "string"
                       ? selectedTime.date
-                      : selectedTime.date.toLocaleDateString()}
+                      : new Date(selectedTime.date).toLocaleDateString(
+                          "vi-VN",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          }
+                        )}
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="text-primary" size={20} />
-                  <span className="text-xl">
+                <div className="flex items-center space-x-2 text-xl">
+                  <Clock className="text-primary" size={22} />
+                  <span>
                     {selectedTime.timeSlot.display}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 mt-2 text-gray-800 text-xl">
+                  <User className="text-primary" size={22} />
+                  <span>
+                    {selectedNurse
+                      ? selectedNurse["nurse-name"]
+                      : "Chưa chọn điều dưỡng"}
                   </span>
                 </div>
               </div>
@@ -229,7 +264,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
           </div>
         )}
 
-        {/* Hiển thị danh sách thời gian đã chọn - cho gói subscription */}
+        {/* Hiển thị danh sách thời gian và điều dưỡng đã chọn - cho gói subscription */}
         {isSubscription && selectedTimes && selectedTimes.length > 0 && (
           <div className="mt-4 mb-6">
             <h3 className="text-2xl font-semibold mb-3">
@@ -257,12 +292,24 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
                       <Clock className="text-primary" size={18} />
                       <span>{timeItem.timeSlot.display}</span>
                     </div>
+                    <div className="flex items-center space-x-2 mt-2 text-gray-800">
+                      <User className="text-primary" size={18} />
+                      <span>
+                        {timeItem.nurse
+                          ? timeItem.nurse["nurse-name"]
+                          : selectedNurse
+                            ? selectedNurse["nurse-name"]
+                            : "Chưa chọn điều dưỡng"}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           </div>
         )}
+
+        <Separator className="my-6" />
 
         {/* Hiển thị tổng tiền */}
         <div className="mt-6 border-t border-gray-200 pt-5 rounded-lg bg-gray-50 p-4 shadow-sm">
@@ -317,7 +364,7 @@ export const OrderConfirmationComponent: React.FC<OrderConfirmationProps> = ({
             {(selectedPackage?.["combo-days"] ?? 0) > 1 && (
               <div className="flex justify-between items-center border-t border-gray-200 pt-4">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  Tổng tiền combo ({selectedPackage?.["combo-days"]}  buổi):
+                  Tổng tiền combo ({selectedPackage?.["combo-days"]} buổi):
                 </h3>
                 <div className="flex flex-col items-end">
                   {selectedPackage &&

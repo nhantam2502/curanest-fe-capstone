@@ -3,6 +3,7 @@ import { OrderConfirmationComponent } from "./Step7";
 import { NurseItemType } from "@/types/nurse";
 import { ServiceTaskType } from "@/types/service";
 import { PatientRecord } from "@/types/patient";
+import { SelectedDateTime } from "./SubscriptionTimeSelection";
 
 interface Step6Props {
   nurseSelectionMethod: "manual" | "auto";
@@ -20,10 +21,8 @@ interface Step6Props {
     date: Date | string;
   } | null;
 
-  selectedTimes: Array<{
-    date: Date | string;
-    timeSlot: { display?: string; value?: string };
-  }>;
+    selectedTimes: SelectedDateTime[];
+  
   selectedPackage: {
     id: string;
     name: string;
@@ -31,9 +30,6 @@ interface Step6Props {
     discount: number;
     [key: string]: any;
   } | null;
-  setCurrentStep: (step: number) => void;
-  toast: any;
-  router: any;
   serviceNotes?: { [key: string]: string };
   selectedProfile?: PatientRecord | null;
 }
@@ -48,10 +44,7 @@ export const Step6Component: React.FC<Step6Props> = ({
   selectedNurse,
   selectedTimes,
   selectedTime,
-  setCurrentStep,
   selectedPackage,
-  toast,
-  router,
   serviceNotes,
   selectedProfile,
 }) => {
@@ -67,9 +60,6 @@ export const Step6Component: React.FC<Step6Props> = ({
       nurseSelectionMethod={nurseSelectionMethod}
       calculateTotalPrice={calculateTotalPrice}
       calculateTotalTime={calculateTotalTime}
-      setCurrentStep={setCurrentStep}
-      toast={toast}
-      router={router}
       serviceNotes={serviceNotes}
       selectedProfile={selectedProfile} 
     />

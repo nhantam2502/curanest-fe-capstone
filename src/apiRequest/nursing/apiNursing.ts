@@ -10,12 +10,13 @@ const nurseApiRequest = {
   id: string | null,
   rate: string | null,
   page: number,
+  size: number,
   nurseName: string | null
 ) =>
   http.get<NurseListResType>(
     `/nurse/api/v1/nurses?service-id=${id}${
       nurseName ? `&nurse-name=${nurseName}` : ""
-    }${rate ? `&rate=${rate}` : ""}&page=${page}&size=10`
+    }${rate ? `&rate=${rate}` : ""}&page=${page}&size=${size}`
   ),
 
   getDetailNurse: (id: string) =>

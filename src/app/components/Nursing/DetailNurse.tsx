@@ -66,6 +66,7 @@ const DetailNurse = ({
           serviceID,
           null,
           1,
+          3,
           null
         );
 

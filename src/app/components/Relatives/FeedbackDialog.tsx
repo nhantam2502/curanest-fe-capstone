@@ -17,8 +17,8 @@ interface FeedbackDialogProps {
   isOpen: boolean;
   onClose: () => void;
   appointment: {
-    time_from_to: string;
-    apiData: Appointment;
+    estTimeFrom?: string;
+    estTimeTo?: string;    apiData: Appointment;
     cusPackage?: CusPackageResponse | null;
   };
   onSubmit: (feedback: { rating: number; content: string }) => void;

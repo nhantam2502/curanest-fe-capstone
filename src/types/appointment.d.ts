@@ -1,3 +1,5 @@
+import { NurseItemType } from "./nurse";
+
 // Nurse
 export interface AppointmentDummy {
   id: number;
@@ -93,6 +95,29 @@ export interface Appointment {
 export type AppointmentRes = {
   success: boolean;
   data: Appointment[];
+};
+
+export type VerifyNurse = {
+  "nurses-dates": {
+    "est-duration": number;
+    "est-start-date": string;
+    "nurse-id": string;
+  }[];
+};
+
+export type VerifyNurseRes = {
+  data: {
+    "nurse-id": string;
+    "est-start-date": string;
+    "est-duration": number;
+    "is-availability": boolean;
+  }[];
+  success: boolean;
+};
+
+export type GetNurseAvailableRes = {
+  success: boolean;
+  data: NurseItemType[];
 };
 
 export type HistoryAppointmentRes = {

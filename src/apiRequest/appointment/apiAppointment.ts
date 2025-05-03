@@ -5,8 +5,11 @@ import {
   CreateAppointmentCusPackage,
   CreateRes,
   CusPackageResponse,
+  GetNurseAvailableRes,
   HistoryAppointmentRes,
   InoviceRes,
+  VerifyNurse,
+  VerifyNurseRes,
 } from "@/types/appointment";
 import { Res } from "@/types/service";
 
@@ -25,11 +28,27 @@ const appointmentApiRequest = {
       }${nursingId && patientId ? `&patient-id=${patientId}` : ""}`
     ),
 
+  verifyNurse: (body: VerifyNurse) =>
+    http.post<VerifyNurseRes>(
+      "/appointment/api/v1/appointments/verify-nurses-dates",
+      body
+    ),
+
+  getNurseAvailable: (
+    serviceID: string,
+    estDate: string,
+    estDuration: number
+  ) =>
+    http.get<GetNurseAvailableRes>(
+      `/appointment/api/v1/appointments/nursing-available?service-id=${serviceID}&est-date=${estDate}&est-duration=${estDuration}`
+    ),
+
   getHistoryAppointment: (
     page: number,
+    size: number,
     nursingId?: string,
     patientId?: string,
-    estDateFrom?: string
+    estDateFrom?: string,
   ) =>
     http.get<HistoryAppointmentRes>(
       `/appointment/api/v1/appointments${
@@ -46,7 +65,7 @@ const appointmentApiRequest = {
           : estDateFrom
             ? `?est-date-from=${estDateFrom}`
             : ""
-      }${nursingId || patientId || estDateFrom ? "&" : "?"}apply-paging=true&page=${page}&page-size=10`
+      }${nursingId || patientId || estDateFrom ? "&" : "?"}apply-paging=true&page=${page}&page-size=${size}`
     ),
 
   getCusPackage: (cusPackageID: string, estDate: string) =>
@@ -59,24 +78,22 @@ const appointmentApiRequest = {
       `/appointment/api/v1/cuspackage/${cusPackageID}/invoices`
     ),
 
-    getAppointments: (filter: AppointmentFilter | null) => {
-      let queryString = `/appointment/api/v1/appointments`;
-  
-      if (filter) {
-        const params = new URLSearchParams();
-        Object.entries(filter).forEach(([key, value]) => {
-          if (value) {
-            params.append(key, value);
-          }
-        });
-  
-        queryString += `?${params.toString()}`;
-      }
-  
-      return http.get<Res>(queryString);
-    },
+  getAppointments: (filter: AppointmentFilter | null) => {
+    let queryString = `/appointment/api/v1/appointments`;
 
+    if (filter) {
+      const params = new URLSearchParams();
+      Object.entries(filter).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value);
+        }
+      });
+
+      queryString += `?${params.toString()}`;
+    }
+
+    return http.get<Res>(queryString);
+  },
 };
 
 export default appointmentApiRequest;
-

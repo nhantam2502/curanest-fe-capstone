@@ -36,11 +36,15 @@ import { CreateAppointmentCusPackage } from "@/types/appointment";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { Separator } from "@radix-ui/react-dropdown-menu";
+import { se } from "date-fns/locale";
 
 interface SelectedTime {
-  timeSlot: { display: string; value: string };
+  timeSlot: TimeSlot;
   date: Date;
+  isoString: string;
+  nurse?: NurseItemType | null;
 }
+
 type ServicesByType = {
   oneTime: { [categoryName: string]: PackageServiceItem[] };
   subscription: { [categoryName: string]: PackageServiceItem[] };
@@ -84,9 +88,7 @@ const BookingNurse = () => {
   const [selectedNurse, setSelectedNurse] = useState<NurseItemType | null>(
     null
   );
-  const [detailNurse, setDetailNurse] = useState<DetailNurseItemType | null>(
-    null
-  );
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [serviceQuantities, setServiceQuantities] = useState<{
@@ -178,6 +180,15 @@ const BookingNurse = () => {
     }
   };
 
+  const handleNurseSelect = (
+    nurse: NurseItemType,
+    sessionIndex: number | null
+  ) => {
+    if (sessionIndex === null) {
+      setSelectedNurse(nurse);
+    }
+  };
+
   const handleCompleteBooking = async () => {
     const isMultiDayPackage =
       selectedPackage?.["combo-days"] && selectedPackage["combo-days"] > 1;
@@ -199,20 +210,20 @@ const BookingNurse = () => {
         const year = date.getFullYear();
         const month = date.getMonth(); // 0-11
         const day = date.getDate();
-        
-        const [hours, minutes] = startTime.split(':').map(Number);
-        
+
+        const [hours, minutes] = startTime.split(":").map(Number);
+
         const localDate = new Date(year, month, day, hours, minutes);
-        
+
         console.log("date: ", date);
         console.log("startTime: ", startTime);
         console.log("Ngày đã chọn (local): ", `${day}/${month + 1}/${year}`);
         console.log("localDate: ", localDate);
-        
+
         if (isNaN(localDate.getTime())) {
           throw new Error("Không thể tạo Date hợp lệ từ date và time");
         }
-        
+
         // Chuyển đổi thành chuỗi ISO UTC
         const isoString = localDate.toISOString();
         return isoString.replace(".000Z", "Z");
@@ -227,16 +238,16 @@ const BookingNurse = () => {
             "nursing-id": nursingId,
           }))
         : selectedTime !== null
-        ? [
-            {
-              date: convertToUTCString(
-                selectedTime.date,
-                selectedTime.timeSlot.value.split("-")[0]
-              ),
-              "nursing-id": nursingId,
-            },
-          ]
-        : [];
+          ? [
+              {
+                date: convertToUTCString(
+                  selectedTime.date,
+                  selectedTime.timeSlot.value.split("-")[0]
+                ),
+                "nursing-id": nursingId,
+              },
+            ]
+          : [];
 
       const appointmentData: CreateAppointmentCusPackage = {
         "date-nurse-mappings": dateNurseMappings,
@@ -258,19 +269,30 @@ const BookingNurse = () => {
         }),
       };
 
-      console.log("appointmentData: ", appointmentData);
+      // console.log("appointmentData: ", appointmentData);
       const response =
         await appointmentApiRequest.createAppointmentCusPackage(
           appointmentData
         );
 
-      toast({
-        variant: "default",
-        title: "Bạn đã đặt lịch thành công",
-        description: `Tổng tiền: ${formatCurrency(calculateTotalPrice())}`,
-      });
+        const newAppointmentId = response.payload["object-id"];
 
-      router.push("/relatives/appointments");
+        toast({
+          variant: "default",
+          title: "Bạn đã đặt lịch thành công",
+        });
+  
+        try {
+          const invoiceResponse = await appointmentApiRequest.getInvoice(newAppointmentId);
+          console.log("invoiceResponse: ", invoiceResponse);
+          const invoiceData = invoiceResponse.payload.data;
+          if (invoiceData && invoiceData.length > 0) {
+            router.push(invoiceData[0]["payos-url"]);
+          }
+        } catch (invoiceError) {
+          console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
+          router.push("/relatives/appointments");
+        }
     } catch (error) {
       console.error("Lỗi khi tạo cuộc hẹn:", error);
       toast({
@@ -289,7 +311,6 @@ const BookingNurse = () => {
       try {
         if (nursingId) {
           const response = await nurseApiRequest.getDetailNurse(nursingId);
-          setDetailNurse(response.payload.data);
           setSelectedNurse(response.payload.data);
         } else {
           throw new Error("Nursing ID không hợp lệ.");
@@ -467,16 +488,20 @@ const BookingNurse = () => {
             totalTime={calculateTotalTime()}
             timeInterval={selectedPackage["time-interval"]}
             comboDays={selectedPackage["combo-days"] || 0}
-            onTimesSelect={(selectedDates) => {
-              setSelectedTimes(selectedDates);
-            }}
+            onTimesSelect={(selectedDates) => setSelectedTimes(selectedDates)}
+            selectedNurse={selectedNurse}
+            serviceID={serviceID}
+            onNurseSelect={handleNurseSelect}
           />
         ) : (
           <TimeSelection
             totalTime={calculateTotalTime()}
-            onTimeSelect={({ date, timeSlot }) => {
-              setSelectedTime({ timeSlot, date });
+            onTimeSelect={({ date, timeSlot, isoString }) => {
+              setSelectedTime({ timeSlot, date, isoString });
             }}
+            selectedNurse={selectedNurse}
+            serviceID={serviceID}
+            onNurseSelect={(nurse) => setSelectedNurse(nurse)}
           />
         );
 
@@ -493,9 +518,6 @@ const BookingNurse = () => {
             selectedTimes={selectedTimes}
             calculateTotalTime={calculateTotalTime}
             calculateTotalPrice={calculateTotalPrice}
-            setCurrentStep={setCurrentStep}
-            toast={toast}
-            router={router}
             serviceNotes={serviceNotes}
           />
         );
@@ -565,19 +587,19 @@ const BookingNurse = () => {
                     </Badge>
                   </div>
 
-                  {detailNurse && (
+                  {/* {selectedNurse && (
                     <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2">
                       <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
                         Điều dưỡng đã chọn
                       </h3>
                       <div className="text-lg text-gray-600 space-y-1">
-                        <div className="flex items-center ">
+                        <div className="flex items-center">
                           <User className="mr-2 text-gray-500" size={16} />
-                          <span>{detailNurse["nurse-name"]}</span>
+                          <span>{selectedNurse["nurse-name"]}</span>
                         </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   {selectedProfile ? (
                     <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2 ">
@@ -718,16 +740,23 @@ const BookingNurse = () => {
                       <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
                         Thời gian đã chọn
                       </h3>
-
                       <div className="text-lg text-gray-600 space-y-2">
                         <div className="flex items-center space-x-2">
                           <Calendar className="text-gray-500" size={16} />
-                          <span>{selectedTime.date.toLocaleDateString()}</span>
+                          <span>
+                            {selectedTime.date.toLocaleDateString("vi-VN")}
+                          </span>
                         </div>
                         <div className="flex items-center space-x-2">
                           <Clock className="text-gray-500" size={16} />
                           <span>{selectedTime.timeSlot.display}</span>
                         </div>
+                        {selectedNurse && (
+                          <div className="flex items-center space-x-2">
+                            <User className="text-gray-500" size={16} />
+                            <span>{selectedNurse["nurse-name"]}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -742,7 +771,6 @@ const BookingNurse = () => {
                           Lịch đã đặt ({selectedTimes.length}/
                           {selectedPackage["combo-days"]} ngày)
                         </h3>
-
                         <div className="max-h-64 overflow-y-auto pr-2">
                           {selectedTimes.map((timeItem, index) => (
                             <div
@@ -766,10 +794,19 @@ const BookingNurse = () => {
                                 <Clock className="text-gray-500" size={16} />
                                 <span>{timeItem.timeSlot.display}</span>
                               </div>
+                              <div className="flex items-center space-x-2 text-lg text-gray-600 mt-1">
+                                <User className="text-gray-500" size={16} />
+                                <span>
+                                  {timeItem.nurse
+                                    ? timeItem.nurse["nurse-name"]
+                                    : selectedNurse
+                                      ? selectedNurse["nurse-name"]
+                                      : "Chưa chọn điều dưỡng"}
+                                </span>
+                              </div>
                             </div>
                           ))}
                         </div>
-
                         {selectedTimes.length <
                           selectedPackage["combo-days"] && (
                           <div className="text-yellow-500 font-medium text-lg italic">
