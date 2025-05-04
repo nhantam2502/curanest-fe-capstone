@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { MedicalRecord } from "@/types/appointment";
 
 interface MedicalReportProps {
   isOpen: boolean;
@@ -17,11 +18,7 @@ interface MedicalReportProps {
   medical_report: {
     nurse_name: string;
     avatar: string;
-    report_date: string;
-    report_time: string;
-    report: string;
-    advice: string[];
-    techniques: string;
+    report: MedicalRecord;
   };
 }
 
@@ -30,6 +27,9 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
   onClose,
   medical_report,
 }) => {
+ 
+
+  console.log("Medical Report Data:", medical_report);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl w-full max-h-[90vh]">
@@ -54,24 +54,24 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
                   alt={medical_report.nurse_name}
                 />
                 <AvatarFallback className="text-2xl font-bold">
-                  {medical_report.nurse_name[0]}
+                  {medical_report.nurse_name}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="text-2xl font-semibold">
                   {medical_report.nurse_name}
                 </h3>
-                <div className="flex items-center gap-3 text-gray-600 mt-2 text-lg">
+                {/* <div className="flex items-center gap-3 text-gray-600 mt-2 text-lg">
                   <Clock className="w-5 h-5" />
                   <span>
                     {medical_report.report_date} - {medical_report.report_time}
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
 
             {/* Techniques */}
-            <Card>
+            {/* <Card>
               <CardContent className="p-8">
                 <h4 className="text-xl font-bold mb-4">
                   Dịch vụ đã thực hiện
@@ -89,7 +89,7 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
                     ))}
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* Medical Report */}
             <Card>
@@ -97,7 +97,7 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
                 <h4 className="text-xl font-bold mb-4">Báo cáo chi tiết</h4>
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
-                    {medical_report.report}
+{medical_report.report?.["nursing-report"] || "No report available."}
                   </p>
                 </div>
               </CardContent>
@@ -111,19 +111,25 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
                   Lời khuyên của điều dưỡng
                 </h4>
                 <div className="space-y-4">
-                  {medical_report.advice.map((recommendation, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-4 bg-green-50 p-6 rounded-lg"
-                    >
-                      <div className="min-w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                        {index + 1}
+                {Array.isArray(medical_report.report?.["staff-confirmation"]) ? (
+  medical_report.report["staff-confirmation"].map((recommendation, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-4 bg-green-50 p-6 rounded-lg"
+                      >
+                        <div className="min-w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-lg font-bold">
+                          {index + 1}
+                        </div>
+                        <p className="text-gray-700 text-lg">
+                          {recommendation}
+                        </p>
                       </div>
-                      <p className="text-gray-700 text-lg">
-                        {recommendation}
-                      </p>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-gray-700 text-lg">
+                      No recommendations available.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

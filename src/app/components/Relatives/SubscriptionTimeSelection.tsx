@@ -110,8 +110,7 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
   
         const response = await appointmentApiRequest.verifyNurse(body);
         const isAvailable = response.payload.data[0]?.["is-availability"] || false;
-  
-        // Chỉ cập nhật trạng thái cho buổi cụ thể
+
         setAvailabilityStatus((prev) => ({
           ...prev,
           [sessionIndex]: isAvailable,

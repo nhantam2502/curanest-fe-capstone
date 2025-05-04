@@ -34,22 +34,41 @@ interface ServicesListProps {
 const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; color: string }> = {
-      pending: {
-        label: "Chờ thực hiện",
-        color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-pointer",
-      },
-      "in-progress": {
-        label: "Đang thực hiện",
+      Upcoming: {
+        label: "Đang tới",
         color: "bg-blue-100 text-blue-800 hover:bg-blue-100 cursor-pointer",
       },
-      completed: {
+      Confirmed: {
+        label: "Đã xác nhận",
+        color: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 cursor-pointer",
+      },
+      success: {
         label: "Đã hoàn thành",
         color: "bg-green-100 text-green-800 hover:bg-green-100 cursor-pointer",
       },
-      cancelled: { label: "Đã hủy", color: "bg-red-100 text-red-800" },
+      cancelled: { 
+        label: "Đã hủy", 
+        color: "bg-red-100 text-red-800" 
+      },
+      pending: { 
+        label: "Đang chờ thanh toán",
+        color: "bg-orange-100 text-orange-800 hover:bg-orange-100 cursor-pointer" 
+        // color: "bg-gray-100 text-gray-800" 
+      }
     };
 
-    const { label, color } = statusMap[status] || statusMap["pending"];
+    // Kiểm tra nếu status không có trong statusMap
+    if (!statusMap[status]) {
+      return (
+        <Badge
+          className="bg-gray-100 text-gray-800 font-semibold rounded-full px-4 py-1 text-xs"
+        >
+          {status || "Không xác định"}
+        </Badge>
+      );
+    }
+
+    const { label, color } = statusMap[status];
     return (
       <Badge
         className={`${color} font-semibold rounded-full px-4 py-1 text-xs`}

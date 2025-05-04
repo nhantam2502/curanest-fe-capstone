@@ -8,6 +8,9 @@ import {
   GetNurseAvailableRes,
   HistoryAppointmentRes,
   InoviceRes,
+  MedicalRecordRes,
+  PatchRes,
+  submitMedicalReport,
   VerifyNurse,
   VerifyNurseRes,
 } from "@/types/appointment";
@@ -48,7 +51,7 @@ const appointmentApiRequest = {
     size: number,
     nursingId?: string,
     patientId?: string,
-    estDateFrom?: string,
+    estDateFrom?: string
   ) =>
     http.get<HistoryAppointmentRes>(
       `/appointment/api/v1/appointments${
@@ -76,6 +79,22 @@ const appointmentApiRequest = {
   getInvoice: (cusPackageID: string) =>
     http.get<InoviceRes>(
       `/appointment/api/v1/cuspackage/${cusPackageID}/invoices`
+    ),
+
+  getMedicalRecord: (appointmentID: string) =>
+    http.get<MedicalRecordRes>(
+      `/appointment/api/v1/medical-record/${appointmentID}`
+    ),
+
+  submitMedicalReport: (medicalReportID: string, body: submitMedicalReport) =>
+    http.patch<PatchRes>(
+      `/appointment/api/v1/medical-record/${medicalReportID}`,
+      body
+    ),
+
+  checkCusTask: (custaskID: string) =>
+    http.patch<PatchRes>(
+      `/appointment/api/v1/cuspackage/custask/${custaskID}/update-status-done`
     ),
 
   getAppointments: (filter: AppointmentFilter | null) => {

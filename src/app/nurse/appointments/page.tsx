@@ -10,7 +10,12 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn, getFormattedDate, getStartTimeFromEstDate } from "@/lib/utils";
+import {
+  cn,
+  getFormattedDate,
+  getStartTimeFromEstDate,
+  getStatusText,
+} from "@/lib/utils";
 import DonutChart from "@/app/components/Nursing/DonutChart";
 import { Appointment } from "@/types/appointment";
 import { useRouter } from "next/navigation";
@@ -170,8 +175,9 @@ const NurseScheduleCalendar = () => {
 
   const getEventColor = (type: Appointment["status"]) => {
     if (type === "substitute") return "bg-red-50 border-red-100";
-    if (type === "completed") return "bg-green-50 border-green-100";
-    if (type === "waiting") return "bg-yellow-50 border-yellow-100";
+    if (type === "success") return "bg-green-50 border-green-100";
+    if (type === "confirmed") return "bg-yellow-50 border-yellow-100";
+    if (type === "upcoming") return "bg-blue-50 border-blue-100";
   };
 
   // Sửa hàm getTimeSlotsForShift để bao gồm cả thời điểm cuối
@@ -278,12 +284,13 @@ const NurseScheduleCalendar = () => {
   // Get time slots for the active shift
   const timeSlots = getTimeSlotsForShift(activeShift);
 
+
   const renderShiftContent = (shiftId: string) => {
     const shiftTimeSlots = getTimeSlotsForShift(shiftId);
 
     return (
       <ScrollArea className="h-[calc(100vh-260px)]">
-        <div className="grid grid-cols-8 min-w-[1000px]">
+        <div className="grid grid-cols-8 min-w-[1000px] ">
           <div className="col-span-1 p-4 border-r border-b border-t sticky left-0 bg-white z-10">
             <div className="text-sm font-medium text-gray-500">Giờ</div>
           </div>
@@ -318,7 +325,7 @@ const NurseScheduleCalendar = () => {
           })}
           {shiftTimeSlots.map((timeSlot) => (
             <React.Fragment key={timeSlot}>
-              <div className="col-span-1 border-r border-b h-16 p-4 sticky left-0 bg-white z-10">
+              <div className="col-span-1 border-r border-t h-16 p-4 sticky left-0 bg-white z-10">
                 <div className="text-sm text-gray-500">{timeSlot}</div>
               </div>
               {Array.from({ length: 7 }).map((_, dayIndex) => (
@@ -337,35 +344,39 @@ const NurseScheduleCalendar = () => {
                         <div
                           key={event.id}
                           className={cn(
-                            "w-11/12 p-2 rounded-md border shadow-sm transition-all cursor-pointer hover:bg-opacity-90 hover:shadow-md absolute z-10",
+                            "w-11/12  rounded-md border shadow-sm transition-all cursor-pointer hover:bg-opacity-90 hover:shadow-md absolute z-10",
                             getEventColor(event.status)
                           )}
                           style={{
                             height: `${eventHeight * 4.7}rem`, // 4rem là chiều cao của mỗi khoảng thời gian 15 phút (h-16)
                             top: 2,
-                            left: "4%", // Để căn giữa trong ô
+                            left: 4,
                           }}
                           onClick={() =>
                             router.push(
-                              `/nurse/appointments/${event.patientInfo?.id}?estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}&estTimeFrom=${encodeURIComponent(event.estTimeFrom || "")}&estTimeTo=${encodeURIComponent(event.estTimeTo || "")}`
+                              `/nurse/appointments/${event.patientInfo?.id}?appointmentID=${encodeURIComponent(event.id || "")}&estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}&estTimeFrom=${encodeURIComponent(event.estTimeFrom || "")}&estTimeTo=${encodeURIComponent(event.estTimeTo || "")}`
                             )
                           }
                         >
-                          <div className="flex items-center gap-2">
-                            <div className="min-w-0">
-                              <div className="text-sm leading-tight">
-                                {event.estTimeFrom} - {event.estTimeTo}
+                          <div className="flex flex-col items-center justify-center h-full text-center">
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="min-w-0">
+                                <div className="text-sm leading-tight">
+                                  {event.estTimeFrom} - {event.estTimeTo}
+                                </div>
                               </div>
                             </div>
-                          </div>
-
-                          <div className="flex items-center gap-1 mt-2">
-                            <Users className="w-3 h-3 text-gray-600 flex-shrink-0" />
-                            <div>
-                              <span className="text-xs font-medium truncate">
-                                {event.patientInfo?.["full-name"]}
-                              </span>
+                      
+                            <div className="flex items-center justify-center gap-1 mt-2">
+                              <Users className="w-5 h-5 text-gray-600 flex-shrink-0" />
+                              <div>
+                                <span className="text-sm font-medium truncate">
+                                  {event.patientInfo?.["full-name"]}
+                                </span>
+                              </div>
                             </div>
+                      
+                            <div className="text-sm text-center mt-1">{getStatusText(event.status)}</div>
                           </div>
                         </div>
                       );

@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { useToast } from "@/hooks/use-toast";
 
 // Interface cho dịch vụ đơn lẻ mở rộng
 interface EnhancedService {
@@ -15,6 +15,8 @@ interface EnhancedService {
   times: number;
   isCompleted?: boolean;
   nurseNote?: string;
+  status?: string;
+  taskOrder?: number;
 }
 
 interface ServiceCheckTaskProps {
@@ -26,49 +28,127 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
   services,
   onServiceComplete,
 }) => {
+  const { toast } = useToast();
+  
+  // Sắp xếp dịch vụ theo taskOrder để hiển thị đúng thứ tự
+  const sortedServices = [...services].sort((a, b) => {
+    const orderA = a.taskOrder || 0;
+    const orderB = b.taskOrder || 0;
+    return orderA - orderB;
+  });
+
+  // Tìm task order nhỏ nhất chưa hoàn thành
+  const getNextTaskOrder = () => {
+    for (const service of sortedServices) {
+      const order = service.taskOrder || 0;
+      if (service.status !== "done" && !service.isCompleted) {
+        return order;
+      }
+    }
+    return Infinity; // Nếu tất cả đã hoàn thành
+  };
+
+  const [nextTaskOrder, setNextTaskOrder] = useState<number>(getNextTaskOrder());
+
+  // Khởi tạo trạng thái dịch vụ
   const [serviceStatus, setServiceStatus] = useState<
-    Record<string, { isChecked: boolean; nurseNote: string }>
+    Record<
+      string,
+      { isChecked: boolean; nurseNote: string; isLoading: boolean; taskOrder: number }
+    >
   >(
     services.reduce((acc, service) => {
       return {
         ...acc,
         [service.id]: {
-          isChecked: service.isCompleted || false,
-        nurseNote: service.nurseNote || "",
-          
+          isChecked: service.isCompleted || service.status === "done" || false,
+          nurseNote: service.nurseNote || "",
+          isLoading: false,
+          taskOrder: service.taskOrder || 0,
         },
       };
     }, {})
   );
 
-  const handleCheckboxChange = (serviceId: string) => {
-    setServiceStatus((prev) => ({
-      ...prev,
-      [serviceId]: {
-        ...prev[serviceId],
-        isChecked: !prev[serviceId].isChecked,
-      },
-    }));
+  // Cập nhật nextTaskOrder khi có thay đổi trong serviceStatus
+  useEffect(() => {
+    setNextTaskOrder(getNextTaskOrder());
+  }, [serviceStatus]);
+
+  const isTaskCheckable = (taskOrder: number) => {
+    return taskOrder === nextTaskOrder;
   };
 
-  const handleNurseNoteChange = (serviceId: string, value: string) => {
-    setServiceStatus((prev) => ({
-      ...prev,
-      [serviceId]: {
-        ...prev[serviceId],
-        nurseNote: value,
-      },
-    }));
+  const handleCheckboxChange = async (cusTaskID: string) => {
+    console.log("Checkbox clicked for service ID:", cusTaskID);
+    const currentTaskOrder = serviceStatus[cusTaskID].taskOrder;
+    
+    // Skip nếu đã check, đang loading, hoặc không phải task tiếp theo cần làm
+    if (
+      serviceStatus[cusTaskID].isChecked ||
+      serviceStatus[cusTaskID].isLoading ||
+      !isTaskCheckable(currentTaskOrder)
+    ) {
+      if (!isTaskCheckable(currentTaskOrder) && !serviceStatus[cusTaskID].isChecked) {
+        toast({
+          variant: "destructive",
+          title: "Bạn cần hoàn thành các nhiệm vụ theo thứ tự",
+          description: "Vui lòng hoàn thành các nhiệm vụ trước đó",
+        });
+      }
+      return;
+    }
+
+    try {
+      // Set loading state
+      setServiceStatus((prev) => ({
+        ...prev,
+        [cusTaskID]: {
+          ...prev[cusTaskID],
+          isLoading: true,
+        },
+      }));
+
+      // Call API to update task status
+      await appointmentApiRequest.checkCusTask(cusTaskID);
+
+      // Update local state after successful API call
+      setServiceStatus((prev) => ({
+        ...prev,
+        [cusTaskID]: {
+          ...prev[cusTaskID],
+          isChecked: true,
+          isLoading: false,
+        },
+      }));
+
+      // Call the parent component's callback
+      onServiceComplete(cusTaskID, serviceStatus[cusTaskID].nurseNote);
+
+      // Show success notification
+      toast({
+        variant: "default",
+        title: "Cập nhật trạng thái thành công",
+      });
+    } catch (error) {
+      console.error("Error updating task status:", error);
+
+      // Reset loading state on error
+      setServiceStatus((prev) => ({
+        ...prev,
+        [cusTaskID]: {
+          ...prev[cusTaskID],
+          isLoading: false,
+        },
+      }));
+
+      // Show error notification
+      toast({
+        variant: "destructive",
+        title: "Cập nhật trạng thái thất bại",
+      });
+    }
   };
-
-  const handleSaveNote = (serviceId: string) => {
-    onServiceComplete(serviceId, serviceStatus[serviceId].nurseNote);
-  };
-
-  
-
-  console.log("serivces ne2: ", services);
-  
 
   return (
     <Card className="shadow-md">
@@ -79,90 +159,131 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
 
         <ScrollArea className="h-[70vh] pr-4">
           <div className="space-y-4 pb-4">
-            {services.map((service, index) => (
-              <Card
-                key={service.id}
-                className="border-l-4 border-l-cyan-500 overflow-hidden"
-              >
-                <CardHeader className="bg-cyan-100 py-3 px-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg text-cyan-600 font-semibold flex items-center gap-2">
-                      <span className="text-cyan-600">{index + 1}.</span>
-                      <span>{service.name}</span>
-                    </CardTitle>
-                    <Checkbox
-                      id={`service-${service.id}`}
-                      checked={serviceStatus[service.id]?.isChecked}
-                      onCheckedChange={() => handleCheckboxChange(service.id)}
-                      className="h-5 w-5 border-2 border-cyan-500"
-                    />
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-5">
-                    <div>
-                      <p className="text-[16px] font-semibold text-gray-600">
-                        Ghi chú của khách hàng:
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        {service.customerNote || "Không có ghi chú"}
-                      </p>
-                      
-                    </div>
-
-                    <div>
-                      <p className="text-[16px] font-semibold text-gray-600">
-                        Ghi chú của staff:
-                      </p>
-                      <p className="text-sm text-gray-700">
-                        {service.staffAdvice}
-                      </p>
-                    </div>
-
-                    <div className="flex justify-between items-center">
-                      <div className="flex justify-between items-center gap-2">
-                        <p className="text-[16px] font-semibold text-gray-600">
-                          Thời gian:
-                        </p>
-                        <p className="text-[14px] text-gray-700">
-                          {service.duration} phút
-                        </p>
-                      </div>
-
-                      <div className="flex justify-between items-center gap-2">
-                        <p className="text-[16px] font-semibold text-gray-600">
-                          Số lần:
-                        </p>
-                        <p className="text-sm text-gray-700">{service.times}</p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-[16px] font-semibold text-gray-600">
-                        Ghi chú của điều dưỡng:
-                      </p>
-                      <Textarea
-                        placeholder="Nhập lưu ý của điều dưỡng"
-                        value={serviceStatus[service.id]?.nurseNote || ""}
-                        onChange={(e) =>
-                          handleNurseNoteChange(service.id, e.target.value)
-                        }
-                        className="mt-1 resize-none text-sm"
+            {sortedServices.map((service, index) => {
+              const serviceId = service.id;
+              const currentTaskOrder = serviceStatus[serviceId].taskOrder;
+              const isCheckable = isTaskCheckable(currentTaskOrder);
+              const isChecked = serviceStatus[serviceId]?.isChecked;
+              const isLoading = serviceStatus[serviceId]?.isLoading;
+              
+              return (
+                <Card
+                  key={serviceId}
+                  className={`border-l-4 ${
+                    isChecked
+                      ? "border-l-green-500"
+                      : isCheckable
+                      ? "border-l-cyan-500"
+                      : "border-l-gray-300"
+                  } overflow-hidden`}
+                >
+                  <CardHeader
+                    className={`${
+                      isChecked
+                        ? "bg-green-100"
+                        : isCheckable
+                        ? "bg-cyan-100"
+                        : "bg-gray-50"
+                    } py-3 px-4`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <CardTitle
+                        className={`text-lg ${
+                          isChecked
+                            ? "text-green-600"
+                            : isCheckable
+                            ? "text-cyan-600"
+                            : "text-gray-500"
+                        } font-semibold flex items-center gap-2`}
+                      >
+                        <span>
+                          {service.taskOrder || index + 1}.
+                        </span>
+                        <span>{service.name}</span>
+                        {!isCheckable && !isChecked && (
+                          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full ml-2">
+                            Chờ đến lượt
+                          </span>
+                        )}
+                        {isCheckable && (
+                          <span className="text-xs bg-cyan-200 text-cyan-700 px-2 py-1 rounded-full ml-2">
+                            Đến lượt
+                          </span>
+                        )}
+                      </CardTitle>
+                      <Checkbox
+                        id={`service-${serviceId}`}
+                        checked={isChecked}
+                        onCheckedChange={() => handleCheckboxChange(serviceId)}
+                        disabled={isLoading || isChecked || !isCheckable}
+                        className={`h-5 w-5 border-2 ${
+                          isChecked
+                            ? "border-green-500"
+                            : isCheckable
+                            ? "border-cyan-500"
+                            : "border-gray-300"
+                        }`}
                       />
-                      <div className="flex justify-end mt-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleSaveNote(service.id)}
-                          className="bg-cyan-500 hover:bg-cyan-600 text-sm font-semibold"
-                        >
-                          Lưu ghi chú
-                        </Button>
-                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="space-y-5">
+                      <div>
+                        <p className="text-[16px] font-semibold text-gray-600">
+                          Ghi chú của khách hàng:
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          {service.customerNote || "Không có ghi chú"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[16px] font-semibold text-gray-600">
+                          Ghi chú của staff:
+                        </p>
+                        <p className="text-sm text-gray-700">
+                          {service.staffAdvice || "Không có ghi chú"}
+                        </p>
+                      </div>
+
+                      <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center gap-2">
+                          <p className="text-[16px] font-semibold text-gray-600">
+                            Thời gian:
+                          </p>
+                          <p className="text-[14px] text-gray-700">
+                            {service.duration} phút
+                          </p>
+                        </div>
+
+                        <div className="flex justify-between items-center gap-2">
+                          <p className="text-[16px] font-semibold text-gray-600">
+                            Số lần:
+                          </p>
+                          <p className="text-sm text-gray-700">{service.times}</p>
+                        </div>
+                      </div>
+
+                      {isChecked && (
+                        <div className="mt-2 p-2 bg-green-50 rounded-md">
+                          <p className="text-sm text-green-600 font-medium">
+                            ✓ Đã hoàn thành
+                          </p>
+                        </div>
+                      )}
+
+                      {isLoading && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded-md">
+                          <p className="text-sm text-gray-600 font-medium">
+                            Đang cập nhật...
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </ScrollArea>
       </CardContent>

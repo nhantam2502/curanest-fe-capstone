@@ -29,13 +29,18 @@ export const getStatusColor = (status: string) => {
 export const getStatusText = (status: string) => {
   switch (status.toLowerCase()) {
     case "success":
+    case "done":
       return "Hoàn thành";
     case "confirmed":
       return "Đã xác nhận";
-      case "upcoming":
+    case "waiting":
+      return "Đang chờ ";
+    case "upcoming":
       return "Đang tới";
     case "canceled":
       return "Đã hủy";
+    case "not_done":
+      return "Chưa hoàn thành";
     default:
       return status;
   }
@@ -123,68 +128,69 @@ export const calculatePackageTotalTime = (
   );
 };
 
-
-export const translateStatusToVietnamese = (status: string | null | undefined): string => {
+export const translateStatusToVietnamese = (
+  status: string | null | undefined
+): string => {
   if (status === null || status === undefined) {
-      return "Không xác định";
+    return "Không xác định";
   }
   const lowerCaseStatus = status.toLowerCase();
 
   switch (lowerCaseStatus) {
-      case "waiting":
-          return "Đang chờ";
-      case "confirmed":
-          return "Đã xác nhận";
-      case "completed": // Combine common completion statuses
-      case "success":
-          return "Hoàn thành";
-      case "cancelled":
-          return "Đã hủy";
-      case "refused":
-          return "Đã từ chối";
-      case "changed":
-          return "Đã đổi lịch";
-      default:
-          return status;
+    case "waiting":
+      return "Đang chờ";
+    case "confirmed":
+      return "Đã xác nhận";
+    case "completed": // Combine common completion statuses
+    case "success":
+      return "Hoàn thành";
+    case "cancelled":
+      return "Đã hủy";
+    case "refused":
+      return "Đã từ chối";
+    case "changed":
+      return "Đã đổi lịch";
+    default:
+      return status;
   }
 };
 
-  // Function to get the days in the next 14 days
-  export const getDaysInRange = (): Date[] => {
-    const days: Date[] = [];
-    const startOfRange = new Date();
+// Function to get the days in the next 14 days
+export const getDaysInRange = (): Date[] => {
+  const days: Date[] = [];
+  const startOfRange = new Date();
 
-    for (let i = 0; i <= 14; i++) {
-      const date = new Date(startOfRange);
-      date.setDate(startOfRange.getDate() + i);
-      days.push(date);
-    }
-    return days;
-  };
+  for (let i = 0; i <= 14; i++) {
+    const date = new Date(startOfRange);
+    date.setDate(startOfRange.getDate() + i);
+    days.push(date);
+  }
+  return days;
+};
 
-   // Vietnamese month names
-   export const vietnameseMonths = [
-     "Tháng 1",
-     "Tháng 2",
-     "Tháng 3",
-     "Tháng 4",
-     "Tháng 5",
-     "Tháng 6",
-     "Tháng 7",
-     "Tháng 8",
-     "Tháng 9",
-     "Tháng 10",
-     "Tháng 11",
-     "Tháng 12",
-   ];
+// Vietnamese month names
+export const vietnameseMonths = [
+  "Tháng 1",
+  "Tháng 2",
+  "Tháng 3",
+  "Tháng 4",
+  "Tháng 5",
+  "Tháng 6",
+  "Tháng 7",
+  "Tháng 8",
+  "Tháng 9",
+  "Tháng 10",
+  "Tháng 11",
+  "Tháng 12",
+];
 
-   // Function to convert date and time slot to ISO string format
-  export const createISOString = (date: Date, timeSlot: TimeSlot): string => {
-    const [hours, minutes] = timeSlot.start.split(":").map(Number);
+// Function to convert date and time slot to ISO string format
+export const createISOString = (date: Date, timeSlot: TimeSlot): string => {
+  const [hours, minutes] = timeSlot.start.split(":").map(Number);
 
-    const dateObj = new Date(date);
-    dateObj.setHours(hours, minutes, 0, 0);
+  const dateObj = new Date(date);
+  dateObj.setHours(hours, minutes, 0, 0);
 
-    // Convert to UTC for backend: 2025-03-30T03:00:00Z format
-    return dateObj.toISOString();
-  };
+  // Convert to UTC for backend: 2025-03-30T03:00:00Z format
+  return dateObj.toISOString();
+};
