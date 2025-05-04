@@ -9,35 +9,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCallback, useEffect, useMemo, useState } from "react"; // Added useMemo
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { GetAllNurseFilter } from "@/types/nurse";
 import {
   Card,
   CardContent,
-  // CardDescription, // Removed if not used
-  // CardFooter, // Moved import up
-  // CardHeader, // Removed if not used
-  // CardTitle, // Removed if not used
 } from "@/components/ui/card";
-import { CardFooter } from "@/components/ui/card"; // Keep CardFooter import separate if needed elsewhere
-// import { Label } from "@/components/ui/label"; // Removed if not used
+import { CardFooter } from "@/components/ui/card";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
 
-// Define the structure of a single service item for clarity
-interface ServiceItem {
+// Define types
+interface ServiceCategory {
   id: string;
   name: string;
-  // Add other properties if needed
 }
 
-// Define the structure of the fetched service data
+interface Service {
+  id: string;
+  name: string;
+  category_id: string;
+  description?: string;
+  est_duration?: string;
+  status?: string;
+}
+
 interface FetchedCategory {
-  "category-info": {
-    id: string;
-    name: string;
-    // ... other category properties
-  };
+  "category-info": ServiceCategory;
   "list-services": Array<{
     id: string;
     "category-id": string;
@@ -48,95 +46,121 @@ interface FetchedCategory {
   }>;
 }
 
+interface ServiceItem {
+  id: string;
+  name: string;
+}
+
 interface NurseFilterProps {
   onSearch: (filters: GetAllNurseFilter) => void;
   onReset: () => void;
-  isLoading?: boolean; // Optional loading state from parent
+  isLoading?: boolean;
 }
 
 const initialFilters: GetAllNurseFilter = {
   "nurse-name": "",
-  "service-id": "", // Will hold the selected service ID, empty string means "All"
-  rate: "", // Use empty string for "All" rates
-  // Add other potential filters here with initial empty values
-  // "workplace": "", // Example if the placeholder input is meant for this
+  "service-id": "",
+  rate: "",
 };
 
 export default function RenovatedNurseFilter({
   onSearch,
   onReset,
-  isLoading = false, // Default isLoading to false
+  isLoading = false,
 }: NurseFilterProps) {
   const [filters, setFilters] = useState<GetAllNurseFilter>(initialFilters);
-  const [rawServiceData, setRawServiceData] = useState<FetchedCategory[]>([]);
+  const [rawServiceData, setRawServiceData] = useState<
+    { categoryInfo: ServiceCategory; listServices: Service[] }[]
+  >([]);
+  const [allServices, setAllServices] = useState<ServiceItem[]>([]);
 
-  // Fetch service data
+  // Fetch and process services
   const fetchService = useCallback(async () => {
     try {
-      // Assuming getListService doesn't need filters, pass empty string or adjust if needed
-      const response = await serviceApiRequest.getListService("");
+      const response = await serviceApiRequest.getListServiceOfStaff("");
+
       if (response.status === 200 && response.payload?.data) {
-        setRawServiceData(response.payload.data || []);
+        const apiData = response.payload.data;
+
+        if (apiData["category-info"] && Array.isArray(apiData["list-services"])) {
+          const processedData = [
+            {
+              categoryInfo: {
+                id: apiData["category-info"].id,
+                name: apiData["category-info"].name,
+              },
+              listServices: apiData["list-services"].map((serviceItem: any) => ({
+                id: serviceItem.id,
+                category_id: serviceItem["category-id"],
+                name: serviceItem.name,
+                description: serviceItem.description,
+                est_duration: serviceItem["est-duration"],
+                status: serviceItem.status,
+              })),
+            },
+          ];
+
+          setRawServiceData(processedData);
+
+          // Flatten into allServices for dropdown
+          const flattenedServices = processedData.flatMap(
+            (category) =>
+              category.listServices.map((service) => ({
+                id: service.id,
+                name: service.name,
+              }))
+          );
+
+          setAllServices(flattenedServices);
+        } else {
+          console.warn("Unexpected API response structure:", apiData);
+          setRawServiceData([]);
+          setAllServices([]);
+        }
       } else {
         console.error("Failed to fetch services:", response);
-        setRawServiceData([]); // Reset on failure
+        setRawServiceData([]);
+        setAllServices([]);
       }
     } catch (error) {
       console.error("Error fetching services:", error);
-      setRawServiceData([]); // Reset on error
+      setRawServiceData([]);
+      setAllServices([]);
     }
-  }, []); // No dependencies needed if it always fetches all services
+  }, []);
 
   useEffect(() => {
     fetchService();
   }, [fetchService]);
-
-  // Use useMemo to create a flattened list of all services for the Select dropdown
-  const allServices = useMemo((): ServiceItem[] => {
-    if (!rawServiceData || rawServiceData.length === 0) {
-      return [];
-    }
-    // Flatten the nested structure
-    return rawServiceData.flatMap(
-      (category) =>
-        category["list-services"]?.map((service) => ({
-          id: service.id,
-          name: service.name,
-        })) ?? [] // Use empty array if list-services is missing/null
-    );
-  }, [rawServiceData]); // Recalculate only when rawServiceData changes
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: keyof GetAllNurseFilter, value: string) => {
-    // Handle the "All" case specifically by setting to empty string
+  const handleSelectChange = (
+    name: keyof GetAllNurseFilter,
+    value: string
+  ) => {
     setFilters((prev) => ({ ...prev, [name]: value === "all" ? "" : value }));
   };
 
   const handleSearch = () => {
-    // Filter out empty strings before sending
     const activeFilters: Partial<GetAllNurseFilter> = {};
-    // Trim potential whitespace from text inputs
     if (filters["nurse-name"]?.trim())
       activeFilters["nurse-name"] = filters["nurse-name"].trim();
     if (filters["service-id"])
-      activeFilters["service-id"] = filters["service-id"]; // No trim needed for ID
+      activeFilters["service-id"] = filters["service-id"];
     if (filters.rate) activeFilters.rate = filters.rate;
-    // Add other filters here if they exist (e.g., workplace)
-    // if (filters["workplace"]?.trim()) activeFilters["workplace"] = filters["workplace"].trim();
 
     onSearch(activeFilters as GetAllNurseFilter);
   };
 
   const handleReset = () => {
-    setFilters(initialFilters); // Reset state to initial values
-    onReset(); // Call parent reset function
+    setFilters(initialFilters);
+    onReset();
   };
 
-  // Handle Enter key press on text inputs
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       handleSearch();
@@ -151,7 +175,7 @@ export default function RenovatedNurseFilter({
           <div className="grid gap-1">
             <Input
               id="nurse-name"
-              name="nurse-name" // Use name attribute for handleInputChange
+              name="nurse-name"
               type="text"
               placeholder="Tìm theo tên y tá..."
               value={filters["nurse-name"]}
@@ -162,28 +186,12 @@ export default function RenovatedNurseFilter({
             />
           </div>
 
-          {/* Placeholder for Workplace Filter - Currently not wired up */}
-          {/* <div className="grid gap-1">
-            <Input
-              // id="workplace"  // Suggest using relevant id/name if implemented
-              // name="workplace"
-              type="text"
-              placeholder="Tìm theo nơi làm việc..."
-              // value={filters["workplace"]} // Add state if implemented
-              // onChange={handleInputChange}
-              // onKeyDown={handleKeyDown}
-              className="h-9"
-              disabled={isLoading} // Disable if parent is loading
-            />
-          </div> */}
-
           {/* Filter by Service ID -> Now a Select */}
           <div className="grid gap-1">
             <Select
-              // Use service-id from filters state. Default to "all" if empty string.
               value={filters["service-id"] || "all"}
               onValueChange={(value) => handleSelectChange("service-id", value)}
-              disabled={isLoading || allServices.length === 0} // Disable if loading or no services fetched
+              disabled={isLoading || allServices.length === 0}
             >
               <SelectTrigger id="service-id" className="h-9">
                 <SelectValue placeholder="Chọn dịch vụ..." />
@@ -192,7 +200,7 @@ export default function RenovatedNurseFilter({
                 <SelectItem value="all">Tất cả dịch vụ</SelectItem>
                 {allServices.map((service) => (
                   <SelectItem key={service.id} value={service.id}>
-                    {service.name} {/* Display service name */}
+                    {service.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -202,7 +210,7 @@ export default function RenovatedNurseFilter({
           {/* Filter by Rate */}
           <div className="grid gap-1">
             <Select
-              value={filters.rate || "all"} // Use "all" for empty string value
+              value={filters.rate || "all"}
               onValueChange={(value) => handleSelectChange("rate", value)}
               disabled={isLoading}
             >

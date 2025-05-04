@@ -273,7 +273,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   };
 
   return (
-    <div className="w-full p-4 border rounded-lg shadow-sm h-fit">
+    <div className="w-full p-4 border rounded-lg shadow-sm h-fit bg-card">
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <Label className="text-xl font-semibold">Quản lý danh mục dịch vụ</Label>
         {/* Ensure CategoryForm handles its own open state via props */}

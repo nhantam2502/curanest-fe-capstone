@@ -34,8 +34,11 @@ export default function NurseManagementPage() {
         page: currentPage,
         size: itemsPerPage,
       };
-      const response = await nurseApiRequest.getAllNurse({ filter: filterPayload, paging });
-  
+      const response = await nurseApiRequest.getAllNurse({
+        filter: filterPayload,
+        paging,
+      });
+
       if (response.status === 200 && response.payload) {
         const receivedNurses = response.payload.data || [];
         const totalPagesFromApi = response.payload.paging.total || 1;
@@ -52,10 +55,9 @@ export default function NurseManagementPage() {
             description: "Không có điều dưỡng nào khớp với bộ lọc.",
           });
         }
-  
+
         setNurses(receivedNurses);
         setTotalPages(totalPagesFromApi);
-  
       } else {
         toast({
           title: "Lỗi tải điều dưỡng",
@@ -75,9 +77,7 @@ export default function NurseManagementPage() {
         variant: "destructive",
       });
     }
-  }, [filters, currentPage, itemsPerPage, toast]); 
-  
-
+  }, [filters, currentPage, itemsPerPage, toast]);
 
   useEffect(() => {
     fetchNurses();

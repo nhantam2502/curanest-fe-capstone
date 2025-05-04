@@ -49,7 +49,7 @@ interface UserTableProps {
   onSort: (column: keyof RelativesFilter | "") => void;
 }
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 5;
 
 export default function UserTable({
   users = [],

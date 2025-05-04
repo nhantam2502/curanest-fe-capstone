@@ -133,15 +133,10 @@ export const translateStatusToVietnamese = (status: string | null | undefined): 
           return "Đang chờ";
       case "confirmed":
           return "Đã xác nhận";
-      case "completed": // Combine common completion statuses
       case "success":
           return "Hoàn thành";
-      case "cancelled":
-          return "Đã hủy";
-      case "refused":
-          return "Đã từ chối";
-      case "changed":
-          return "Đã đổi lịch";
+      case "upcoming":
+          return "Sắp diễn ra";
       default:
           return status;
   }

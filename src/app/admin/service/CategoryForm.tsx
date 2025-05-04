@@ -15,6 +15,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import categoryApiRequest from "@/apiRequest/category/apiCategory";
 import { CreateCategory } from "@/types/category";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CategoryFormProps {
   open: boolean;
@@ -106,7 +107,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Mô tả</Label>
-            <Input
+            <Textarea
               id="description"
               name="description"
               value={newCategory.description}
@@ -117,7 +118,6 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
         </div>
         <DialogFooter>
           <Button type="submit" onClick={handleSave} disabled={isSaving}>
-            {" "}
             {/* Save Button */}
             {isSaving ? "Đang lưu..." : "Lưu"} {/* Dynamic button text */}
           </Button>

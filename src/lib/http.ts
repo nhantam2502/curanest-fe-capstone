@@ -117,8 +117,8 @@ const http = {
   delete<T>(url: string, options?: Omit<CustomOptions, "body">) {
     return request<T>("DELETE", url, options);
   },
-  patch<T>(url: string, options?: Omit<CustomOptions, "body">) {
-    return request<T>("PATCH", url, options);
+  patch<T>(url: string, body?: any, options?: Omit<CustomOptions, "body">) {
+    return request<T>("PATCH", url, { ...options, body });
   },
 
   patchWithBody<T>(

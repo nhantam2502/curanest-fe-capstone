@@ -59,24 +59,41 @@ const appointmentApiRequest = {
       `/appointment/api/v1/cuspackage/${cusPackageID}/invoices`
     ),
 
-    getAppointments: (filter: AppointmentFilter | null) => {
-      let queryString = `/appointment/api/v1/appointments`;
-  
-      if (filter) {
-        const params = new URLSearchParams();
-        Object.entries(filter).forEach(([key, value]) => {
-          if (value) {
-            params.append(key, value);
-          }
-        });
-  
-        queryString += `?${params.toString()}`;
-      }
-  
-      return http.get<Res>(queryString);
-    },
+  getAppointments: (filter: AppointmentFilter | null) => {
+    let queryString = `/appointment/api/v1/appointments`;
 
+    if (filter) {
+      const params = new URLSearchParams();
+      Object.entries(filter).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value);
+        }
+      });
+
+      queryString += `?${params.toString()}`;
+    }
+
+    return http.get<Res>(queryString);
+  },
+
+  getNursingAvailable: (
+    serviceId: string,
+    estDate: string,
+    estDuration: number
+  ) =>
+    http.get<Res>(
+      `/appointment/api/v1/appointments/nursing-available?service-id=${serviceId}&est-date=${estDate}&est-duration=${estDuration}`
+    ),
+
+  getTimesheet: (nursingId: string, estDateFrom: string, estDateTo: string) =>
+    http.get<Res>(
+      `/appointment/api/v1/appointments/nursing-timesheet?nursing-id=${nursingId}&est-date-from=${estDateFrom}&est-date-to=${estDateTo}`
+    ),
+
+    assignNurseToAppointment: (appointmentId: string, nursingId: string) =>
+      http.patch<Res>(
+        `/appointment/api/v1/appointments/${appointmentId}/assign-nursing/${nursingId}`
+      ),
 };
 
 export default appointmentApiRequest;
-

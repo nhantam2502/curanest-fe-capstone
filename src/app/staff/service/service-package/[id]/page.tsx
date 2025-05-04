@@ -40,7 +40,7 @@ function MainPage() {
   return (
     <div>
       <Button
-        variant="secondary"
+        variant="outline"
         size="sm"
         onClick={handleBack}
         className="mb-4"
