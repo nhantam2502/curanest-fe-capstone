@@ -47,7 +47,7 @@ const NursingCard: React.FC<NursingCardProps> = ({
         {nurse.rate && (
           <div className="absolute top-28 left-1/2 transform -translate-x-1/2 bg-white rounded-full py-1 px-3 shadow-sm border border-gray-100 flex items-center">
             <span className="font-bold text-gray-800 text-base mr-1">
-              {nurse.rate.toFixed(1)}
+              {Number(nurse.rate).toFixed(1)}
             </span>
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-200 flex-shrink-0" />
           </div>
@@ -63,9 +63,8 @@ const NursingCard: React.FC<NursingCardProps> = ({
         <div className="flex items-center justify-center">
           <Hospital className="w-5 h-5 mr-2 text-red-500 flex-shrink-0" />
           <div className="text-base text-gray-600">
-  {nurse["current-work-place"]}
-</div>
-
+            {nurse["current-work-place"]}
+          </div>
         </div>
       </CardContent>
     </Card>

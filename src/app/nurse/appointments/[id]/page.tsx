@@ -68,7 +68,7 @@ const DetailAppointment: React.FC = () => {
   const patientID = params.id as string;
   const searchParams = useSearchParams();
   const appointmentID = searchParams.get("appointmentID");
-  console.log("appointmentID: ", appointmentID);
+  // console.log("appointmentID: ", appointmentID);
 
   const [appointment, setAppointment] = useState<
     CusPackageResponse["data"] | null
@@ -83,6 +83,7 @@ const DetailAppointment: React.FC = () => {
   const [medicalRecordData, setMedicalRecordData] =
     useState<MedicalRecord | null>(null);
   const [medicalRecordLoading, setMedicalRecordLoading] = useState(false);
+  const [reportSubmitted, setReportSubmitted] = useState(false);
   const { toast } = useToast();
 
   // Fetch medical record data từ API
@@ -108,6 +109,8 @@ const DetailAppointment: React.FC = () => {
   useEffect(() => {
     if (medicalRecordData?.["nursing-report"]) {
       setMedicalReport(String(medicalRecordData["nursing-report"]));
+      // Nếu có dữ liệu báo cáo y tế, đánh dấu là đã submit
+      setReportSubmitted(true);
     }
   }, [medicalRecordData]);
 
@@ -240,7 +243,8 @@ const DetailAppointment: React.FC = () => {
           title: "Thành công",
           description: "Báo cáo y tế đã được lưu",
         });
-        // Có thể cập nhật lại state medicalRecordData hoặc thực hiện hành động khác
+        // Đánh dấu là đã submit báo cáo
+        setReportSubmitted(true);
       } else {
         throw new Error("API call failed");
       }
@@ -313,6 +317,9 @@ const DetailAppointment: React.FC = () => {
     },
   };
 
+  // Kiểm tra có hiển thị nút "Lưu báo cáo" hay không
+  const showSaveButton = !reportSubmitted && allTasksCompleted;
+
   return (
     <div className="mx-auto max-w-full container ">
       <Breadcrumb className=" py-5">
@@ -368,8 +375,9 @@ const DetailAppointment: React.FC = () => {
                 Báo cáo y tế
               </h3>
               <p className="text-gray-600 mb-4">
-                Tất cả các nhiệm vụ đã hoàn thành. Vui lòng nhập báo cáo y tế để
-                hoàn tất quy trình.
+                {reportSubmitted 
+                  ? "Báo cáo y tế đã được lưu."
+                  : "Tất cả các nhiệm vụ đã hoàn thành. Vui lòng nhập báo cáo y tế để hoàn tất quy trình."}
               </p>
 
               <Textarea
@@ -377,16 +385,19 @@ const DetailAppointment: React.FC = () => {
                 className="min-h-[200px] mb-4"
                 value={medicalReport}
                 onChange={(e) => setMedicalReport(e.target.value)}
+                readOnly={reportSubmitted}
               />
 
               <div className="flex justify-end">
-                <Button
-                  onClick={handleSubmitMedicalReport}
-                  disabled={savingReport || !medicalReport.trim()}
-                  className="bg-cyan-600 hover:bg-cyan-700"
-                >
-                  {savingReport ? "Đang lưu..." : "Lưu báo cáo"}
-                </Button>
+                {showSaveButton && (
+                  <Button
+                    onClick={handleSubmitMedicalReport}
+                    disabled={savingReport || !medicalReport.trim()}
+                    className="bg-cyan-600 hover:bg-cyan-700"
+                  >
+                    {savingReport ? "Đang lưu..." : "Lưu báo cáo"}
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

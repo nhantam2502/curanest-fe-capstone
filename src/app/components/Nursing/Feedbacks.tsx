@@ -1,54 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StarIcon } from "lucide-react";
+import { Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { DetailNurseProps } from "@/types/nurse";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { DetailNurseItemType, type Feedback } from "@/types/nurse";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import nursesData from "@/dummy_data/dummy_nurse.json";
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 
-const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
-  const getServicesBySpecialization = (specialization: string) => {
-    const nurse = nursesData.find((n) => n.specialization === specialization);
-    return nurse ? nurse.services : [];
-  };
-  
-  const services = getServicesBySpecialization(nurse.specialization);
+const Feedback = ({ nurse }: { nurse: DetailNurseItemType }) => {
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const testimonials = [
-    {
-      id: 1,
-      name: "Nguyễn Văn An",
-      avatar: "/patient-avatar.jpg",
-      rating: 5,
-      date: "15 tháng 3, 2024",
-      comment: "Dịch vụ chăm sóc tôi nhận được rất tuyệt vời.",
-      service: services[0] || "Dịch vụ khác",
-    },
-    {
-      id: 2,
-      name: "Trần Thị Bình",
-      avatar: "/family-avatar.jpg",
-      rating: 4,
-      date: "10 tháng 3, 2024",
-      comment:
-        "Việc có điều dưỡng chăm sóc người thân của tôi thực sự là một điều tuyệt vời.",
-      service: services[1] || "Dịch vụ khác",
-    },
-    {
-      id: 3,
-      name: "Lê Minh Tuấn",
-      avatar: "/patient-avatar-2.jpg",
-      rating: 3,
-      date: "5 tháng 3, 2024",
-      comment: "Dịch vụ chăm sóc mà tôi nhận được rất xuất sắc.",
-      service: services[2] || "Dịch vụ khác",
-    },
-  ];
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        // Get the nurse ID from the nurse object
+        const nurseID = nurse["nurse-id"];
+        const response = await nurseApiRequest.getFeedbackForNursing(nurseID);
+
+        // Assuming the API returns an array of feedback objects
+        setFeedbacks(response.payload.data);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching feedback:", err);
+        setError("Không thể tải dữ liệu đánh giá");
+        setLoading(false);
+      }
+    };
+
+    fetchFeedback();
+  }, [nurse["nurse-id"]]);
+
   const renderStars = (rating: number) => {
     return Array(5)
       .fill(0)
       .map((_, index) => (
-        <StarIcon
+        <Star
           key={index}
           className={`w-5 h-5 ${
             index < rating
@@ -59,9 +47,48 @@ const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
       ));
   };
 
+  if (loading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-32">
+            <p className="text-xl text-gray-500">Đang tải đánh giá...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-32">
+            <p className="text-xl text-red-500">{error}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (feedbacks.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="flex justify-center items-center h-32">
+            <p className="text-xl text-gray-500">Chưa có đánh giá nào</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Calculate average rating from star values
   const averageRating =
-    testimonials.reduce((acc, curr) => acc + curr.rating, 0) /
-    testimonials.length;
+    feedbacks.length > 0
+      ? feedbacks.reduce((acc, curr) => acc + parseInt(curr.star, 10), 0) /
+        feedbacks.length
+      : 0;
 
   return (
     <Card className="w-full">
@@ -69,45 +96,49 @@ const Feedback = ({ nurse }: { nurse: DetailNurseProps["nurse"] }) => {
         <CardTitle className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold">Trung bình tổng đánh giá</h2>
           <div className="flex items-center gap-2">
-            <div className="flex">{renderStars(5)}</div>
+            <div className="flex">{renderStars(Math.round(averageRating))}</div>
             <span className="text-2xl font-bold">
               {averageRating.toFixed(1)}
             </span>
-            <span className="text-xl text-gray-500">
-              ({testimonials.length})
-            </span>
+            <span className="text-xl text-gray-500">({feedbacks.length})</span>
           </div>
         </CardTitle>
       </CardHeader>
 
       <CardContent>
-        <div className="space-y-6">
-          {testimonials.map((review) => (
-            <div key={review.id} className="border-b pb-6 last:border-b-0">
-              <div className="flex items-center gap-6 mb-3">
-                <Avatar className="w-[80px] h-[80px]">
-                  <AvatarImage src="https://github.com/shadcn.png" />
-                  <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
+        <ScrollArea className="h-96 pr-4">
+          <div className="space-y-6">
+            {feedbacks.map((feedback) => (
+              <div key={feedback.id} className="border-b pb-6 last:border-b-0">
+                <div className="flex items-center gap-6 mb-3">
+                  <Avatar className="w-20 h-20">
+                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarFallback>
+                      {feedback["patient-name"].substring(0, 2) || "UN"}
+                    </AvatarFallback>
+                  </Avatar>
 
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-2xl font-semibold">{review.name}</h3>
-                      {renderStars(review.rating)}
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-2xl font-semibold">
+                          {feedback["patient-name"]}
+                        </h3>
+                        {renderStars(parseInt(feedback.star, 10))}
+                      </div>
+                      {/* No date field in the Feedback type, could add if needed */}
                     </div>
-                    <p className="text-lg text-gray-500">{review.date}</p>
                   </div>
                 </div>
-              </div>
 
-              <p className="text-xl mb-3">{review.comment}</p>
-              <Badge className="rounded-[50px] bg-[#e5ab47] text-white border-[#e5ab47] text-lg mb-4 hover:bg-[#e5ab47] cursor-pointer">
-                {review.service}
-              </Badge>
-            </div>
-          ))}
-        </div>
+                <p className="text-xl mb-3">{feedback.content}</p>
+                <Badge className="rounded-full bg-[#64D1CB] text-white border-[#64D1CB] text-lg mb-4 hover:bg-[#64D1CB] cursor-pointer">
+                  {feedback.service}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );

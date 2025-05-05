@@ -29,22 +29,33 @@ export const RegisterSchema = z
     "phone-number": z.string().regex(/^[0-9]{10}$/, {
       message: "Vui lòng nhập số điện thoại hợp lệ (10 số).",
     }),
-    password: z.string().min(6, {
-      message: "Mật khẩu phải có ít nhất 6 ký tự",
-    }),
-    confirmPassword: z.string().min(6, {
-      message: "Mật khẩu nhập lại phải có ít nhất 6 ký tự",
-    }),
+    password: z
+      .string()
+      .min(6, {
+        message: "Mật khẩu phải có ít nhất 6 ký tự",
+      })
+      .refine((val) => /[A-Z]/.test(val), {
+        message: "Mật khẩu phải chứa ít nhất một chữ hoa",
+      })
+      // .refine((val) => /[!@#$%^&*(),.?":{}|<>]/.test(val), {
+      //   message: "Mật khẩu phải chứa ít nhất một ký tự đặc biệt",
+      // })
+      .refine((val) => /\d/.test(val), {
+        message: "Mật khẩu phải chứa ít nhất một số",
+      }),
+    // confirmPassword: z.string().min(6, {
+    //   message: "Mật khẩu nhập lại phải có ít nhất 6 ký tự",
+    // }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Mật khẩu nhập lại không khớp",
-    path: ["confirmPassword"],
-  });
+  // .refine((data) => data.password === data.confirmPassword, {
+  //   message: "Mật khẩu nhập lại không khớp",
+  //   path: ["confirmPassword"],
+  // });
 
 export const RegisterBody = z.object({
   email: z.string(),
   password: z.string(),
-  confirmPassword: z.string(),
+  // confirmPassword: z.string(),
   "full-name": z.string(),
   "phone-number": z.string(),
 });

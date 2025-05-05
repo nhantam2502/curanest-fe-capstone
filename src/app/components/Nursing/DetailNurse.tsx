@@ -15,14 +15,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DetailNurseItemType } from "@/types/nurse";
+import { DetailNurseItemType, type Feedback as FeedbackType } from "@/types/nurse";
 import {
   BookOpenCheck,
   Clock,
   GraduationCap,
   MapPin,
+  Star,
   StarIcon,
   Users,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
 import TimeTableNurse from "./TimeTableNurse";
 import Feedback from "./Feedbacks";
@@ -46,6 +49,8 @@ const DetailNurse = ({
   const { data: session, status } = useSession();
   const [relatedNurses, setRelatedNurses] = useState<DetailNurseItemType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [feedbacks, setFeedbacks] = useState<FeedbackType[]>([]);
+  const [loadingFeedbacks, setLoadingFeedbacks] = useState(true);
 
   const params = useParams();
   const serviceIdRaw = params.serviceId;
@@ -86,6 +91,23 @@ const DetailNurse = ({
     fetchRelatedNurses();
   }, [serviceID, nurse]);
 
+  // Fetch đánh giá cho điều dưỡng
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      try {
+        const nurseID = nurse["nurse-id"];
+        const response = await nurseApiRequest.getFeedbackForNursing(nurseID);
+        setFeedbacks(response.payload.data);
+        setLoadingFeedbacks(false);
+      } catch (err) {
+        console.error("Error fetching feedback:", err);
+        setLoadingFeedbacks(false);
+      }
+    };
+
+    fetchFeedback();
+  }, [nurse["nurse-id"]]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const handleResize = () => {
@@ -125,6 +147,39 @@ const DetailNurse = ({
     router.push(
       `/relatives/findingNurse/${serviceId}/${nurse["nurse-id"]}/bookingNurse?serviceID=${serviceID}`
     );
+  };
+  
+  // Tính toán thống kê từ feedbacks
+  const averageRating = feedbacks.length > 0
+    ? feedbacks.reduce((acc, curr) => acc + parseInt(curr.star, 10), 0) / feedbacks.length
+    : 0;
+  
+  // Tính phân phối đánh giá theo số sao
+  const ratingDistribution = Array(5).fill(0);
+  feedbacks.forEach(feedback => {
+    const starIndex = parseInt(feedback.star, 10) - 1;
+    if (starIndex >= 0 && starIndex < 5) {
+      ratingDistribution[starIndex]++;
+    }
+  });
+  
+  // Tính các dịch vụ đã được đánh giá
+  const uniqueServices = new Set(feedbacks.map(f => f.service));
+
+  // Hàm render stars
+  const renderStars = (rating: number) => {
+    return Array(5)
+      .fill(0)
+      .map((_, index) => (
+        <Star
+          key={index}
+          className={`w-4 h-4 ${
+            index < rating
+              ? "fill-yellow-400 text-yellow-400"
+              : "fill-gray-200 text-gray-200"
+          }`}
+        />
+      ));
   };
 
   return (
@@ -190,18 +245,10 @@ const DetailNurse = ({
                     {nurse["nurse-name"]}
                   </h1>
 
-                  <div className="flex items-center gap-3 mt-4 mb-4">
-                    <StarIcon className="w-6 h-6 fill-yellow-400 text-yellow-200" />
-                    <span className="font-semibold text-xl">
-                      {nurse.rate.toFixed(1)}
-                    </span>
-                    <span className="text-gray-500 text-lg">
-                      ({nurse.rate} đánh giá)
-                    </span>
-                  </div>
+                 
                   <Button
                     onClick={() => handleBookingClick(nurse)}
-                    className="w-full mb-4 bg-[#e5ab47] hover:bg-[#e5ab47]/90 text-xl"
+                    className="w-full mb-4 bg-[#e5ab47] hover:bg-[#e5ab47]/90 text-xl mt-4"
                   >
                     Đặt lịch
                   </Button>
@@ -219,7 +266,7 @@ const DetailNurse = ({
                     <span className="text-xl">{nurse["education-level"]}</span>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-4">
-                    <BookOpenCheck className="w-10 h-10 text-[#e5ab47]" />
+                    <BookOpenCheck className="w-8 h-8 text-[#e5ab47]" />
                     <span className="text-xl">
                       {nurse.certificate.split(" - ").join(", ")}
                     </span>
@@ -237,25 +284,117 @@ const DetailNurse = ({
           {/* Right Content */}
           <div className="lg:w-2/3 space-y-8">
             {/* Thống kê */}
-            <Card>
-              <CardHeader>
+            <Card className="shadow-md">
+              <CardHeader className="border-b bg-gradient-to-r from-amber-50 to-white">
                 <CardTitle className="flex items-center gap-3 text-2xl">
                   <Users className="w-8 h-8 text-[#e5ab47]" />
-                  Thống kê
+                  Đánh giá & Thống kê
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div>
-                    <h3 className="font-semibold text-xl mb-3">
-                      Đánh giá trung bình
-                    </h3>
-                    <p className="text-4xl font-bold text-[#e5ab47] flex items-center gap-3">
-                      {nurse.rate.toFixed(1)}
-                      <StarIcon className="w-7 h-7 fill-yellow-400 text-yellow-200" />
-                    </p>
+              <CardContent className="pt-6">
+                {loadingFeedbacks ? (
+                  <div className="flex justify-center items-center h-32">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-8 h-8 border-4 border-t-amber-500 border-amber-200 rounded-full animate-spin"></div>
+                      <p className="text-lg text-gray-500 font-medium">Đang tải đánh giá...</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Cột bên trái - Tổng quan đánh giá */}
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <h3 className="font-semibold text-xl">Đánh giá trung bình</h3>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 mb-4">
+                        <p className="text-4xl font-bold text-[#e5ab47]">
+                          {averageRating > 0 ? averageRating.toFixed(1) : parseFloat(nurse.rate).toFixed(1)}
+                        </p>
+                        <div className="flex">{renderStars(Math.round(averageRating > 0 ? averageRating : Number(nurse.rate)))}</div>
+                        <span className="text-lg text-gray-500">
+                          ({feedbacks.length} đánh giá)
+                        </span>
+                      </div>
+                      
+                      {/* Phân phối đánh giá */}
+                      <div className="space-y-2 mt-4">
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const count = ratingDistribution[star - 1];
+                          const percentage = feedbacks.length > 0 
+                            ? (count / feedbacks.length) * 100 
+                            : 0;
+                            
+                          return (
+                            <div key={star} className="flex items-center gap-2">
+                              <span className="text-sm w-2">{star}</span>
+                              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-[#e5ab47] rounded-full"
+                                  style={{ width: `${percentage}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-500 w-8">{count}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Cột bên phải - Tóm tắt thống kê */}
+                    <div className="bg-amber-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-xl text-gray-700 mb-4">Tóm tắt thống kê</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-gray-500 text-sm">Tổng số đánh giá</p>
+                              <p className="text-2xl font-bold text-[#e5ab47]">{feedbacks.length}</p>
+                            </div>
+                            <MessageSquare className="w-10 h-10 text-[#e5ab47]/30" />
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-gray-500 text-sm">Đánh giá 5 sao</p>
+                              <p className="text-2xl font-bold text-[#e5ab47]">
+                                {ratingDistribution[4]}
+                              </p>
+                            </div>
+                            <Star className="w-10 h-10 fill-yellow-400 text-yellow-400" />
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-gray-500 text-sm">Số dịch vụ</p>
+                              <p className="text-2xl font-bold text-[#e5ab47]">
+                                {uniqueServices.size}
+                              </p>
+                            </div>
+                            <BookOpenCheck className="w-10 h-10 text-[#e5ab47]/30" />
+                          </div>
+                        </div>
+                        
+                        <div className="bg-white p-4 rounded-lg shadow-sm">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-gray-500 text-sm">Kinh nghiệm</p>
+                              <p className="text-2xl font-bold text-[#e5ab47]">
+                                {parseInt(nurse.experience) || 0} năm
+                              </p>
+                            </div>
+                            <Calendar className="w-10 h-10 text-[#e5ab47]/30" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -268,15 +407,14 @@ const DetailNurse = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-              <TimeTableNurse nurseId={nurse["nurse-id"]} />
-
+                <TimeTableNurse nurseId={nurse["nurse-id"]} />
               </CardContent>
             </Card>
           </div>
         </div>
 
         {/* Feedback */}
-        {/* <Feedback nurse={nurse} /> */}
+        <Feedback nurse={nurse} />
 
         {/* Related Nurse */}
         {isLoading ? (

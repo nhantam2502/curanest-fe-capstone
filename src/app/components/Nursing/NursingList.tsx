@@ -17,7 +17,8 @@ const NursingList = ({ serviceId }: { serviceId: string }) => {
         const response = await nurseApiRequest.getListNurse(
           serviceId , 
           null,               
-          1,                 
+          1,
+          10,                 
           null             
         );
 

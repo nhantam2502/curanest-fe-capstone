@@ -5,6 +5,7 @@ import {
   CalendarDays,
   HandCoins,
   LayoutDashboard,
+  MessageCircle,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -36,11 +37,11 @@ const data = {
       url: "/nurse/appointmentHistory",
       icon: CalendarDays,
     },
-    // {
-    //   title: "Income & appointment history",
-    //   url: "#",
-    //   icon: HandCoins,
-    // },
+    {
+      title: "Phản hồi từ khách hàng",
+      url: "/nurse/feedback",
+      icon: MessageCircle,
+    },
   ],
 };
 

@@ -74,6 +74,8 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
     fetchAppointments();
   }, [nurseId]);
 
+
+
   function getDates(offset = 0) {
     const dates = [];
     const today = new Date();
@@ -185,7 +187,18 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
         break;
     }
 
-    return appointments.some((apt) => {
+    // Lọc các lịch hẹn trong tuần hiện tại
+    const currentWeekAppointments = appointments.filter(apt => {
+      if (!apt.appointment_date) return false;
+      
+      const aptDate = new Date(apt.appointment_date);
+      if (isNaN(aptDate.getTime())) return false;
+      
+      const formattedAptDate = formatDate(aptDate);
+      return weekDays.includes(formattedAptDate);
+    });
+
+    return currentWeekAppointments.some((apt) => {
       if (!apt.estTimeFrom || !apt.estTimeTo) return false;
 
       const aptStartHour = parseInt(apt.estTimeFrom.split(":")[0]);
@@ -315,19 +328,19 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="morning" className="text-lg relative">
             Buổi sáng (8h-12h)
-            {hasAppointmentsInTimeRange("morning") && (
+            {weekOffset === 0 && hasAppointmentsInTimeRange("morning") && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             )}
           </TabsTrigger>
           <TabsTrigger value="afternoon" className="text-lg relative">
             Buổi chiều (12h-17h)
-            {hasAppointmentsInTimeRange("afternoon") && (
+            {weekOffset === 0 && hasAppointmentsInTimeRange("afternoon") && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             )}
           </TabsTrigger>
           <TabsTrigger value="evening" className="text-lg relative">
             Buổi tối (17h-22h)
-            {hasAppointmentsInTimeRange("evening") && (
+            {weekOffset === 0 && hasAppointmentsInTimeRange("evening") && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             )}
           </TabsTrigger>

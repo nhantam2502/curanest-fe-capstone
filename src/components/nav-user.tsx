@@ -19,18 +19,40 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { infoNurseRes } from "@/types/nurse";
+import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 
 export function NavUser() {
   const { data: session } = useSession();
   const { isMobile } = useSidebar();
   const router = useRouter();
 
+  const [profileData, setProfileData] = useState<infoNurseRes | null>(null);
+
+  useEffect(() => {
+    const fetchNurseData = async () => {
+      try {
+        const response = await nurseApiRequest.getInfoNurseMe();
+
+        if (response.status === 200 && response.payload) {
+          setProfileData(response.payload);
+        } else {
+          console.error("Failed to fetch nurse profile data:", response);
+        }
+      } catch (err) {
+        console.error("Failed to fetch nurse profile data:", err);
+      }
+    };
+
+    fetchNurseData();
+  }, []);
+
   if (!session?.user) {
     return null;
   }
 
   const { name, email, image: avatar } = session.user;
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -42,7 +64,7 @@ export function NavUser() {
             >
               <Avatar className="w-8 h-8">
                 <AvatarImage
-                  src={avatar || "/placeholder.png"}
+                  src={profileData?.data["nurse-picture"] || "/placeholder.png"}
                   alt={name || "User"}
                 />
                 <AvatarFallback>
@@ -66,7 +88,7 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage
-                    src={avatar || "https://github.com/shadcn.png"}
+                    src={profileData?.data["nurse-picture"] || "https://github.com/shadcn.png"}
                   />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
