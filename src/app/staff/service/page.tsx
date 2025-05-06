@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 
-// --- Configuration for Description Truncation ---
 const MAX_DESC_LENGTH = 80; // Max characters before truncating
 
 function Page() {
@@ -23,7 +22,7 @@ function Page() {
     id: string;
     name: string;
     category_id: string;
-    description?: string; // Description is optional
+    description?: string;
     est_duration?: string;
     status?: string;
   }
@@ -33,7 +32,6 @@ function Page() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // --- State to track expanded descriptions ---
   const [expandedDescriptions, setExpandedDescriptions] = useState<
     Record<string, boolean>
   >({});

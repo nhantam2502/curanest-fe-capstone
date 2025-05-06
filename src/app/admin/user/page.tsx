@@ -114,7 +114,7 @@ function Page() {
   });
 
   return (
-    <main className="p-2 bg-white rounded-md h-full">
+    <div className="rounded-md h-full">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Thống kê người dùng</h1>
       </div>
@@ -130,7 +130,7 @@ function Page() {
         sortDirection={sortDirection}
         onSort={handleSort}
       />
-    </main>
+    </div>
   );
 }
 

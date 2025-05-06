@@ -38,9 +38,9 @@ export default function AdminLayout({
           </Button>
         </header>
 
-        <main className="flex-1 lg:p-4 min-h-[calc(100vh-4.5rem)]">
+        <div className="flex-1 lg:p-4 min-h-[calc(100vh-3.5rem)] bg-gray-50">
           {children}
-        </main>
+        </div>
       </div>
     </main>
   );

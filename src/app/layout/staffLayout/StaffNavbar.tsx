@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   CalendarX2,
   Calendar1,
+  ClipboardPlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
@@ -56,6 +57,11 @@ const menuItems: MenuItem[] = [
     title: "Lịch làm việc",
     link: "/schedule",
     icon: <Calendar className="h-4 w-4" />,
+  },
+  {
+    title: "Báo cáo",
+    link: "/medical-report",
+    icon: <ClipboardPlus className="h-4 w-4" />,
   },
   { title: "Dịch vụ", link: "/service", icon: <Hand className="h-4 w-4" /> },
 ];

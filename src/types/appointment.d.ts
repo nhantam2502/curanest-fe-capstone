@@ -24,6 +24,7 @@ export type GetAppointment = {
   "act-date": string | null;
   status: string;
   "created-at": string;
+  "total-est-duration": number;
 };
 
 export type AppointmentFilter = {

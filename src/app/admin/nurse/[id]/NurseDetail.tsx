@@ -281,7 +281,7 @@ export default function NurseDetailPageRenovated() {
                 label="Chứng chỉ"
                 value={nurseDetail.certificate}
               />
-              <InfoItem
+              {/* <InfoItem
                 icon={LinkIcon}
                 label="Google Drive"
                 value={
@@ -296,7 +296,7 @@ export default function NurseDetailPageRenovated() {
                     </a>
                   ) : null
                 }
-              />
+              /> */}
             </CardContent>
           </Card>
         </div>

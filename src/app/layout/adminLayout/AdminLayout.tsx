@@ -26,7 +26,7 @@ export default function AdminLayout({
         />
 
         <div
-          className={`flex flex-1 flex-col h-full overflow-hidden transition-all duration-300 ease-in-out ${ // Added h-full and ensure overflow-hidden
+          className={`flex flex-1 flex-col h-full overflow-hidden transition-all duration-300 ease-in-out ${
             isCollapsed ? "lg:ml-20" : "lg:ml-64"
           }`}
         >
@@ -43,7 +43,7 @@ export default function AdminLayout({
             </Button>
           </header>
           <div className="flex-1 overflow-y-auto lg:p-4">
-            <div className="bg-white border rounded-md p-4 min-h-[80vh]"> 
+            <div className="bg-gray-50 border rounded-md p-4 min-h-[80vh]"> 
               {children}
             </div>
           </div>

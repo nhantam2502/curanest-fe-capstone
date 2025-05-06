@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   BriefcaseBusiness,
+  Receipt,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { signOut, useSession } from "next-auth/react";
@@ -38,7 +39,9 @@ const menuItems: MenuItem[] = [
   { title: "Khách hàng", link: "/user", icon: <User /> },
   { title: "Điều dưỡng", link: "/nurse", icon: <User /> },
   { title: "Dịch vụ", link: "/service", icon: <BriefcaseBusiness /> },
-  { title: "Bài đăng", link: "/post", icon: <BookA /> },
+  { title: "Giao dịch", link: "/invoice", icon: <Receipt /> },
+  // { title: "Bài đăng", link: "/post", icon: <BookA /> },
+
 ];
 
 const DesktopMenuItem: React.FC<{ item: MenuItem; isCollapsed: boolean }> = ({

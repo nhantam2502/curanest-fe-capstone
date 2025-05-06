@@ -245,7 +245,7 @@ export default function RenovatedNurseTable({
                       </TooltipTrigger>
                       <TooltipContent side="bottom" align="center"className="bg-white text-black">
                         <p>
-                          Xem chi tiết {nurse["nurse-name"] || "điều dưỡng"}
+                          Bấm để em chi tiết
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -273,12 +273,14 @@ export default function RenovatedNurseTable({
               <div className="flex items-center space-x-1">
                 <Button
                   variant="outline"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 sm:w-auto sm:px-3 sm:py-1"
                   onClick={() => onPageChange(currentPage - 1)}
                   disabled={currentPage <= 1}
                   aria-label="Go to previous page"
+                  size="sm"
                 >
                   <ChevronLeft className="h-4 w-4" />
+                  <span className="hidden sm:inline">Trước</span>
                 </Button>
                 <div className="flex w-[100px] items-center justify-center text-sm font-medium">
                   {" "}
@@ -287,11 +289,13 @@ export default function RenovatedNurseTable({
                 </div>
                 <Button
                   variant="outline"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 sm:w-auto sm:px-3 sm:py-1"
                   onClick={() => onPageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages}
                   aria-label="Go to next page"
+                  size="sm"
                 >
+                  <span className="hidden sm:inline">Sau</span>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

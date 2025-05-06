@@ -38,7 +38,7 @@ function page() {
 
       {/* Full-width Charts */}
       <div className="grid gap-6 grid-cols-1">
-        <div className="rounded-lg border shadow-sm p-4">
+        <div className="rounded-lg border shadow-sm p-4 bg-white">
           <h3 className="text-lg font-semibold mb-4">Dịch vụ phổ biến</h3>
           <ServicePopularityChart />
         </div>
