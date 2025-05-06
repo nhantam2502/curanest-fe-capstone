@@ -39,7 +39,6 @@ export function RegisterForm() {
       email: "",
       "phone-number": "",
       password: "",
-      confirmPassword: "",
     },
   });
 
@@ -52,7 +51,6 @@ export function RegisterForm() {
         email: values.email,
         "phone-number": values["phone-number"],
         password: values.password,
-        confirmPassword: values.confirmPassword,
       };
   
       const response = await authApiRequest.register(registerData);
@@ -181,7 +179,7 @@ export function RegisterForm() {
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="confirmPassword"
           render={({ field }) => (
@@ -214,7 +212,7 @@ export function RegisterForm() {
               <FormMessage className="text-red-500 text-lg" />
             </FormItem>
           )}
-        />
+        /> */}
 
         <Button
           type="submit"

@@ -1,6 +1,6 @@
 import http from "@/lib/http";
 import { UpdateInfoRelatives, UpdatePatientRecord } from "@/schemaValidation/relatives.schema";
-import { createPatientRecord, CreateRes, infoRelativesRes, PatientRecordRes } from "@/types/patient";
+import { createPatientRecord, CreateRes, getPaymentHistory, getPaymentHistoryRes, infoRelativesRes, PatientRecordRes } from "@/types/patient";
 
 const patientApiRequest = {
   getInfoRelatives: () =>
@@ -27,6 +27,9 @@ const patientApiRequest = {
     const { id, ...updateBody } = body;
     return http.put<CreateRes>(`/patient/api/v1/patients/${body.id}`, updateBody);
   },
+
+  getPaymentHistory: (body: getPaymentHistory) =>
+    http.post<getPaymentHistoryRes>("/appointment/api/v1/invoices/patient", body),
 };
 
 export default patientApiRequest;

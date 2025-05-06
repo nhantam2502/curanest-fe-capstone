@@ -32,12 +32,14 @@ import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { NurseItemType } from "@/types/nurse";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { formatDate, getStatusColor, getStatusText } from "@/lib/utils";
+import { toast } from "react-toastify"; // Thêm thư viện thông báo
 
 interface AppointmentProp {
-  time_from_to: string;
+  estTimeFrom: string;
+  estTimeTo: string;
   apiData: Appointment;
   cusPackage?: CusPackageResponse | null;
-  patientInfo?: PatientRecord | null; // Thêm thông tin bệnh nhân vào prop
+  patientInfo?: PatientRecord | null;
 }
 
 const AppointmentHistory = () => {
@@ -49,40 +51,45 @@ const AppointmentHistory = () => {
     useState<AppointmentProp | null>(null);
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
   const [nurses, setNurses] = useState<NurseItemType[]>([]);
-
   const [monthFilter, setMonthFilter] = useState(() => {
     const currentDate = new Date();
-    return `${currentDate.getFullYear()}-${String(
-      currentDate.getMonth() + 1
-    ).padStart(2, "0")}`;
+    return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}`;
   });
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [isMedicalReportOpen, setIsMedicalReportOpen] = useState(false);
-  const [selectedReport, setSelectedReport] = useState<any>(null);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [appointments, setAppointments] = useState<AppointmentProp[]>([]);
   const [appointmentDetails, setAppointmentDetails] = useState<
     Record<string, any>
   >({});
-
   const [loadingNurses, setLoadingNurses] = useState<boolean>(false);
   const [nurseError, setNurseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [appointmentError, setAppointmentError] = useState<string | null>(null);
+  // Thêm state cho medical record
+  const [medicalRecordLoading, setMedicalRecordLoading] =
+    useState<boolean>(false);
+  const [medicalRecordError, setMedicalRecordError] = useState<string | null>(
+    null
+  );
+  const [isMedicalReportOpen, setIsMedicalReportOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [medicalReportIds, setMedicalReportIds] = useState<Record<string, string>>({});
 
-  // Thêm state cho phân trang
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const pageSize = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [monthFilter, selectedDay, selectedPatientId]);
 
   useEffect(() => {
     const fetchPatients = async () => {
       try {
         setIsLoading(true);
         const response = await patientApiRequest.getPatientRecord();
-
         setPatients(response.payload.data);
         setIsLoading(false);
       } catch (err) {
@@ -91,11 +98,9 @@ const AppointmentHistory = () => {
         setIsLoading(false);
       }
     };
-
     fetchPatients();
   }, []);
 
-  // Fetch nurse data when component mounts
   useEffect(() => {
     const fetchListNurse = async () => {
       try {
@@ -115,7 +120,6 @@ const AppointmentHistory = () => {
         setLoadingNurses(false);
       }
     };
-
     fetchListNurse();
   }, []);
 
@@ -126,37 +130,27 @@ const AppointmentHistory = () => {
         const estDateFrom = selectedDay
           ? `${monthFilter}-${String(selectedDay).padStart(2, "0")}`
           : `${monthFilter}-01`;
-
         const response = await appointmentApiRequest.getHistoryAppointment(
           currentPage,
+          pageSize,
           undefined,
-          undefined, // Giờ đây có thể là null nếu không chọn bệnh nhân
+          selectedPatientId || undefined,
           estDateFrom
         );
-
         if (response.payload && response.payload.success) {
-          setTotalPages(
-            Math.ceil(
-              response.payload.paging.total / response.payload.paging.size
-            )
-          );
-
+          setTotalPages(response.payload.paging.total);
           const formattedAppointmentsPromises = response.payload.data.map(
             async (appointment: Appointment) => {
               const nursingId = appointment["nursing-id"];
               const patientId = appointment["patient-id"];
-
               const matchedNurse = nurses.find((nurse) => {
                 const nurseMatches =
                   String(nurse["nurse-id"]) === String(nursingId);
                 return nurseMatches;
               });
-
-              // Tìm thông tin bệnh nhân
               const patientInfo = patients.find(
                 (patient) => String(patient.id) === String(patientId)
               );
-
               return await transformAppointment(
                 appointment,
                 matchedNurse || null,
@@ -164,7 +158,6 @@ const AppointmentHistory = () => {
               );
             }
           );
-
           const formattedAppointments = await Promise.all(
             formattedAppointmentsPromises
           );
@@ -179,33 +172,30 @@ const AppointmentHistory = () => {
         setIsLoading(false);
       }
     };
-
-    // Gọi API lấy lịch sử cuộc hẹn mỗi khi filter thay đổi
     fetchAppointments();
-  }, [selectedPatientId, monthFilter, selectedDay, currentPage, patients.length, nurses.length]);
+  }, [
+    selectedPatientId,
+    monthFilter,
+    selectedDay,
+    currentPage,
+    patients.length,
+    nurses.length,
+  ]);
 
   const transformAppointment = async (
     appointment: Appointment,
     matchedNurse: NurseItemType | null,
     patientInfo: PatientRecord | null
   ): Promise<AppointmentProp> => {
-    // Extract time information from appointment
     const estDate = appointment["est-date"];
     const date = new Date(estDate);
-
-    // Định dạng ngày: YYYY-MM-DD
     const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-    // Định dạng giờ: HH:MM (24h format)
     const formattedTime = `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-
     const endTime = new Date(
       date.getTime() + appointment["total-est-duration"] * 60000
     );
     const formattedEndTime = `${String(endTime.getHours()).padStart(2, "0")}:${String(endTime.getMinutes()).padStart(2, "0")}`;
-
     let cusPackage = null;
-    // Gọi API để lấy thông tin cusPackage nếu có cusPackageID
     if (appointment["cuspackage-id"]) {
       try {
         const response = await appointmentApiRequest.getCusPackage(
@@ -221,13 +211,9 @@ const AppointmentHistory = () => {
         console.error("Error fetching cusPackage:", error);
       }
     }
-
-    // Store additional appointment details in the appointmentDetails state
     const nursingName = matchedNurse
       ? matchedNurse["nurse-name"]
       : "Không có thông tin";
-
-    // Update appointment details in the state
     setAppointmentDetails((prev) => ({
       ...prev,
       [appointment.id]: {
@@ -237,23 +223,19 @@ const AppointmentHistory = () => {
         estTimeTo: formattedEndTime,
         totalPrice: cusPackage?.data?.price || undefined,
         status: appointment.status,
-        patientName: patientInfo ? patientInfo["full-name"] : "Không có thông tin", // Thêm tên bệnh nhân
+        patientName: patientInfo
+          ? patientInfo["full-name"]
+          : "Không có thông tin",
       },
     }));
-
-    // Return formatted appointment data
     return {
-      time_from_to: formattedTime,
+      estTimeFrom: formattedTime,
+      estTimeTo: formattedEndTime,
       apiData: appointment,
       cusPackage: cusPackage,
       patientInfo: patientInfo,
     };
   };
-
-  // Reset trang khi thay đổi bộ lọc
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [monthFilter, selectedDay, selectedPatientId]);
 
   const handleViewDetail = (appointment: any) => {
     const nurse = nurses.find(
@@ -264,38 +246,76 @@ const AppointmentHistory = () => {
     setIsDialogOpen(true);
   };
 
-  const handleViewMedicalReport = (appointment: AppointmentProp) => {
-    const details = appointmentDetails[appointment.apiData.id];
-    const sampleReport = {
-      nurse_name: details.nursingName,
-      avatar: "https://github.com/shadcn.png", // Default avatar
-      report_date: formatDate(new Date(appointment.apiData["est-date"])),
-      report_time: `${details.estTimeFrom} - ${details.estTimeTo}`,
-      report:
-        "Bệnh nhân đến khám trong tình trạng tỉnh táo, các chỉ số sinh tồn trong giới hạn bình thường.\n\nHuyết áp: 120/80 mmHg\nNhịp tim: 75 lần/phút\nNhiệt độ: 36.5°C\n\nĐã thực hiện đầy đủ các kỹ thuật theo yêu cầu. Bệnh nhân hợp tác tốt trong quá trình điều trị.",
-      advice: [
-        "Duy trì chế độ ăn uống lành mạnh, hạn chế thức ăn nhiều dầu mỡ",
-        "Tập thể dục đều đặn, mỗi ngày 30 phút",
-        "Uống đủ nước, ít nhất 2 lít mỗi ngày",
-        "Theo dõi huyết áp hàng ngày và ghi chép lại",
-      ],
-    };
 
-    setSelectedReport(sampleReport);
-    setIsMedicalReportOpen(true);
+  const handleViewMedicalReport = async (appointmentID: string) => {
+    if (!appointmentID) {
+      toast.error("Không tìm thấy ID cuộc hẹn.");
+      return;
+    }
+    const controller = new AbortController();
+    setMedicalRecordLoading(true);
+    setMedicalRecordError(null);
+
+    try {
+      const response =
+        await appointmentApiRequest.getMedicalRecord(appointmentID);
+      if (response.payload.data && response.payload.data) {
+        // Tìm thông tin y tá từ appointmentID
+        const appointment = appointments.find(
+          (app) => app.apiData.id === appointmentID
+        );
+        const nurseId = appointment?.apiData["nursing-id"];
+        const nurse = nurses.find((nurse) => nurse["nurse-id"] === nurseId);
+    
+        const formattedReport = {
+          nurse_name: nurse?.["nurse-name"] || "Không xác định",
+          avatar: nurse?.["nurse-picture"] || "/default-avatar.png",
+          report: response.payload.data,
+        };
+
+        setSelectedReport(formattedReport);
+        setIsMedicalReportOpen(true);
+      } else {
+        throw new Error("Dữ liệu báo cáo y tế không hợp lệ.");
+      }
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        console.log("Fetch medical record aborted");
+        return;
+      }
+      console.error("Error fetching medical record:", error);
+      setMedicalRecordError(
+        "Không thể tải báo cáo y tế. Vui lòng thử lại sau."
+      );
+      toast.error("Không thể tải báo cáo y tế. Vui lòng thử lại sau.");
+    } finally {
+      setMedicalRecordLoading(false);
+    }
+
+    return () => {
+      controller.abort();
+    };
   };
 
-  const handleSendFeedback = (appointment: AppointmentProp) => {
+  const handleViewFeedback = async (appointment: AppointmentProp) => {
+    const appointmentId = appointment.apiData.id;
+    // Chỉ lấy medical report ID nếu chưa có trong state
+    if (!medicalReportIds[appointmentId]) {
+      try {
+        const response = await appointmentApiRequest.getMedicalRecord(appointmentId);
+        if (response.payload.data) {
+          setMedicalReportIds(prev => ({
+            ...prev,
+            [appointmentId]: response.payload.data.id
+          }));
+        }
+      } catch (error) {
+        console.error(`Error fetching medical report ID for appointment ${appointmentId}:`, error);
+        toast.error("Không thể tải thông tin báo cáo y tế");
+      }
+    }
     setSelectedAppointment(appointment);
     setIsFeedbackOpen(true);
-  };
-
-  const handleSubmitFeedback = async (feedback: {
-    rating: number;
-    content: string;
-  }) => {
-    console.log("Submitting feedback:", feedback);
-    // Implement API call to submit feedback
   };
 
   const handleMonthChange = (year: string, monthIndex: number) => {
@@ -315,51 +335,46 @@ const AppointmentHistory = () => {
   const currentYear = monthFilter.split("-")[0];
   const currentMonthIndex = parseInt(monthFilter.split("-")[1], 10) - 1;
 
-  // Tạo mảng các số trang để hiển thị
   const getPageNumbers = () => {
     const pageNumbers = [];
-    const maxPagesToShow = 5; // Số trang tối đa hiển thị
-
+    const maxPagesToShow = 5;
     if (totalPages <= maxPagesToShow) {
-      // Nếu tổng số trang ít hơn hoặc bằng số trang tối đa, hiển thị tất cả
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Nếu tổng số trang nhiều hơn số trang tối đa
       if (currentPage <= Math.ceil(maxPagesToShow / 2)) {
-        // Nếu trang hiện tại gần đầu
         for (let i = 1; i <= maxPagesToShow - 1; i++) {
           pageNumbers.push(i);
         }
-        pageNumbers.push(null); // Dấu "..."
+        pageNumbers.push(null);
         pageNumbers.push(totalPages);
       } else if (currentPage >= totalPages - Math.floor(maxPagesToShow / 2)) {
-        // Nếu trang hiện tại gần cuối
         pageNumbers.push(1);
-        pageNumbers.push(null); // Dấu "..."
+        pageNumbers.push(null);
         for (let i = totalPages - (maxPagesToShow - 2); i <= totalPages; i++) {
           pageNumbers.push(i);
         }
       } else {
-        // Nếu trang hiện tại ở giữa
         pageNumbers.push(1);
-        pageNumbers.push(null); // Dấu "..."
+        pageNumbers.push(null);
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
           pageNumbers.push(i);
         }
-        pageNumbers.push(null); // Dấu "..."
+        pageNumbers.push(null);
         pageNumbers.push(totalPages);
       }
     }
-
     return pageNumbers;
   };
 
+  // console.log(
+  //   "medicalReportIds: ",
+  //   selectedAppointment ? medicalReportIds[selectedAppointment.apiData.id] : null
+  // );
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
-      <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col ">
-        {/* Header */}
+      <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col">
         <div>
           <div className="flex items-center space-x-4 mb-6">
             <CalendarDays size={40} />
@@ -367,17 +382,12 @@ const AppointmentHistory = () => {
               Lịch sử cuộc hẹn
             </h2>
           </div>
-
-          {/* Patient Selection Component - Hiện tại sẽ dùng để lọc theo bệnh nhân */}
           <PatientSelection
             patients={patients}
             selectedPatientId={selectedPatientId}
             setSelectedPatientId={setSelectedPatientId}
-            isFilter={true} // Thêm prop để biết đây là bộ lọc
           />
         </div>
-
-        {/* Month Filter Component */}
         <MonthFilter
           currentYear={currentYear}
           currentMonthIndex={currentMonthIndex}
@@ -385,7 +395,6 @@ const AppointmentHistory = () => {
           handleMonthChange={handleMonthChange}
           handleDayChange={handleDayChange}
         />
-
         {loadingNurses && (
           <div className="mb-4 p-4 bg-blue-50 rounded-md">
             <p className="text-blue-600 text-lg">
@@ -393,20 +402,21 @@ const AppointmentHistory = () => {
             </p>
           </div>
         )}
-
         {nurseError && (
           <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
             <p className="text-red-600 text-lg">{nurseError}</p>
           </div>
         )}
-
         {appointmentError && (
           <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
             <p className="text-red-600 text-lg">{appointmentError}</p>
           </div>
         )}
-        
-        {/* Appointments Table */}
+        {medicalRecordError && (
+          <div className="mb-4 p-4 bg-red-50 rounded-md border border-red-200">
+            <p className="text-red-600 text-lg">{medicalRecordError}</p>
+          </div>
+        )}
         <div className="rounded-md border shadow-sm">
           <Table>
             <TableHeader>
@@ -434,7 +444,6 @@ const AppointmentHistory = () => {
                 </TableHead>
               </TableRow>
             </TableHeader>
-
             <TableBody>
               {isLoading ? (
                 <TableRow>
@@ -447,9 +456,7 @@ const AppointmentHistory = () => {
               ) : appointmentError ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
-                    <p className="text-red-600 text-lg">
-                      {appointmentError}
-                    </p>
+                    <p className="text-red-600 text-lg">{appointmentError}</p>
                   </TableCell>
                 </TableRow>
               ) : appointments.length > 0 ? (
@@ -463,28 +470,22 @@ const AppointmentHistory = () => {
                       <TableCell className="text-lg font-semibold">
                         {details?.nursingName}
                       </TableCell>
-                      
-                      {/* Hiển thị tên bệnh nhân */}
                       <TableCell className="text-lg font-semibold">
                         {details?.patientName || "Không có thông tin"}
                       </TableCell>
-
                       <TableCell className="font-semibold text-red-500 text-lg">
-                        {appointment.cusPackage?.data.package["total-fee"] 
-                          ? `${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND` 
+                        {appointment.cusPackage?.data.package["total-fee"]
+                          ? `${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND`
                           : "Không có thông tin"}
                       </TableCell>
-                      
                       <TableCell className="text-lg">
-                        {formatDate(
-                          new Date(appointment.apiData["est-date"])
-                        )}
+                        {formatDate(new Date(appointment.apiData["est-date"]))}
                       </TableCell>
-                      
                       <TableCell className="text-lg">
-                        {details ? `${details.estTimeFrom} - ${details.estTimeTo}` : "Không có thông tin"}
+                        {details
+                          ? `${details.estTimeFrom} - ${details.estTimeTo}`
+                          : "Không có thông tin"}
                       </TableCell>
-                      
                       <TableCell className="text-center">
                         <Badge
                           className={`${getStatusColor(appointment.apiData.status)} hover:${getStatusColor(appointment.apiData.status)} text-white text-lg`}
@@ -492,7 +493,6 @@ const AppointmentHistory = () => {
                           {getStatusText(appointment.apiData.status)}
                         </Badge>
                       </TableCell>
-                      
                       <TableCell>
                         <div className="flex space-x-2 justify-center">
                           <Button
@@ -503,25 +503,31 @@ const AppointmentHistory = () => {
                           >
                             <Eye className="mr-1 h-4 w-4" /> Chi tiết
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="default"
-                            onClick={() =>
-                              handleViewMedicalReport(appointment)
-                            }
-                            className="flex items-center text-blue-600 text-lg"
-                          >
-                            <FileText className="mr-1 h-4 w-4" /> Báo cáo
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="default"
-                            onClick={() => handleSendFeedback(appointment)}
-                            className="flex items-center text-green-600 text-lg"
-                          >
-                            <MessageCircle className="mr-1 h-4 w-4" /> Đánh
-                            giá
-                          </Button>
+                          {appointment.apiData.status === "success" && (
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() =>
+                                handleViewMedicalReport(appointment.apiData.id)
+                              }
+                              className="flex items-center text-blue-600 text-lg"
+                              disabled={medicalRecordLoading}
+                            >
+                              <FileText className="mr-1 h-4 w-4" />
+                              {medicalRecordLoading ? "Đang tải..." : "Báo cáo"}
+                            </Button>
+                          )}
+                          {appointment.apiData.status === "success" && (
+                            <Button
+                              variant="outline"
+                              size="default"
+                              onClick={() => handleViewFeedback(appointment)}
+                              className="flex items-center text-green-600 text-lg"
+                            >
+                              <MessageCircle className="mr-1 h-4 w-4" /> Đánh
+                              giá
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -538,8 +544,6 @@ const AppointmentHistory = () => {
               )}
             </TableBody>
           </Table>
-
-          {/* Pagination */}
           {appointments.length > 0 && (
             <div className="py-4 border-t">
               <Pagination>
@@ -556,7 +560,6 @@ const AppointmentHistory = () => {
                       }
                     />
                   </PaginationItem>
-
                   {getPageNumbers().map((pageNumber, index) =>
                     pageNumber === null ? (
                       <PaginationItem key={`ellipsis-${index}`}>
@@ -566,9 +569,7 @@ const AppointmentHistory = () => {
                       <PaginationItem key={`page-${pageNumber}`}>
                         <PaginationLink
                           isActive={currentPage === pageNumber}
-                          onClick={() =>
-                            handlePageChange(pageNumber as number)
-                          }
+                          onClick={() => handlePageChange(pageNumber as number)}
                           className="cursor-pointer"
                         >
                           {pageNumber}
@@ -576,7 +577,6 @@ const AppointmentHistory = () => {
                       </PaginationItem>
                     )
                   )}
-
                   <PaginationItem>
                     <PaginationNext
                       onClick={() =>
@@ -592,7 +592,6 @@ const AppointmentHistory = () => {
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>
-
               <div className="text-center mt-4 text-gray-500">
                 Trang {currentPage} / {totalPages} • Hiển thị{" "}
                 {appointments.length} cuộc hẹn
@@ -601,8 +600,6 @@ const AppointmentHistory = () => {
           )}
         </div>
       </div>
-
-      {/* Detail Dialog */}
       {selectedAppointment && (
         <DetailAppointment
           isOpen={isDialogOpen}
@@ -618,31 +615,29 @@ const AppointmentHistory = () => {
               (patient) =>
                 patient.id === selectedAppointment.apiData["patient-id"]
             ) ||
-            ({} as PatientRecord) // Provide a fallback empty object casted as PatientRecord
+            ({} as PatientRecord)
           }
         />
       )}
-
-      {/* Medical report */}
-      {selectedReport && (
+      {selectedReport && selectedAppointment && (
         <MedicalReport
           isOpen={isMedicalReportOpen}
           onClose={() => setIsMedicalReportOpen(false)}
           medical_report={selectedReport}
+          appointment={selectedAppointment}
         />
       )}
-
-      {/* Send Feedback */}
       {selectedAppointment && (
         <FeedbackDialog
           isOpen={isFeedbackOpen}
           onClose={() => setIsFeedbackOpen(false)}
           appointment={selectedAppointment}
-          onSubmit={handleSubmitFeedback}
           nurse={nurses.find(
             (nurse) =>
               nurse["nurse-id"] === selectedAppointment.apiData["nursing-id"]
           )}
+          medicalReportId={medicalReportIds[selectedAppointment.apiData.id]}
+          patientName={appointmentDetails[selectedAppointment.apiData.id]?.patientName}
         />
       )}
     </section>

@@ -1,3 +1,5 @@
+import { NurseItemType } from "./nurse";
+
 // Nurse
 export interface AppointmentDummy {
   id: number;
@@ -11,7 +13,7 @@ export interface AppointmentDummy {
   time_from_to: string;
 }
 
-// 
+//
 export type GetAppointment = {
   id: string;
   "service-id": string;
@@ -38,22 +40,15 @@ export type AppointmentFilter = {
 
 // ----------------------//
 
-// export interface ScheduleEvent {
-//   id: string;
-//   title: string;
-//   startTime: string;
-//   status: string;
-//   name: string;
-//   appointment_date: string;
-//   estDate?: string;
-//   cusPackageID?: string;
-//   patientID?: string;
-// }
-
 export type CreateRes = {
   status: number;
   message: string;
   "object-id": string;
+};
+
+export type PatchRes = {
+  success: boolean;
+  message: string;
 };
 
 export type CreateAppointmentCusPackage = {
@@ -96,10 +91,33 @@ export type AppointmentRes = {
   data: Appointment[];
 };
 
+export type VerifyNurse = {
+  "nurses-dates": {
+    "est-duration": number;
+    "est-start-date": string;
+    "nurse-id": string;
+  }[];
+};
+
+export type VerifyNurseRes = {
+  data: {
+    "nurse-id": string;
+    "est-start-date": string;
+    "est-duration": number;
+    "is-availability": boolean;
+  }[];
+  success: boolean;
+};
+
+export type GetNurseAvailableRes = {
+  success: boolean;
+  data: NurseItemType[];
+};
+
 export type HistoryAppointmentRes = {
   data: Appointment[];
   filters: {
-   "apply-paging"?: boolean;
+    "apply-paging"?: boolean;
   };
   paging: {
     page: number;
@@ -119,6 +137,8 @@ export type CusPackageResponse = {
 
 export type CusPackage = {
   id: string;
+  "svc-package-id": string;
+  "patient-id": string;
   name: string;
   "total-fee": number;
   "paid-amount": number;
@@ -156,7 +176,27 @@ export type InoviceRes = {
   data: Inovice[];
 };
 
-// 
+export interface MedicalRecord {
+  id: string;
+  "svc-package-id": string;
+  "patient-id": number;
+  "nursing-report": number;
+  "staff-confirmation": string;
+  status: string;
+  "created-at": string;
+}
+
+export type MedicalRecordRes = {
+  success: boolean;
+  data: MedicalRecord[];
+};
+
+export type submitMedicalReport = {
+  "nursing-report": string;
+  "staff-confirmation"?: string;
+};
+
+//
 export type GetAppointment = {
   id: string;
   "service-id": string;

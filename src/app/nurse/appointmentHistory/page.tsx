@@ -34,6 +34,8 @@ const AppointmentHistory: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const pageSize = 10;
+
   const { data: session } = useSession();
   const nursingId = session?.user?.id || "";
 
@@ -101,6 +103,7 @@ const AppointmentHistory: React.FC = () => {
       // Call API with current page and filters
       const response = await appointmentApiRequest.getHistoryAppointment(
         currentPage,
+        pageSize,
         nursingId,
         undefined,
         estDateFrom

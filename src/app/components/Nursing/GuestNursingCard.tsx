@@ -7,14 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const GuestNursingCard = ({
   nurse,
-  service,
   serviceID,
 }: {
   nurse: NurseItemType;
   serviceID: string;
-  service: string;
 
 }) => {
+
   const router = useRouter();
 
   if (!nurse) {
@@ -35,7 +34,7 @@ const GuestNursingCard = ({
     <Card
       onClick={() =>
         router.push(
-          `/guest/nurseList/${encodeURIComponent(service)}/${nurse["nurse-id"]}?serviceID=${encodeURIComponent(serviceID)}`
+          `/guest/nurseList/${encodeURIComponent("Chăm sóc vết thương sau sinh (sinh mổ/sinh thường)")}/${nurse["nurse-id"]}?serviceID=${encodeURIComponent(serviceID)}`
         )
       }
       data-aos="fade-left"
@@ -59,7 +58,7 @@ const GuestNursingCard = ({
         {nurse.rate && (
           <div className="absolute top-40 left-1/2 transform -translate-x-1/2 bg-white rounded-full py-1 px-4 shadow-sm border border-gray-100 flex items-center">
             <span className="font-bold text-gray-800 text-lg mr-1">
-              {nurse.rate.toFixed(1)}
+              {parseFloat(nurse.rate).toFixed(1)}
             </span>
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-200 flex-shrink-0" />
           </div>

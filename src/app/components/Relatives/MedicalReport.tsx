@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Clock, MessageCircle } from "lucide-react";
+import { FileText, Clock, MessageCircle, Calendar } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { MedicalRecord } from "@/types/appointment";
+import { Appointment, CusPackageResponse } from "@/types/appointment";
+import { formatDate } from "@/lib/utils";
 
 interface MedicalReportProps {
   isOpen: boolean;
@@ -17,11 +20,13 @@ interface MedicalReportProps {
   medical_report: {
     nurse_name: string;
     avatar: string;
-    report_date: string;
-    report_time: string;
-    report: string;
-    advice: string[];
-    techniques: string;
+    report: MedicalRecord;
+  };
+  appointment: {
+    estTimeFrom?: string;
+    estTimeTo?: string;
+    apiData: Appointment;
+    cusPackage?: CusPackageResponse | null;
   };
 }
 
@@ -29,11 +34,12 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
   isOpen,
   onClose,
   medical_report,
+  appointment,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl w-full max-h-[90vh]">
-      <DialogHeader className="border-b pb-4">
+        <DialogHeader className="border-b pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FileText className="w-8 h-8 text-blue-600" />
@@ -54,17 +60,23 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
                   alt={medical_report.nurse_name}
                 />
                 <AvatarFallback className="text-2xl font-bold">
-                  {medical_report.nurse_name[0]}
+                  {medical_report.nurse_name}
                 </AvatarFallback>
               </Avatar>
               <div>
                 <h3 className="text-2xl font-semibold">
                   {medical_report.nurse_name}
                 </h3>
-                <div className="flex items-center gap-3 text-gray-600 mt-2 text-lg">
+                <div className="flex items-center gap-2 text-gray-600 mt-2 text-lg">
+                  <Calendar className="w-5 h-5" />
+                  <span>
+                  {formatDate(new Date(appointment.apiData["est-date"]))}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-600 mt-2 text-lg">
                   <Clock className="w-5 h-5" />
                   <span>
-                    {medical_report.report_date} - {medical_report.report_time}
+                  {appointment.estTimeFrom} - {appointment.estTimeTo}
                   </span>
                 </div>
               </div>
@@ -74,19 +86,18 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
             <Card>
               <CardContent className="p-8">
                 <h4 className="text-xl font-bold mb-4">
-                  Dịch vụ đã thực hiện
+                  Gói dịch vụ đã thực hiện
                 </h4>
                 <div className="flex flex-wrap gap-4">
-                  {medical_report.techniques
-                    .split("-")
-                    .map((technique, index) => (
-                      <Badge
-                        key={index}
-                        className="text-white text-lg px-4 py-2"
-                      >
-                        {technique.trim()}
-                      </Badge>
-                    ))}
+                  {appointment.cusPackage?.data.package.name ? (
+                    <Badge className="bg-blue-500 text-white text-xl font-semibold">
+                      {appointment.cusPackage?.data.package.name}
+                    </Badge>
+                  ) : (
+                    <Badge className="bg-gray-300 text-gray-700 font-semibold">
+                      Không có dịch vụ nào được thực hiện.
+                    </Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -96,8 +107,9 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
               <CardContent className="p-8">
                 <h4 className="text-xl font-bold mb-4">Báo cáo chi tiết</h4>
                 <div className="bg-gray-50 p-6 rounded-lg">
-                  <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
-                    {medical_report.report}
+                  <p className="text-gray-700 text-xl leading-relaxed whitespace-pre-line">
+                    {medical_report.report?.["nursing-report"] ||
+                      "No report available."}
                   </p>
                 </div>
               </CardContent>
@@ -111,19 +123,20 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
                   Lời khuyên của điều dưỡng
                 </h4>
                 <div className="space-y-4">
-                  {medical_report.advice.map((recommendation, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-4 bg-green-50 p-6 rounded-lg"
-                    >
-                      <div className="min-w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-lg font-bold">
-                        {index + 1}
-                      </div>
-                      <p className="text-gray-700 text-lg">
-                        {recommendation}
+                  {medical_report.report?.["staff-confirmation"] ? (
+                    <div className="flex items-start gap-4 bg-green-50 p-6 rounded-lg">
+                      {/* <div className="min-w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-lg font-bold">
+                        1
+                      </div> */}
+                      <p className="text-gray-700 text-xl">
+                        {medical_report.report["staff-confirmation"]}
                       </p>
                     </div>
-                  ))}
+                  ) : (
+                    <p className="text-gray-700 text-lg">
+                      Không có lời khuyên nào được cung cấp.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

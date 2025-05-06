@@ -80,21 +80,23 @@ const NurseList = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6; // Hiển thị 6 điều dưỡng mỗi trang
+  const [pagination, setPagination] = useState({
+    page: 1,
+    size: itemsPerPage,
+    total: 1
+  });
 
   // Tính toán tổng số trang
-  const totalPages = Math.ceil(nurses.length / itemsPerPage);
+const totalPages = pagination.total || 1;
 
   // Lấy danh sách điều dưỡng cho trang hiện tại
   const currentNurses = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return nurses.slice(startIndex, endIndex);
-  }, [nurses, currentPage, itemsPerPage]);
+    return nurses; 
+  }, [nurses]);
 
   // Handle page change
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll to top when changing page
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -203,9 +205,11 @@ const NurseList = () => {
           serviceID || null,
           appliedMinRating ? appliedMinRating.toString() : null,
           currentPage,
+          itemsPerPage,
           appliedNameFilter || null
         );
         setNurses(response.payload.data);
+        setPagination(response.payload.paging);
       } catch (err) {
         console.log("Error fetching nurses ", err);
       } finally {
@@ -477,7 +481,6 @@ const NurseList = () => {
                       <GuestNursingCard
                         key={nurse["nurse-id"]}
                         nurse={nurse}
-                        service={serviceId}
                         serviceID={serviceID}
                       />
                     ))}
@@ -538,14 +541,14 @@ const NurseList = () => {
                       </PaginationContent>
                     </Pagination>
 
-                    <div className="text-center mt-4 text-gray-500">
+                    {/* <div className="text-center mt-4 text-gray-500">
                       Trang {currentPage} / {totalPages} • Hiển thị{" "}
                       {Math.min(
                         itemsPerPage,
                         nurses.length - (currentPage - 1) * itemsPerPage
                       )}{" "}
                       trên tổng số {nurses.length} điều dưỡng
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </>

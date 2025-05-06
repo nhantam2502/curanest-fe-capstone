@@ -2,18 +2,17 @@
 export interface Nurse {
   id: number;
   name: string;
-  specialization: string;  
+  specialization: string;
   avgRating: number;
   totalRating: number;
   photo: string;
   totalPatients: number;
-  hospital?: string; 
+  hospital?: string;
   experience: string;
   education_level: string;
   certificate: string[];
-  services: string[]; 
+  services: string[];
 }
-
 
 export interface DetailNurseProps {
   nurse: Nurse;
@@ -26,7 +25,7 @@ export type NurseItemType = {
   "nurse-name": string;
   gender: boolean;
   "current-work-place": string;
-  rate: number;
+  rate: string;
 };
 
 export type NurseListResType = {
@@ -55,7 +54,7 @@ export type DetailNurseItemType = {
   experience: string;
   certificate: string;
   slogan: string;
-  rate: number;
+  rate: string;
 };
 
 export type DetailNurseListResType = {
@@ -79,27 +78,27 @@ export interface NurseForStaff {
   city: string;
   gender: string;
   slogan: string;
-  department?: string; 
+  department?: string;
   email?: string;
-  "phone-number": string; 
+  "phone-number": string;
 }
 export interface CreateNurse {
   address: string;
   certificate: string;
-  "citizen-id": string; 
+  "citizen-id": string;
   city: string;
-  "current-work-place": string; 
+  "current-work-place": string;
   district: string;
   dob: string;
-  "education-level": string; 
+  "education-level": string;
   email: string;
   experience: string;
-  "full-name": string; 
+  "full-name": string;
   gender: boolean;
-  "google-drive-url": string; 
-  "nurse-picture": string; 
-  password?: string; 
-  "phone-number": string; 
+  "google-drive-url": string;
+  "nurse-picture": string;
+  password?: string;
+  "phone-number": string;
   slogan: string;
   ward: string;
 }
@@ -114,15 +113,15 @@ export type GetAllNurse = {
 };
 
 export type GetAllNurseDetail = {
-  id: string; 
-  role: string; 
+  id: string;
+  role: string;
   email: string;
   "phone-number": string;
   "nurse-id": string;
   "nurse-picture": string;
   "nurse-name": string;
   gender: boolean;
-  dob: string; 
+  dob: string;
   address: string;
   ward: string;
   district: string;
@@ -140,12 +139,12 @@ export type GetAllNurseFilter = {
   "service-id": string;
   "nurse-name": string;
   rate: string;
-}
-
+};
 
 export type CreateRes = {
   status: number;
   message: string;
+  success?: boolean;
   error?: string;
 };
 
@@ -184,4 +183,28 @@ export type infoNurseRes = {
   status: number;
   message: string;
   data: infoNurse;
+};
+
+export type CreateFeedback = {
+  content: string;
+  "medical-record-id": string;
+  "nurse-id": string;
+  "patient-name": string;
+  service: string;
+  star: string;
+};
+
+export type Feedback = {
+  id: string;
+  content: string;
+  "medical-record-id": string;
+  "nurse-id": string;
+  "patient-name": string;
+  service: string;
+  star: string;
+};
+
+export type FeedbackRes = {
+  success: boolean;
+  data: Feedback[];
 };

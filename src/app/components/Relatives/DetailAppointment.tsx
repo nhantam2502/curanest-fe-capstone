@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle, XCircle, Hourglass, Loader2 } from "lucide-react";
 import { PatientRecord } from "@/types/patient";
 import { Appointment, CusPackageResponse } from "@/types/appointment";
-import { formatDate } from "@/lib/utils";
+import { formatDate, getStatusText } from "@/lib/utils";
 import { NurseItemType } from "@/types/nurse";
 import { Button } from "@/components/ui/button";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
@@ -43,16 +43,13 @@ const PatientInfo: React.FC<{ label: string; value: string | number }> = ({
 const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "success":
-    case "done":
       return "font-semibold text-green-800";
+      case "done":
+      return "font-semibold text-green-800 bg-green-100 hover:bg-green-200";
     case "waiting":
     case "confirmed":
-    case "changed":
     case "not_done":
       return "bg-white hover:bg-white cursor-pointer font-semibold text-yellow-500";
-    case "canceled":
-    case "refused":
-      return "font-semibold text-red-800";
     default:
       return "font-semibold text-gray-800";
   }
@@ -60,9 +57,8 @@ const getStatusColor = (status: string) => {
 
 const getStatusIcon = (status: string) => {
   switch (status.toLowerCase()) {
-    case "completed":
     case "done":
-      return <CheckCircle className="w-5 h-5" />;
+      return <CheckCircle className="w-5 h-5 " />;
     case "waiting":
     case "not_done":
       return <Hourglass className="w-5 h-5" />;
@@ -147,6 +143,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   nurse,
   patient,
 }) => {
+
   const router = useRouter();
   const packageData = appointment.cusPackage?.data?.package;
   const tasks = appointment.cusPackage?.data?.tasks || [];
@@ -277,7 +274,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                     <span
                       className={`text-xl ${getStatusColor(appointment.apiData.status)}`}
                     >
-                      {appointment.apiData.status}
+                      {getStatusText(appointment.apiData.status)}
                     </span>
                   </div>
                 </div>
@@ -362,7 +359,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                           {getStatusIcon(task.status)}
                           {task.status === "not_done"
                             ? "Chưa hoàn thành"
-                            : task.status}
+                            : getStatusText(task.status)}
                         </Badge>
                       </div>
                       <div className="mt-2 flex items-center text-gray-600 text-lg">

@@ -66,5 +66,22 @@ export interface InfoItemProps {
   value: string;
 }
 
+export type getPaymentHistory = {
+  "patient-ids": string[];
+};
+
+export type Invoice = {
+  id: string;
+  "cuspackage-id": string;
+  "total-fee": number;
+  status: string; 
+  "created-at": string; 
+};
+
+export type getPaymentHistoryRes = {
+  data: Invoice[];
+  success: boolean;
+};
+
 export type UpdateTermType = z.TypeOf<typeof UpdateTerm>;
 

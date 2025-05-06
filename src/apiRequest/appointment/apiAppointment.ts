@@ -5,8 +5,14 @@ import {
   CreateAppointmentCusPackage,
   CreateRes,
   CusPackageResponse,
+  GetNurseAvailableRes,
   HistoryAppointmentRes,
   InoviceRes,
+  MedicalRecordRes,
+  PatchRes,
+  submitMedicalReport,
+  VerifyNurse,
+  VerifyNurseRes,
 } from "@/types/appointment";
 import { Res } from "@/types/service";
 
@@ -25,8 +31,24 @@ const appointmentApiRequest = {
       }${nursingId && patientId ? `&patient-id=${patientId}` : ""}`
     ),
 
+  verifyNurse: (body: VerifyNurse) =>
+    http.post<VerifyNurseRes>(
+      "/appointment/api/v1/appointments/verify-nurses-dates",
+      body
+    ),
+
+  getNurseAvailable: (
+    serviceID: string,
+    estDate: string,
+    estDuration: number
+  ) =>
+    http.get<GetNurseAvailableRes>(
+      `/appointment/api/v1/appointments/nursing-available?service-id=${serviceID}&est-date=${estDate}&est-duration=${estDuration}`
+    ),
+
   getHistoryAppointment: (
     page: number,
+    size: number,
     nursingId?: string,
     patientId?: string,
     estDateFrom?: string
@@ -46,7 +68,7 @@ const appointmentApiRequest = {
           : estDateFrom
             ? `?est-date-from=${estDateFrom}`
             : ""
-      }${nursingId || patientId || estDateFrom ? "&" : "?"}apply-paging=true&page=${page}&page-size=10`
+      }${nursingId || patientId || estDateFrom ? "&" : "?"}apply-paging=true&page=${page}&page-size=${size}`
     ),
 
   getCusPackage: (cusPackageID: string, estDate: string) =>
@@ -57,6 +79,22 @@ const appointmentApiRequest = {
   getInvoice: (cusPackageID: string) =>
     http.get<InoviceRes>(
       `/appointment/api/v1/cuspackage/${cusPackageID}/invoices`
+    ),
+
+  getMedicalRecord: (appointmentID: string) =>
+    http.get<MedicalRecordRes>(
+      `/appointment/api/v1/medical-record/${appointmentID}`
+    ),
+
+  submitMedicalReport: (medicalReportID: string, body: submitMedicalReport) =>
+    http.patch<PatchRes>(
+      `/appointment/api/v1/medical-record/${medicalReportID}`,
+      body
+    ),
+
+  checkCusTask: (custaskID: string) =>
+    http.patch<PatchRes>(
+      `/appointment/api/v1/cuspackage/custask/${custaskID}/update-status-done`
     ),
 
   getAppointments: (filter: AppointmentFilter | null) => {

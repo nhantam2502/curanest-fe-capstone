@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+"use client";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Calendar } from "@/components/ui/calendar";
@@ -7,11 +8,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { CalendarIcon, CheckCircle2, CircleX } from "lucide-react";
+import { cn, createISOString } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import StartTimeSelection from "./StartTimeSelection";
+import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
+import { NurseItemType } from "@/types/nurse";
+import AvailabilityDialog from "./ChangeNurse";
 
 export interface TimeSlot {
   start: string;
@@ -20,23 +24,118 @@ export interface TimeSlot {
   value: string;
 }
 
+interface SelectedDateTime {
+  date: Date;
+  timeSlot: TimeSlot;
+  isoString: string;
+}
+
 interface TimeSelectionProps {
   totalTime: number;
-  onTimeSelect: (datetime: { date: Date; timeSlot: TimeSlot }) => void;
+  onTimeSelect: (datetime: SelectedDateTime) => void;
+  selectedNurse: NurseItemType | null;
+  serviceID: string | null;
+  onNurseSelect: (nurse: NurseItemType) => void;
 }
 
 const TimeSelection: React.FC<TimeSelectionProps> = ({
   totalTime = 60,
   onTimeSelect,
+  selectedNurse,
+  serviceID,
+  onNurseSelect,
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  // const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(
-    null
-  );
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTime, setStartTime] = useState<string>("08:00");
+  const [isNurseAvailable, setIsNurseAvailable] = useState<boolean | null>(null);
+  const [availableNurses, setAvailableNurses] = useState<NurseItemType[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Function to verify nurse availability
+  const verifyNurseAvailability = useCallback(
+    async (date: Date, timeSlot: TimeSlot) => {
+      if (!selectedNurse) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        const isoString = createISOString(date, timeSlot);
+        const body = {
+          "nurses-dates": [
+            {
+              "nurse-id": selectedNurse["nurse-id"],
+              "est-duration": totalTime,
+              "est-start-date": isoString,
+            },
+          ],
+        };
+
+        const response = await appointmentApiRequest.verifyNurse(body);
+        const isAvailable = response.payload.data[0]?.["is-availability"] || false;
+        setIsNurseAvailable(isAvailable);
+        if (!isAvailable) {
+          setDialogOpen(true); // Open dialog to select a new nurse
+        }
+      } catch (error) {
+        console.error("Verify nurse error:", error);
+        setError("Không thể kiểm tra tính khả dụng của điều dưỡng");
+        setDialogOpen(true); // Open dialog on error to allow nurse selection
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedNurse, totalTime]
+  );
+
+  // Function to fetch available nurses
+  const fetchAvailableNurses = useCallback(async (date: Date, timeSlot: TimeSlot) => {
+    if (!serviceID) {
+      setError("Không có thông tin dịch vụ");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const isoString = createISOString(date, timeSlot);
+      const response = await appointmentApiRequest.getNurseAvailable(
+        serviceID,
+        isoString,
+        totalTime
+      );
+
+      if (response?.payload?.data) {
+        setAvailableNurses(
+          response.payload.data.map((nurse: NurseItemType) => ({
+            "nurse-id": nurse["nurse-id"],
+            "nurse-picture": nurse["nurse-picture"],
+            "nurse-name": nurse["nurse-name"],
+            gender: nurse.gender,
+            "current-work-place": nurse["current-work-place"],
+            rate: nurse.rate,
+          }))
+        );
+      } else {
+        setError("Dữ liệu không hợp lệ");
+      }
+    } catch (err) {
+      console.error("Error fetching available nurses:", err);
+      setError("Đã xảy ra lỗi khi tải danh sách điều dưỡng");
+    } finally {
+      setLoading(false);
+    }
+  }, [serviceID, totalTime]);
+
+  // Trigger fetchAvailableNurses when dialog opens
+  useEffect(() => {
+    if (dialogOpen && selectedDate && selectedTimeSlot) {
+      fetchAvailableNurses(selectedDate, selectedTimeSlot);
+    }
+  }, [dialogOpen, selectedDate, selectedTimeSlot, fetchAvailableNurses]);
 
   // Function to get the days in the next 15 days
   const getDaysInWeek = (): Date[] => {
@@ -123,6 +222,28 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
     ? selectedDate.getFullYear()
     : new Date().getFullYear();
 
+  // Handle time slot selection
+  const handleTimeSlotSelect = (slot: TimeSlot) => {
+    setSelectedTimeSlot(slot);
+    const isoString = createISOString(selectedDate, slot);
+    const datetime: SelectedDateTime = {
+      date: selectedDate,
+      timeSlot: slot,
+      isoString,
+    };
+    onTimeSelect(datetime);
+    if (selectedNurse) {
+      verifyNurseAvailability(selectedDate, slot);
+    }
+  };
+
+  // Handle nurse selection from dialog
+  const handleSelectNurse = (nurse: NurseItemType) => {
+    onNurseSelect(nurse);
+    setDialogOpen(false);
+    setIsNurseAvailable(true); // Assume new nurse is available
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
@@ -136,12 +257,13 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={selectedDate || undefined}
+              selected={selectedDate}
               onSelect={(date) => {
                 if (date) {
                   setSelectedDate(date);
                   setCalendarOpen(false);
                   setSelectedTimeSlot(null);
+                  setIsNurseAvailable(null);
                 }
               }}
               locale={vi}
@@ -169,8 +291,8 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
                 key={date.toISOString()}
                 onClick={() => {
                   setSelectedDate(date);
-                  // Reset other selections when date changes
                   setSelectedTimeSlot(null);
+                  setIsNurseAvailable(null);
                 }}
                 variant={isSelected ? "default" : "outline"}
                 className={cn(
@@ -193,6 +315,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           onStartTimeChange={(newTime) => {
             setStartTime(newTime);
             setSelectedTimeSlot(null);
+            setIsNurseAvailable(null);
           }}
         />
       )}
@@ -203,6 +326,20 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
             Khung giờ có sẵn (Tổng thời gian dịch vụ:{" "}
             <span className="text-red-500">{totalTime} phút</span>)
           </h3>
+          {selectedNurse && isNurseAvailable !== null && (
+            <div className="mb-4 flex items-center gap-2">
+              {isNurseAvailable ? (
+                <CheckCircle2 className="h-6 w-6 text-green-500" />
+              ) : (
+                <CircleX className="h-6 w-6 text-red-500" />
+              )}
+              <p className="text-lg">
+                {isNurseAvailable
+                  ? `Điều dưỡng ${selectedNurse["nurse-name"]} khả dụng`
+                  : `Điều dưỡng ${selectedNurse["nurse-name"]} không khả dụng`}
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-5 gap-4">
             {getTimeSlots(startTime).map((slot) => (
               <Button
@@ -217,13 +354,8 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
                   selectedTimeSlot?.display === slot.display &&
                     "bg-primary text-white"
                 )}
-                onClick={() => {
-                  setSelectedTimeSlot(slot);
-                  onTimeSelect?.({
-                    date: selectedDate,
-                    timeSlot: slot,
-                  });
-                }}
+                onClick={() => handleTimeSlotSelect(slot)}
+                disabled={loading}
               >
                 {slot.display}
               </Button>
@@ -231,6 +363,18 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           </div>
         </div>
       )}
+
+      {/* Availability Dialog */}
+      <AvailabilityDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        availableNurses={availableNurses}
+        selectedNurse={selectedNurse}
+        sessionIndex={0} // Assuming single session for simplicity
+        loading={loading}
+        error={error}
+        onSelectNurse={handleSelectNurse}
+      />
     </div>
   );
 };
