@@ -63,6 +63,7 @@ export const RegisterBody = z.object({
 export const LoginRes = z.object({
   data: z.object({
     "account-info": z.object({
+      id: z.string(),
       "full-name": z.string(),
       email: z.string(),
       "phone-number": z.string(),

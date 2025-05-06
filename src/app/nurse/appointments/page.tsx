@@ -350,7 +350,7 @@ const NurseScheduleCalendar = () => {
                           style={{
                             height: `${eventHeight * 4.7}rem`, // 4rem là chiều cao của mỗi khoảng thời gian 15 phút (h-16)
                             top: 2,
-                            left: 4,
+                            left: 9,
                           }}
                           onClick={() =>
                             router.push(

@@ -26,6 +26,7 @@ import {
   Users,
   Calendar,
   MessageSquare,
+  CircleCheckBig,
 } from "lucide-react";
 import TimeTableNurse from "./TimeTableNurse";
 import Feedback from "./Feedbacks";
@@ -371,12 +372,12 @@ const DetailNurse = ({
                         <div className="bg-white p-4 rounded-lg shadow-sm">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-gray-500 text-sm">Số dịch vụ</p>
+                              <p className="text-gray-500 text-sm">Tổng số cuộc hẹn</p>
                               <p className="text-2xl font-bold text-[#e5ab47]">
                                 {uniqueServices.size}
                               </p>
                             </div>
-                            <BookOpenCheck className="w-10 h-10 text-[#e5ab47]/30" />
+                            <CircleCheckBig className="w-10 h-10 text-[#e5ab47]/30" />
                           </div>
                         </div>
                         

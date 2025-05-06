@@ -481,7 +481,6 @@ const totalPages = pagination.total || 1;
                       <GuestNursingCard
                         key={nurse["nurse-id"]}
                         nurse={nurse}
-                        service={serviceId}
                         serviceID={serviceID}
                       />
                     ))}

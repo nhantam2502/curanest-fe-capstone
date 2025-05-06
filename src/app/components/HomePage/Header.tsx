@@ -125,7 +125,7 @@ const Header = () => {
                     <User className="mr-4 h-7 w-7" /> Thông tin người dùng
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-xl">
-                    <Wallet className="mr-4 h-7 w-7" /> Ví tiền
+                    <Wallet className="mr-4 h-7 w-7" /> Lịch sử thanh toán
                   </DropdownMenuItem>
                   <DropdownMenuItem className="text-xl">
                     <Key className="mr-4 h-7 w-7" /> Thay đổi mật khẩu

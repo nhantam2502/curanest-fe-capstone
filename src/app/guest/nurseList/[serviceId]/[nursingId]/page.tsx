@@ -20,6 +20,7 @@ const DetailNursePage = ({
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const serviceID = searchParams.get("serviceID");
+  console.log("Service ID haha:", serviceID); 
 
   useEffect(() => {
     const fetchDetailNurse = async () => {

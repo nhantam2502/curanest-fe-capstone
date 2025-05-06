@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CreditCard,
   User,
@@ -10,6 +10,8 @@ import {
 import dummyTransactions from "@/dummy_data/dummy_transaction.json";
 import DepositDialog from "@/app/components/Relatives/DepositDialog";
 import ProfileContent from "@/app/components/Relatives/ProfileContent";
+import { Invoice, PatientRecord } from "@/types/patient";
+import patientApiRequest from "@/apiRequest/patient/apiPatient";
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("wallet");
@@ -42,7 +44,7 @@ const SettingsPage = () => {
     },
     {
       id: "wallet",
-      label: "Ví tiền",
+      label: "Lịch sử thanh toán",
       icon: <CreditCard className="w-6 h-6" />,
     },
     {
@@ -53,61 +55,132 @@ const SettingsPage = () => {
   ];
 
   const WalletContent = () => {
+    const [profiles, setProfiles] = useState<PatientRecord[]>([]);
+    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingInvoices, setIsLoadingInvoices] = useState(false);
+    const [isFetchingError, setIsFetchingError] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchPatientRecords = async () => {
+      setIsLoading(true);
+      setIsFetchingError(false);
+      setError(null);
+
+      try {
+        const response = await patientApiRequest.getPatientRecord();
+        setProfiles(response.payload.data);
+
+        // Sau khi lấy được danh sách hồ sơ bệnh nhân, lấy lịch sử thanh toán
+        if (response.payload.data.length > 0) {
+          await fetchPaymentHistory(response.payload.data);
+        }
+      } catch (err) {
+        setError("Không thể tải hồ sơ bệnh nhân");
+        setIsFetchingError(true);
+        console.error("Error fetching patient records: ", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    const fetchPaymentHistory = async (patientRecords: PatientRecord[]) => {
+      setIsLoadingInvoices(true);
+
+      try {
+        // Lấy danh sách patient-ids từ profiles
+        const patientIds = patientRecords.map((profile) => profile.id);
+
+        // Gọi API lấy lịch sử thanh toán
+        const response = await patientApiRequest.getPaymentHistory({
+          "patient-ids": patientIds,
+        });
+
+        if (response.payload.data) {
+          setInvoices(response.payload.data);
+        } else {
+          setError("Không thể tải lịch sử thanh toán");
+        }
+      } catch (err) {
+        setError("Không thể tải lịch sử thanh toán");
+        console.error("Error fetching payment history: ", err);
+      } finally {
+        setIsLoadingInvoices(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchPatientRecords();
+    }, []);
+
     const handleDeposit = (amount: number) => {
       // Xử lý logic nạp tiền ở đây
-      console.log(`Nạp tiền: ${amount}₫`);
+      console.log(`Nạp tiền: ${amount}đ`);
     };
 
     return (
       <div className="p-8">
-        <h2 className="text-4xl font-semibold mb-8">Ví tiền</h2>
-        <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-8 text-white mb-8">
-          <div className="text-7xl font-bold mb-4">0đ</div>
-          <div className="text-2xl mb-6">Số dư ví</div>
-          <DepositDialog onDeposit={handleDeposit} />
-        </div>
+        <h2 className="text-4xl font-semibold mb-8">Lịch sử thanh toán</h2>
 
         <div className="bg-white rounded-xl p-8 shadow-sm">
-          <h3 className="text-3xl font-semibold mb-6">Lịch sử giao dịch</h3>
-          <div className="space-y-4">
-            {dummyTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
+          {isLoading || isLoadingInvoices ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Đang tải dữ liệu...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-red-500">{error}</p>
+              <button
+                onClick={fetchPatientRecords}
+                className="mt-4 bg-violet-600 text-white px-4 py-2 rounded-lg hover:bg-violet-700"
               >
-                <div className="flex items-center space-x-4">
-                  {transaction.type === "deposit" ? (
-                    <ArrowUpCircle className="w-10 h-10 text-green-500" />
-                  ) : (
-                    <ArrowDownCircle className="w-10 h-10 text-red-500" />
-                  )}
-                  <div>
-                    <div className="font-medium text-xl">
-                      {transaction.description}
+                Thử lại
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {invoices.length > 0 ? (
+                invoices.map((invoice) => (
+                  <div
+                    key={invoice.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <ArrowDownCircle className="w-10 h-10 text-red-500" />
+                      <div>
+                        <div className="font-medium text-xl">
+                          Thanh toán dịch vụ
+                        </div>
+                        {/* <div className="text-lg text-gray-500">
+              {formatDate(invoice["created-at"])}
+            </div> */}
+                        <div
+                          className={`text-md ${
+                            invoice.status === "paid"
+                              ? "text-green-500"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          Trạng thái: {invoice.status}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-lg text-gray-500">
-                      {formatDate(transaction.date)}
+                    <div className="text-xl font-semibold text-red-500">
+                      {formatCurrency(invoice["total-fee"])}
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Không có giao dịch nào
                 </div>
-                <div
-                  className={`text-xl font-semibold ${
-                    transaction.type === "deposit"
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                >
-                  {transaction.type === "deposit" ? "+" : "-"}
-                  {formatCurrency(transaction.amount)}
-                </div>
-              </div>
-            ))}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
   };
-
 
   const PasswordContent = () => (
     <div className="p-8">

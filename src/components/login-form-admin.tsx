@@ -39,6 +39,7 @@ export function AdminLoginForm({
       const result = await signIn("credentials", {
         identifier: data.email,
         password: data.password,
+        isAdmin: "true",
         redirect: false,
       });
 
@@ -61,7 +62,6 @@ export function AdminLoginForm({
       setLoading(false);
     }
   };
-
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -108,7 +108,10 @@ export function AdminLoginForm({
 
           <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center" />
-            <Link href="" className="text-lg font-medium whitespace-nowrap cursor-pointer">
+            <Link
+              href=""
+              className="text-lg font-medium whitespace-nowrap cursor-pointer"
+            >
               Quên mật khẩu ?
             </Link>
           </div>

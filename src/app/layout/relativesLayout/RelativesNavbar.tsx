@@ -135,7 +135,7 @@ const RelativesNavbar = () => {
                     className="text-xl"
                     onClick={handleNavigate}
                   >
-                    <Wallet className="mr-4 h-7 w-7" /> Ví tiền
+                    <Wallet className="mr-4 h-7 w-7" /> Lịch sử thanh toán
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-xl"
@@ -187,11 +187,11 @@ const RelativesNavbar = () => {
                   >
                     <ArrowLeft className="h-6 w-6" />
                   </button>
-                  <h2 className="text-center text-lg font-semibold">Menu</h2>
+                  <h2 className="text-center text-lg font-semibold">Curanest</h2>
                 </div>
 
                 {/* Balance Card */}
-                {status === "authenticated" && (
+                {/* {status === "authenticated" && (
                   <div className="m-4 bg-white">
                     <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-6 text-white">
                       <p className="text-2xl">Số dư ví</p>
@@ -205,7 +205,7 @@ const RelativesNavbar = () => {
                       </button>
                     </div>
                   </div>
-                )}
+                )} */}
 
                 {/* Menu Items */}
                 <div className="flex-1 bg-white p-4">
@@ -242,7 +242,7 @@ const RelativesNavbar = () => {
                           className="flex items-center gap-3 px-4 py-3 text-xl text-gray-700 hover:bg-gray-50 rounded-lg"
                         >
                           <Wallet size={25} />
-                          <span>Ví tiền</span>
+                          <span>Lịch sử thanh toán </span>
                         </Link>
                         <button
                           onClick={() => signOut({ callbackUrl: "/" })}

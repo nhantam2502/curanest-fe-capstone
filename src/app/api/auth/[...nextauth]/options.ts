@@ -17,6 +17,10 @@ export const options: NextAuthOptions = {
           type: "password",
           placeholder: "your-password",
         },
+        isAdmin: {
+          label: "Is Admin",
+          type: "checkbox",
+        },
       },
       authorize: async (credentials) => {
         if (!credentials?.identifier || !credentials.password) {
@@ -24,18 +28,24 @@ export const options: NextAuthOptions = {
           return null;
         }
 
-        const response = await authApiRequest.login({
-          "phone-number": credentials.identifier,
-          password: credentials.password,
-        });
-
-        // console.log("API Response in authorize: ", response); // Kiểm tra dữ liệu trả về từ API
+        let response;
+        
+        // Kiểm tra xem đang đăng nhập là admin hay user thường
+        if (credentials.isAdmin === "true") {
+          response = await authApiRequest.loginForAdmin({
+            email: credentials.identifier,
+            password: credentials.password,
+          });
+        } else {
+          response = await authApiRequest.login({
+            "phone-number": credentials.identifier,
+            password: credentials.password,
+          });
+        }
 
         if (response.status === 200 && response.payload?.data) {
           const user = response.payload.data["account-info"];
-          // console.log("User data in authorize: ", user); // Kiểm tra user data
           const token = response.payload.data.token;
-          // console.log("Token data in authorize: ", token); // Kiểm tra token data
          
           return {
             id: user.id || "",
@@ -44,10 +54,6 @@ export const options: NextAuthOptions = {
             email: user.email,
             role: user.role,
             access_token: token.access_token
-
-            // address: user.address || "N/A",
-            // city: user.city || "N/A",
-            // dob: user.dob || "N/A",
           };
         }
         return null;
@@ -57,35 +63,23 @@ export const options: NextAuthOptions = {
   callbacks: {
     async session({ session, token }) {
       if (session?.user) {
-        session.user.id = token.id; // Add this line
+        session.user.id = token.id;
         session.user.role = token.role;
         session.user.name = token.name;
         session.user.email = token.email;
         session.user["phone-number"] = token["phone-number"];
-        session.user.access_token = token.access_token; // Add this line
-
-        // session.user.address = token.address;
-        // session.user.city = token.city;
-        // session.user.dob = token.dob;
-
-        // console.log("Session in session callback: ", session); // Log session để kiểm tra dữ liệu
+        session.user.access_token = token.access_token;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id; // Add this line
+        token.id = user.id;
         token.role = user.role;
         token.name = user.name;
         token.email = user.email;
         token["phone-number"] = user["phone-number"];
-        token.access_token = user.access_token; // Add this line
-
-        // token.address = user.address;
-        // token.city = user.city;
-        // token.dob = user.dob;
-
-        // console.log("Token in jwt callback: ", token); // Log token để kiểm tra dữ liệu
+        token.access_token = user.access_token;
       }
       return token;
     },
