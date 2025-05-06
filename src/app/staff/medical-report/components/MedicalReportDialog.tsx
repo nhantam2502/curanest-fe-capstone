@@ -122,7 +122,7 @@ export function ViewMedicalReportDialog({
       console.error("Error confirming completion:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể cập nhật xác nhận.",
+        description: "Có lỗi xảy ra.",
         variant: "destructive",
       });
     }

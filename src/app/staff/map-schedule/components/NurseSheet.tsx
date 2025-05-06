@@ -75,6 +75,7 @@ export function NurseSheet({
       });
 
       onClose(); // Close sheet after successful assignment
+      window.location.reload();
     } catch (error) {
       console.error("Error assigning nurse:", error);
       toast({
