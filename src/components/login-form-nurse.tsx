@@ -12,7 +12,7 @@ import {
   PhoneLoginSchema,
   PhoneLoginInput,
 } from "@/schemaValidation/auth.schema";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 
 export function LoginFormForNurse({
   className,
@@ -50,7 +50,6 @@ export function LoginFormForNurse({
         return;
       }
 
-      // Fetch session để lấy thông tin role và điều hướng
       const session = await fetch("/api/auth/session").then((res) =>
         res.json()
       );
@@ -61,8 +60,26 @@ export function LoginFormForNurse({
       }
 
       if (session?.user?.role) {
-        console.log("User role:", session.user.role);
+        // console.log("User role:", session.user.role);
         switch (session.user.role) {
+          case "admin":
+            setError(
+              "Chỉ có điều dưỡng mới có quyền truy cập vào trang của điều dưỡng."
+            );
+            signOut({ redirect: false });
+            setTimeout(() => {
+              router.push("/auth/signIn?callbackUrl=%2Fadmin");
+            }, 1000);
+            break;
+          case "relatives":
+            setError(
+              "Chỉ có điều dưỡng mới có quyền truy cập vào trang của điều dưỡng."
+            );
+            signOut({ redirect: false });
+            setTimeout(() => {
+              router.push("/auth/signIn");
+            }, 1000);
+            break;
           case "nurse":
             router.push("/nurse");
             break;
@@ -82,7 +99,6 @@ export function LoginFormForNurse({
       setLoading(false);
     }
   };
-
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>

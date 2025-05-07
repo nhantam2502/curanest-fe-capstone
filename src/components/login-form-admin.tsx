@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
+import { getSession, signIn, signOut } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -35,33 +35,72 @@ export function AdminLoginForm({
     try {
       setLoading(true);
       setError("");
-
+  
       const result = await signIn("credentials", {
         identifier: data.email,
         password: data.password,
         isAdmin: "true",
         redirect: false,
       });
-
+  
       if (result?.error) {
         setError("Invalid email or password");
+        setLoading(false);
         return;
       }
-
+  
       const session = await getSession();
-      if (session?.user?.role === "admin") {
-        router.push("/admin");
-      } else {
-        setError("Unauthorized access");
-        return;
+  
+      // Chuyển hướng dựa trên vai trò người dùng
+      switch (session?.user?.role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "nurse":
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          signOut({ redirect: false });
+          setTimeout(() => {
+            router.push("/auth/signIn?callbackUrl=%2Fnurse");
+          }, 1000);
+          break;
+        case "staff":
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          signOut({ redirect: false });
+
+          setTimeout(() => {
+            router.push("/auth/signIn?callbackUrl=%2Fnurse");
+          }, 1000);
+          break;
+        case "relatives":
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          // Xóa session cho vai trò relatives
+          signOut({ redirect: false });
+          setTimeout(() => {
+            router.push("/auth/signIn");
+          }, 1000);
+          return;
+        default:
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          setLoading(false);
+          return;
       }
     } catch (error) {
       console.error("Error logging in: ", error);
       setError("An error occurred during login");
+      setLoading(false);
     } finally {
       setLoading(false);
     }
   };
+  
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>

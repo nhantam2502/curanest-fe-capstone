@@ -12,13 +12,15 @@ import {
   PhoneLoginSchema,
   PhoneLoginInput,
 } from "@/schemaValidation/auth.schema";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -38,38 +40,49 @@ export function LoginForm({
     try {
       setLoading(true);
       setError("");
-  
+
       const result = await signIn("credentials", {
-        redirect: false, 
-        identifier: data["phone-number"], 
+        redirect: false,
+        identifier: data["phone-number"],
         password: data.password,
       });
-  
+
       if (result?.error) {
-        setError("Thông tin đăng nhập không chính xác."); 
+        setError("Thông tin đăng nhập không chính xác.");
         console.error("Đăng nhập thất bại:", result.error);
         return;
       }
-  
+
       // Fetch session để lấy thông tin role và điều hướng
-      const session = await fetch("/api/auth/session").then((res) => res.json());
+      const session = await fetch("/api/auth/session").then((res) =>
+        res.json()
+      );
       // console.log("session: ", session.user)
 
       if (session?.user?.access_token) {
-        localStorage.setItem('sessionToken', session.user.access_token);
+        localStorage.setItem("sessionToken", session.user.access_token);
       }
 
       if (session?.user?.role) {
         console.log("User role:", session.user.role);
         switch (session.user.role) {
-          // case "nurse":
-          //   router.push("/nurse");
-          //   break;
-          // case "staff":
-          //   router.push("/staff");
-          //   break;
           case "relatives":
             router.push("/relatives/booking");
+            break;
+          case "admin":
+            setError("Không có quyền truy cập.");
+            signOut({ redirect: false });
+            setTimeout(() => {
+              router.push("/auth/signIn?callbackUrl=%2Fadmin");
+            }, 1000);
+            break;
+          case "nurse":
+          case "staff":
+            setError("Không có quyền truy cập.");
+            signOut({ redirect: false });
+            setTimeout(() => {
+              router.push("/auth/signIn?callbackUrl=%2Fnurse");
+            }, 1000);
             break;
           default:
             router.push("/");
@@ -83,8 +96,8 @@ export function LoginForm({
     } finally {
       setLoading(false);
     }
-  };  
-  
+  };
+
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
