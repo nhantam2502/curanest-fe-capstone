@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,17 @@ export function LoginFormForNurse({
     },
   });
 
+  useEffect(() => {
+    if (!loading) return;
+    const checkNavigation = setInterval(() => {
+      if (document.readyState === "complete") {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearInterval(checkNavigation);
+  }, [loading]);
+
   const onSubmit = async (data: PhoneLoginInput) => {
     try {
       setLoading(true);
@@ -47,13 +58,13 @@ export function LoginFormForNurse({
 
       if (result?.error) {
         setError("Thông tin đăng nhập không chính xác.");
+        setLoading(false);
         return;
       }
 
       const session = await fetch("/api/auth/session").then((res) =>
         res.json()
       );
-      // console.log("session: ", session.user)
 
       if (session?.user?.access_token) {
         localStorage.setItem("sessionToken", session.user.access_token);
@@ -67,18 +78,14 @@ export function LoginFormForNurse({
               "Chỉ có điều dưỡng mới có quyền truy cập vào trang của điều dưỡng."
             );
             signOut({ redirect: false });
-            setTimeout(() => {
-              router.push("/auth/signIn?callbackUrl=%2Fadmin");
-            }, 1000);
+            router.push("/auth/signIn?callbackUrl=%2Fadmin");
             break;
           case "relatives":
             setError(
               "Chỉ có điều dưỡng mới có quyền truy cập vào trang của điều dưỡng."
             );
             signOut({ redirect: false });
-            setTimeout(() => {
-              router.push("/auth/signIn");
-            }, 1000);
+            router.push("/auth/signIn");
             break;
           case "nurse":
             router.push("/nurse");
@@ -91,14 +98,15 @@ export function LoginFormForNurse({
         }
       } else {
         setError("Không thể xác định vai trò của người dùng.");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);
       setError("Có lỗi xảy ra trong quá trình đăng nhập.");
-    } finally {
       setLoading(false);
     }
   };
+
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -141,16 +149,6 @@ export function LoginFormForNurse({
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="w-full flex items-center justify-between">
-            <div className="w-full flex items-center" />
-            <Link
-              href=""
-              className="hover:underline text-lg font-medium whitespace-nowrap cursor-pointer"
-            >
-              Quên mật khẩu ?
-            </Link>
           </div>
 
           {error && <div className="text-red-500 text-base">{error}</div>}

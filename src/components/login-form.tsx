@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,6 +36,17 @@ export function LoginForm({
     },
   });
 
+  useEffect(() => {
+    if (!loading) return;
+    const checkNavigation = setInterval(() => {
+      if (document.readyState === "complete") {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearInterval(checkNavigation);
+  }, [loading]);
+
   const onSubmit = async (data: PhoneLoginInput) => {
     try {
       setLoading(true);
@@ -50,21 +61,19 @@ export function LoginForm({
       if (result?.error) {
         setError("Thông tin đăng nhập không chính xác.");
         console.error("Đăng nhập thất bại:", result.error);
+        setLoading(false);
         return;
       }
 
-      // Fetch session để lấy thông tin role và điều hướng
       const session = await fetch("/api/auth/session").then((res) =>
         res.json()
       );
-      // console.log("session: ", session.user)
 
       if (session?.user?.access_token) {
         localStorage.setItem("sessionToken", session.user.access_token);
       }
 
       if (session?.user?.role) {
-        console.log("User role:", session.user.role);
         switch (session.user.role) {
           case "relatives":
             router.push("/relatives/booking");
@@ -72,28 +81,24 @@ export function LoginForm({
           case "admin":
             setError("Không có quyền truy cập.");
             signOut({ redirect: false });
-            setTimeout(() => {
-              router.push("/auth/signIn?callbackUrl=%2Fadmin");
-            }, 1000);
+            router.replace("/auth/signIn?callbackUrl=%2Fadmin");
             break;
           case "nurse":
           case "staff":
             setError("Không có quyền truy cập.");
             signOut({ redirect: false });
-            setTimeout(() => {
-              router.push("/auth/signIn?callbackUrl=%2Fnurse");
-            }, 1000);
+            router.replace("/auth/signIn?callbackUrl=%2Fnurse");
             break;
           default:
-            router.push("/");
+            router.refresh();
         }
       } else {
         setError("Không thể xác định vai trò của người dùng.");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);
       setError("Có lỗi xảy ra trong quá trình đăng nhập.");
-    } finally {
       setLoading(false);
     }
   };

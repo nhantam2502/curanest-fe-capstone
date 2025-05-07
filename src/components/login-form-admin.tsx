@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSession, signIn, signOut } from "next-auth/react";
 import { Loader2 } from "lucide-react";
@@ -31,27 +31,37 @@ export function AdminLoginForm({
     },
   });
 
+  useEffect(() => {
+    if (!loading) return;
+    const checkNavigation = setInterval(() => {
+      if (document.readyState === "complete") {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearInterval(checkNavigation);
+  }, [loading]);
+
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
       setError("");
-  
+
       const result = await signIn("credentials", {
         identifier: data.email,
         password: data.password,
         isAdmin: "true",
         redirect: false,
       });
-  
+
       if (result?.error) {
         setError("Invalid email or password");
         setLoading(false);
         return;
       }
-  
+
       const session = await getSession();
-  
-      // Chuyển hướng dựa trên vai trò người dùng
+
       switch (session?.user?.role) {
         case "admin":
           router.push("/admin");
@@ -61,9 +71,7 @@ export function AdminLoginForm({
             "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
           );
           signOut({ redirect: false });
-          setTimeout(() => {
-            router.push("/auth/signIn?callbackUrl=%2Fnurse");
-          }, 1000);
+          router.push("/auth/signIn?callbackUrl=%2Fnurse");
           break;
         case "staff":
           setError(
@@ -71,9 +79,7 @@ export function AdminLoginForm({
           );
           signOut({ redirect: false });
 
-          setTimeout(() => {
-            router.push("/auth/signIn?callbackUrl=%2Fnurse");
-          }, 1000);
+          router.push("/auth/signIn?callbackUrl=%2Fnurse");
           break;
         case "relatives":
           setError(
@@ -81,9 +87,7 @@ export function AdminLoginForm({
           );
           // Xóa session cho vai trò relatives
           signOut({ redirect: false });
-          setTimeout(() => {
-            router.push("/auth/signIn");
-          }, 1000);
+          router.push("/auth/signIn");
           return;
         default:
           setError(
@@ -94,13 +98,11 @@ export function AdminLoginForm({
       }
     } catch (error) {
       console.error("Error logging in: ", error);
-      setError("An error occurred during login");
-      setLoading(false);
-    } finally {
+      setError("An error occurred during login.");
       setLoading(false);
     }
   };
-  
+
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -146,12 +148,11 @@ export function AdminLoginForm({
           </div>
 
           <div className="w-full flex items-center justify-between">
-            <div className="w-full flex items-center" />
             <Link
               href=""
               className="text-lg font-medium whitespace-nowrap cursor-pointer"
             >
-              Quên mật khẩu ?
+              Quên mật khẩu?
             </Link>
           </div>
 

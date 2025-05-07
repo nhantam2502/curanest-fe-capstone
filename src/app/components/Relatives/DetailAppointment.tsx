@@ -213,10 +213,7 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                 </h3>
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    <AvatarImage
-                      src={patient["full-name"]}
-                      alt="Patient Avatar"
-                    />
+                    
                     <AvatarFallback className="text-xl">
                       {patient["full-name"]
                         ?.split(" ")

@@ -17,7 +17,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, ArrowLeft } from "lucide-react";
+import { CalendarIcon, ArrowLeft, Loader2 } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -65,12 +65,14 @@ export default function EditPatientRecord({
   profile: PatientRecord;
 }) {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue, watch
+    setValue,
+    watch,
   } = useForm<UpdatePatientRecord>({
     resolver: zodResolver(UpdatePatientSchema),
     defaultValues: {
@@ -277,6 +279,7 @@ export default function EditPatientRecord({
   };
 
   const onSubmit = async (data: UpdatePatientRecord) => {
+    setIsSubmitting(true);
     try {
       // Map district and ward codes back to names
       const districtName =
@@ -310,6 +313,8 @@ export default function EditPatientRecord({
         description: "Có lỗi xảy ra khi cập nhật hồ sơ bệnh nhân.",
         duration: 2000,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -435,33 +440,33 @@ export default function EditPatientRecord({
                 </div>
 
                 <div className="grid grid-cols-3 gap-6">
-                <div className="space-y-2">
-  <Label className="text-xl" htmlFor="gender">
-    Giới tính
-  </Label>
-  <Select
-    {...register("gender")} // Liên kết trực tiếp với react-hook-form
-    onValueChange={(value) => {
-      setValue("gender", value === "true"); // Cập nhật giá trị trong react-hook-form
-    }}
-    value={watch("gender") ? "true" : "false"} // Sử dụng watch để lấy giá trị hiện tại
-  >
-    <SelectTrigger className="h-12 w-full text-xl">
-      <SelectValue placeholder="Chọn giới tính" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem className="text-lg" value="true">
-        Nam
-      </SelectItem>
-      <SelectItem className="text-lg" value="false">
-        Nữ
-      </SelectItem>
-    </SelectContent>
-  </Select>
-  {errors.gender && (
-    <p className="text-red-500">{errors.gender.message}</p>
-  )}
-</div>
+                  <div className="space-y-2">
+                    <Label className="text-xl" htmlFor="gender">
+                      Giới tính
+                    </Label>
+                    <Select
+                      {...register("gender")} // Liên kết trực tiếp với react-hook-form
+                      onValueChange={(value) => {
+                        setValue("gender", value === "true"); // Cập nhật giá trị trong react-hook-form
+                      }}
+                      value={watch("gender") ? "true" : "false"} // Sử dụng watch để lấy giá trị hiện tại
+                    >
+                      <SelectTrigger className="h-12 w-full text-xl">
+                        <SelectValue placeholder="Chọn giới tính" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem className="text-lg" value="true">
+                          Nam
+                        </SelectItem>
+                        <SelectItem className="text-lg" value="false">
+                          Nữ
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.gender && (
+                      <p className="text-red-500">{errors.gender.message}</p>
+                    )}
+                  </div>
 
                   <div className="space-y-2">
                     <Label className="text-xl" htmlFor="phone_number">
@@ -629,6 +634,7 @@ export default function EditPatientRecord({
                 variant="destructive"
                 className="h-12 px-6 text-xl"
                 onClick={() => window.history.back()}
+                disabled={isSubmitting}
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Quay lại
@@ -636,8 +642,16 @@ export default function EditPatientRecord({
               <Button
                 type="submit"
                 className="h-12 px-8 text-xl bg-[#64D1CB] hover:bg-[#71DDD7]"
+                disabled={isSubmitting}
               >
-                Lưu thay đổi
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Đang lưu...
+                  </>
+                ) : (
+                  "Lưu thay đổi"
+                )}
               </Button>
             </div>
           </CardContent>
