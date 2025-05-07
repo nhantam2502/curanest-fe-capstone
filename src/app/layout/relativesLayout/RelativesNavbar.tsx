@@ -106,11 +106,11 @@ const RelativesNavbar = () => {
                     6
                   </span>
                 </div>
-                
+
                 {/* Notification Dropdown */}
-                <NotificationDropdown 
-                  isOpen={isNotificationsOpen} 
-                  onClose={() => setIsNotificationsOpen(false)} 
+                <NotificationDropdown
+                  isOpen={isNotificationsOpen}
+                  onClose={() => setIsNotificationsOpen(false)}
                 />
               </div>
             )}
@@ -122,13 +122,12 @@ const RelativesNavbar = () => {
                   <Avatar className="w-[70px] h-[70px] hidden md:block">
                     <AvatarImage src={session.user.image || ""} />
                     <AvatarFallback>
-                      {session.user.name
-                        ? session.user.name
-                            .split(" ")
-                            .slice(-1)[0][0]
-                            .toUpperCase()
-                        : "?"}
-                    </AvatarFallback>
+    {session?.user?.name
+      ? session.user.name.split(" ").length > 0
+        ? session.user.name.split(" ")[session.user.name.split(" ").length - 1][0]?.toUpperCase() || "?"
+        : session.user.name[0]?.toUpperCase() || "?"
+      : "?"}
+  </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
 
@@ -195,7 +194,9 @@ const RelativesNavbar = () => {
                   >
                     <ArrowLeft className="h-6 w-6" />
                   </button>
-                  <h2 className="text-center text-lg font-semibold">Curanest</h2>
+                  <h2 className="text-center text-lg font-semibold">
+                    Curanest
+                  </h2>
                 </div>
 
                 {/* Menu Items */}
