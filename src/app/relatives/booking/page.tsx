@@ -22,7 +22,7 @@ const Booking = () => {
       </div>
 
       <InfoRelatives />
-      <Separator className="my-6 border-2" />
+      <Separator className="my-6 border-1" />
 
       <PatientRecords />
     </div>
