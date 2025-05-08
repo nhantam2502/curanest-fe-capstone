@@ -36,6 +36,7 @@ const MedicalReport: React.FC<MedicalReportProps> = ({
   medical_report,
   appointment,
 }) => {
+  console.log("Medical Report", medical_report);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl w-full max-h-[90vh]">

@@ -1,5 +1,5 @@
 'use client'
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +11,27 @@ import {
 } from "@/components/ui/card";
 
 const PaymentResultFail = () => {
+  const [paymentStatus, setPaymentStatus] = useState("");
+  const [orderCode, setOrderCode] = useState("");
+
+  useEffect(() => {
+    // Lấy URL hiện tại
+    const url = new URL(window.location.href);
+    
+    // Sử dụng URLSearchParams để lấy các tham số
+    const searchParams = new URLSearchParams(url.search);
+    
+    // Lấy giá trị của status và orderCode
+    const status = searchParams.get("status");
+    const code = searchParams.get("orderCode");
+    
+    console.log("status", status);
+    console.log("code", code);
+    
+    if (status) setPaymentStatus(status);
+    if (code) setOrderCode(code);
+  }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <Card className="w-full max-w-md">
@@ -40,22 +61,20 @@ const PaymentResultFail = () => {
         </CardHeader>
 
         {/* Content */}
-        {/* <CardContent>
+        <CardContent>
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Mã giao dịch:</span>
-              <span className="font-medium">TXN{Date.now()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Ngày:</span>
-              <span className="font-medium">
-                {new Date().toLocaleDateString()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Số tiền:</span>
-              <span className="font-medium text-red-600">500.000 VND</span>
-            </div>
+            {paymentStatus && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Trạng thái:</span>
+                <span className="font-medium">{paymentStatus}</span>
+              </div>
+            )}
+            {orderCode && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Mã đơn hàng:</span>
+                <span className="font-medium">{orderCode}</span>
+              </div>
+            )}
             <div className="text-center text-sm text-muted-foreground mt-4">
               Nếu bạn cần hỗ trợ, vui lòng liên hệ qua{" "}
               <a href="mailto:support@example.com" className="text-blue-500 hover:underline">
@@ -63,7 +82,7 @@ const PaymentResultFail = () => {
               </a>
             </div>
           </div>
-        </CardContent> */}
+        </CardContent>
 
         {/* Footer */}
         <CardFooter className="flex justify-center gap-4">
@@ -73,12 +92,12 @@ const PaymentResultFail = () => {
           >
             Quay về trang chủ
           </Button>
-          <Button
+          {/* <Button
             className="bg-red-500 hover:bg-red-600"
             onClick={() => window.location.href = "/payment"}
           >
             Thử lại
-          </Button>
+          </Button> */}
         </CardFooter>
       </Card>
     </div>

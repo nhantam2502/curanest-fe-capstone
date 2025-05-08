@@ -305,16 +305,16 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         title: "Bạn đã đặt lịch thành công",
       });
 
-      // try {
-      //   const invoiceResponse = await appointmentApiRequest.getInvoice(newAppointmentId);
-      //   const invoiceData = invoiceResponse.payload.data;
-      //   if (invoiceData && invoiceData.length > 0) {
-      //     router.push(invoiceData[0]["payos-url"]);
-      //   }
-      // } catch (invoiceError) {
-      //   console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
-      //   router.push("/relatives/appointments");
-      // }
+      try {
+        const invoiceResponse = await appointmentApiRequest.getInvoice(newAppointmentId);
+        const invoiceData = invoiceResponse.payload.data;
+        if (invoiceData && invoiceData.length > 0) {
+          router.push(invoiceData[0]["payos-url"]);
+        }
+      } catch (invoiceError) {
+        console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
+        router.push("/relatives/appointments");
+      }
     } catch (error) {
       console.error("Lỗi khi tạo cuộc hẹn:", error);
       toast({
