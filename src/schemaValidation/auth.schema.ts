@@ -43,14 +43,14 @@ export const RegisterSchema = z
       .refine((val) => /\d/.test(val), {
         message: "Mật khẩu phải chứa ít nhất một số",
       }),
-    // confirmPassword: z.string().min(6, {
-    //   message: "Mật khẩu nhập lại phải có ít nhất 6 ký tự",
-    // }),
+    confirmPassword: z.string().min(6, {
+      message: "Mật khẩu nhập lại phải có ít nhất 6 ký tự",
+    }),
   })
-  // .refine((data) => data.password === data.confirmPassword, {
-  //   message: "Mật khẩu nhập lại không khớp",
-  //   path: ["confirmPassword"],
-  // });
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Mật khẩu nhập lại không khớp",
+    path: ["confirmPassword"],
+  });
 
 export const RegisterBody = z.object({
   email: z.string(),

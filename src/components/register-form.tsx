@@ -39,34 +39,31 @@ export function RegisterForm() {
       email: "",
       "phone-number": "",
       password: "",
+      confirmPassword: "",
     },
   });
 
   async function onSubmit(values: RegisterInput) {
     try {
       setIsLoading(true);
-  
+
       const registerData: RegisterBodyType = {
         "full-name": values["full-name"],
         email: values.email,
         "phone-number": values["phone-number"],
         password: values.password,
       };
-  
+
       const response = await authApiRequest.register(registerData);
       console.log("response register: ", response);
-  
+
       // Hiển thị thông báo trước
       toast({
-        title: "Đăng ký thành công",
-        description: "Tài khoản của bạn đã được tạo thành công",
+        title: "Đăng nhập thành công",
+        // description: "Tài khoản của bạn đã được tạo thành công",
       });
-  
-      // Chuyển hướng sau khi thông báo được hiển thị
-      setTimeout(() => {
-        router.push(`/auth/signIn?role=${role}`);
-      }, 2000); // Đợi 2 giây để người dùng thấy thông báo
-  
+
+      router.push(`/auth/signIn?role=${role}`);
     } catch (error: any) {
       console.error("Lỗi đăng ký:", error);
       toast({
@@ -179,7 +176,7 @@ export function RegisterForm() {
           )}
         />
 
-        {/* <FormField
+        <FormField
           control={form.control}
           name="confirmPassword"
           render={({ field }) => (
@@ -212,7 +209,7 @@ export function RegisterForm() {
               <FormMessage className="text-red-500 text-lg" />
             </FormItem>
           )}
-        /> */}
+        />
 
         <Button
           type="submit"

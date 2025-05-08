@@ -16,9 +16,11 @@ export const getStatusColor = (status: string) => {
     case "success":
       return "bg-green-500";
     case "confirmed":
-      return "bg-yellow-500";
+      return "bg-orange-500";
     case "upcoming":
       return "bg-blue-500";
+    case "waiting":
+      return "bg-yellow-500";
     case "canceled":
       return "bg-red-500";
     default:
@@ -34,7 +36,7 @@ export const getStatusText = (status: string) => {
     case "confirmed":
       return "Đã xác nhận";
     case "waiting":
-      return "Đang chờ ";
+      return "Đang chờ gán điều dưỡng";
     case "upcoming":
       return "Đang tới";
     case "canceled":
@@ -137,16 +139,16 @@ export const translateStatusToVietnamese = (
   const lowerCaseStatus = status.toLowerCase();
 
   switch (lowerCaseStatus) {
-      case "waiting":
-          return "Đang chờ";
-      case "confirmed":
-          return "Đã xác nhận";
-      case "success":
-          return "Hoàn thành";
-      case "upcoming":
-          return "Sắp diễn ra";
-      default:
-          return status;
+    case "waiting":
+      return "Đang chờ";
+    case "confirmed":
+      return "Đã xác nhận";
+    case "success":
+      return "Hoàn thành";
+    case "upcoming":
+      return "Sắp diễn ra";
+    default:
+      return status;
   }
 };
 

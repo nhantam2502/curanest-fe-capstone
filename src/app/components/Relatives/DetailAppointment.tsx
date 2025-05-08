@@ -44,7 +44,7 @@ const getStatusColor = (status: string) => {
   switch (status.toLowerCase()) {
     case "success":
       return "font-semibold text-green-800";
-      case "done":
+    case "done":
       return "font-semibold text-green-800 bg-green-100 hover:bg-green-200";
     case "waiting":
     case "confirmed":
@@ -143,7 +143,6 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   nurse,
   patient,
 }) => {
-
   const router = useRouter();
   const packageData = appointment.cusPackage?.data?.package;
   const tasks = appointment.cusPackage?.data?.tasks || [];
@@ -213,19 +212,24 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                 </h3>
                 <div className="flex items-center space-x-4">
                   <Avatar className="w-16 h-16">
-                    
                     <AvatarFallback className="text-xl">
-                      {patient["full-name"]
-                        ?.split(" ")
-                        .slice(-1)[0][0]
-                        ?.toUpperCase() || "?"}
+                      {(() => {
+                        const fullName = patient["full-name"];
+                        const words = fullName?.split(" ").filter(Boolean);
+                        const lastWord = words?.slice(-1)[0];
+                        const initial = lastWord?.[0]?.toUpperCase();
+                        return initial || "?";
+                      })()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="text-xl font-semibold">
                     {patient["full-name"]}
                   </div>
                 </div>
-                <PatientInfo label="Ngày sinh" value={formatDate(new Date (patient.dob))} />
+                <PatientInfo
+                  label="Ngày sinh"
+                  value={formatDate(new Date(patient.dob))}
+                />
                 <PatientInfo
                   label="Số điện thoại"
                   value={patient["phone-number"]}

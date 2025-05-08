@@ -31,7 +31,7 @@ const ProfileContent = () => {
     address: "",
     district: "",
     ward: "",
-    city: "",
+    city: "Hồ Chí Minh",
     avatar: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -147,7 +147,7 @@ const ProfileContent = () => {
         address: relativeInfo.address || "",
         district: relativeInfo.district || "",
         ward: relativeInfo.ward || "",
-        city: relativeInfo.city || "",
+        city: relativeInfo.city || "Hồ Chí Minh",
         avatar: relativeInfo.avatar || "",
       });
     }
@@ -446,7 +446,7 @@ const ProfileContent = () => {
                     type="text"
                     className="w-full p-4 border rounded-lg text-xl"
                     disabled
-                    defaultValue={relativeInfo.city}
+                    defaultValue={formData.city}
                   />
                 </div>
               </div>

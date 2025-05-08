@@ -122,12 +122,14 @@ const RelativesNavbar = () => {
                   <Avatar className="w-[70px] h-[70px] hidden md:block">
                     <AvatarImage src={session.user.image || ""} />
                     <AvatarFallback>
-    {session?.user?.name
-      ? session.user.name.split(" ").length > 0
-        ? session.user.name.split(" ")[session.user.name.split(" ").length - 1][0]?.toUpperCase() || "?"
-        : session.user.name[0]?.toUpperCase() || "?"
-      : "?"}
-  </AvatarFallback>
+                      {(() => {
+                        const fullName = session.user.name;
+                        const words = fullName?.split(" ").filter(Boolean);
+                        const lastWord = words?.slice(-1)[0];
+                        const initial = lastWord?.[0]?.toUpperCase();
+                        return initial || "?";
+                      })()}
+                    </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
 
