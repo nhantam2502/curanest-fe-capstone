@@ -21,8 +21,7 @@ export type ServiceFilter = {
 export interface Res {
   status: number;
   message: string;
-}
-;
+};
 
 export interface Services {
   id: number;

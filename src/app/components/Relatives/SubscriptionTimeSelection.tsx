@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ export interface SelectedDateTime {
   date: Date;
   timeSlot: TimeSlot;
   isoString?: string;
-  nurse?: NurseItemType | null; 
+  nurse?: NurseItemType | null;
 }
 
 interface SubscriptionTimeSelectionProps {
@@ -77,27 +76,39 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
   onNurseSelect,
 }) => {
   const [selectedDates, setSelectedDates] = useState<SelectedDateTime[]>([]);
-  const [activeDate, setActiveDate] = useState<Date>(new Date());
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
+  const [activeDate, setActiveDate] = useState<Date>(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow;
+  });
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(
+    null
+  );
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTime, setStartTime] = useState<string>("08:00");
   const [expandedDays, setExpandedDays] = useState<string>("0");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editCalendarOpen, setEditCalendarOpen] = useState(false);
   const [editingDate, setEditingDate] = useState<Date | null>(null);
-  const [availabilityStatus, setAvailabilityStatus] = useState<Record<number, boolean>>({});
-  const [availableNurses, setAvailableNurses] = useState<NurseItemType[] | null>(null);
+  const [availabilityStatus, setAvailabilityStatus] = useState<
+    Record<number, boolean>
+  >({});
+  const [availableNurses, setAvailableNurses] = useState<
+    NurseItemType[] | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentSessionIndex, setCurrentSessionIndex] = useState<number | null>(null);
+  const [currentSessionIndex, setCurrentSessionIndex] = useState<number | null>(
+    null
+  );
 
   const verifyNurseAvailability = useCallback(
     async (nurse: NurseItemType, sessionIndex: number) => {
       try {
         const session = selectedDates[sessionIndex];
         if (!session) return;
-  
+
         const body = {
           "nurses-dates": [
             {
@@ -107,9 +118,10 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
             },
           ],
         };
-  
+
         const response = await appointmentApiRequest.verifyNurse(body);
-        const isAvailable = response.payload.data[0]?.["is-availability"] || false;
+        const isAvailable =
+          response.payload.data[0]?.["is-availability"] || false;
 
         setAvailabilityStatus((prev) => ({
           ...prev,
@@ -240,7 +252,8 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
 
     if (editingIndex !== null && date) {
       const isDateUsed = selectedDates.some(
-        (selectedDate, idx) => idx !== editingIndex && isSameDay(selectedDate.date, date)
+        (selectedDate, idx) =>
+          idx !== editingIndex && isSameDay(selectedDate.date, date)
       );
 
       if (!isDateUsed) {
@@ -281,7 +294,10 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
     setSelectedTimeSlot(timeSlot);
 
     if (editingIndex !== null) {
-      const isoString = createISOString(selectedDates[editingIndex].date, timeSlot);
+      const isoString = createISOString(
+        selectedDates[editingIndex].date,
+        timeSlot
+      );
       const updatedDates = [...selectedDates];
       updatedDates[editingIndex] = {
         ...updatedDates[editingIndex],
@@ -352,7 +368,10 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
     setSelectedTimeSlot(selectedDates[index].timeSlot);
   };
 
-  const isDateAlreadySelected = (date: Date, datesList: SelectedDateTime[] = selectedDates): boolean => {
+  const isDateAlreadySelected = (
+    date: Date,
+    datesList: SelectedDateTime[] = selectedDates
+  ): boolean => {
     return datesList.some((selectedDate) => isSameDay(selectedDate.date, date));
   };
 
@@ -362,7 +381,8 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
 
   const isDateSelected = (date: Date): boolean => {
     return selectedDates.some(
-      (selectedDate) => isSameDay(selectedDate.date, date) && selectedDate.timeSlot !== null
+      (selectedDate) =>
+        isSameDay(selectedDate.date, date) && selectedDate.timeSlot !== null
     );
   };
 
@@ -376,7 +396,8 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
     if (date < new Date()) return true;
     if (editingIndex !== null) {
       return selectedDates.some(
-        (selectedDate, idx) => idx !== editingIndex && isSameDay(selectedDate.date, date)
+        (selectedDate, idx) =>
+          idx !== editingIndex && isSameDay(selectedDate.date, date)
       );
     }
     return false;
@@ -403,8 +424,8 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
       };
       setSelectedDates(updatedDates);
       onTimesSelect(updatedDates);
-      onNurseSelect(nurse, currentSessionIndex); // Gọi hàm để thông báo component cha
-      verifyNurseAvailability(nurse, currentSessionIndex); // Kiểm tra tính khả dụng cho buổi cụ thể
+      onNurseSelect(nurse, currentSessionIndex);
+      verifyNurseAvailability(nurse, currentSessionIndex);
     }
   };
 
@@ -445,7 +466,7 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
 
       <ScrollArea className="w-full">
         <div className="flex gap-4 mb-4">
-          {getDaysInRange().map((date) => {
+          {getDaysInRange(activeDate).map((date) => {
             const formattedDate = formatDate(date);
             const isActive = isSameDay(activeDate, date);
             const isSelected = isDateSelected(date);

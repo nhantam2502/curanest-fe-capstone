@@ -9,10 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import invoiceApiRequest from "@/apiRequest/invoice/apiInvoice";
 
 const PaymentResultFail = () => {
   const [paymentStatus, setPaymentStatus] = useState("");
   const [orderCode, setOrderCode] = useState("");
+  const [isProcessing, setIsProcessing] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Lấy URL hiện tại
@@ -25,12 +29,50 @@ const PaymentResultFail = () => {
     const status = searchParams.get("status");
     const code = searchParams.get("orderCode");
     
-    console.log("status", status);
-    console.log("code", code);
-    
     if (status) setPaymentStatus(status);
-    if (code) setOrderCode(code);
+    if (code) {
+      setOrderCode(code);
+      
+      // Gọi API cancelPaymentUrl khi có orderCode
+      if (code) {
+        cancelPayment(code);
+      }
+    } else {
+      setIsProcessing(false);
+    }
   }, []);
+
+  // Hàm gọi API hủy URL thanh toán
+  const cancelPayment = async (code: string) => {
+    try {
+      setIsProcessing(true);
+      const response = await invoiceApiRequest.cancelPaymentUrl(code);
+      
+      if (response.payload.data) {
+        toast({
+          title: "Đã hủy giao dịch",
+          description: "Giao dịch đã được hủy thành công.",
+          variant: "default",
+        });
+      } else {
+        console.error("Lỗi khi hủy URL thanh toán:", response);
+        toast({
+          title: "Lỗi",
+          description: "Không thể hủy giao dịch. Vui lòng thử lại sau.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Lỗi khi gọi API hủy URL thanh toán:", error);
+      toast({
+        title: "Lỗi",
+        description: "Đã xảy ra lỗi khi hủy giao dịch. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
@@ -75,6 +117,16 @@ const PaymentResultFail = () => {
                 <span className="font-medium">{orderCode}</span>
               </div>
             )}
+            {isProcessing && (
+              <div className="text-center mt-2">
+                <div className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+                  <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+                    Đang xử lý...
+                  </span>
+                </div>
+                <span className="ml-2 text-sm text-muted-foreground">Đang hủy giao dịch...</span>
+              </div>
+            )}
             <div className="text-center text-sm text-muted-foreground mt-4">
               Nếu bạn cần hỗ trợ, vui lòng liên hệ qua{" "}
               <a href="mailto:support@example.com" className="text-blue-500 hover:underline">
@@ -88,16 +140,11 @@ const PaymentResultFail = () => {
         <CardFooter className="flex justify-center gap-4">
           <Button
             variant="outline"
-            onClick={() => window.location.href = "/"}
+            onClick={() => window.location.href = "/relatives/booking"}
+            disabled={isProcessing}
           >
             Quay về trang chủ
           </Button>
-          {/* <Button
-            className="bg-red-500 hover:bg-red-600"
-            onClick={() => window.location.href = "/payment"}
-          >
-            Thử lại
-          </Button> */}
         </CardFooter>
       </Card>
     </div>
