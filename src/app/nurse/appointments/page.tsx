@@ -59,7 +59,7 @@ const NurseScheduleCalendar = () => {
   const nursingId = session?.user?.id || null;
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
-  
+
   useEffect(() => {
     const fetchUnreadNotificationsCount = async () => {
       if (!session?.user?.id) return;
@@ -443,8 +443,8 @@ const NurseScheduleCalendar = () => {
                             getEventColor(event.status)
                           )}
                           style={{
-                            height: `${eventHeight * 4.7}rem`, // 4rem là chiều cao của mỗi khoảng thời gian 15 phút (h-16)
-                            top: 2,
+                            height: `${eventHeight * 5}rem`, // 4rem là chiều cao của mỗi khoảng thời gian 15 phút (h-16)
+                            top: 9,
                             left: 9,
                           }}
                           onClick={() =>
@@ -554,27 +554,27 @@ const NurseScheduleCalendar = () => {
                   })}
                 </span>
               </div>
-            <div className="flex items-center gap-2">
-  <Button
-    onClick={handleNotificationsClick}
-    variant="outline"
-    size="sm"
-    className="hover:bg-blue-50 relative"
-  >
-    <Bell className="w-4 h-4 mr-2" />
-    Thông báo
-    {unreadNotificationsCount > 0 && (
-      <span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-        {unreadNotificationsCount}
-      </span>
-    )}
-  </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={handleNotificationsClick}
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-blue-50 relative"
+                >
+                  <Bell className="w-4 h-4 mr-2" />
+                  Thông báo
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
+                </Button>
 
-  <NotificationDropdown
-    isOpen={isNotificationsOpen}
-    onClose={() => setIsNotificationsOpen(false)}
-  />
-</div>
+                <NotificationDropdown
+                  isOpen={isNotificationsOpen}
+                  onClose={() => setIsNotificationsOpen(false)}
+                />
+              </div>
             </div>
           </CardHeader>
 

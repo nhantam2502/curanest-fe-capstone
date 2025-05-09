@@ -147,14 +147,14 @@ export function AdminLoginForm({
             </div>
           </div>
 
-          <div className="w-full flex items-center justify-between">
+          {/* <div className="w-full flex items-center justify-between">
             <Link
               href=""
               className="text-lg font-medium whitespace-nowrap cursor-pointer"
             >
               Quên mật khẩu?
             </Link>
-          </div>
+          </div> */}
 
           {error && <div className="text-red-500 text-base">{error}</div>}
 

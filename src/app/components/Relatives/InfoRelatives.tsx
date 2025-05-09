@@ -54,13 +54,14 @@ const InfoRelatives = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64 w-full">
         <div className="text-red-500 text-2xl text-center p-4">{error}</div>
-        <button 
+        <button
           onClick={() => {
             setIsLoading(true);
             setError(null);
             setTimeout(() => {
-              patientApiRequest.getInfoRelatives()
-                .then(response => {
+              patientApiRequest
+                .getInfoRelatives()
+                .then((response) => {
                   if (response.status === 200 && response.payload) {
                     setUserData(response.payload);
                     setUser(response.payload.data);
@@ -68,7 +69,7 @@ const InfoRelatives = () => {
                     setError("Không thể tải thông tin. Vui lòng thử lại sau.");
                   }
                 })
-                .catch(err => {
+                .catch((err) => {
                   console.log("Error fetching info relatives data: ", err);
                   setError("Không thể tải thông tin. Vui lòng thử lại sau.");
                 })
@@ -89,12 +90,13 @@ const InfoRelatives = () => {
         <div className="text-gray-500 text-xl text-center p-4">
           Không tìm thấy thông tin người dùng.
         </div>
-        <button 
+        <button
           onClick={() => {
             setIsLoading(true);
             setTimeout(() => {
-              patientApiRequest.getInfoRelatives()
-                .then(response => {
+              patientApiRequest
+                .getInfoRelatives()
+                .then((response) => {
                   if (response.status === 200 && response.payload) {
                     setUserData(response.payload);
                     setUser(response.payload.data);
@@ -102,7 +104,7 @@ const InfoRelatives = () => {
                     setError("Không thể tải thông tin. Vui lòng thử lại sau.");
                   }
                 })
-                .catch(err => {
+                .catch((err) => {
                   console.log("Error fetching info relatives data: ", err);
                   setError("Không thể tải thông tin. Vui lòng thử lại sau.");
                 })
@@ -127,7 +129,13 @@ const InfoRelatives = () => {
             <Avatar className="w-60 h-60">
               <AvatarImage src={data.avatar} />
               <AvatarFallback className="text-3xl">
-                {data["full-name"]?.[0]?.toUpperCase() || "?"}
+                {(() => {
+                  const fullName = data["full-name"];
+                  const words = fullName?.split(" ").filter(Boolean);
+                  const lastWord = words?.slice(-1)[0];
+                  const initial = lastWord?.[0]?.toUpperCase();
+                  return initial || "?";
+                })()}
               </AvatarFallback>
             </Avatar>
             <h2 className="text-4xl font-bold">

@@ -47,11 +47,11 @@ const SettingsPage = () => {
       label: "Lịch sử thanh toán",
       icon: <CreditCard className="w-6 h-6" />,
     },
-    {
-      id: "password",
-      label: "Thay đổi mật khẩu",
-      icon: <Lock className="w-6 h-6" />,
-    },
+    // {
+    //   id: "password",
+    //   label: "Thay đổi mật khẩu",
+    //   icon: <Lock className="w-6 h-6" />,
+    // },
   ];
 
   const WalletContent = () => {

@@ -204,12 +204,12 @@ const RelativesNavbar = () => {
                   >
                     <Wallet className="mr-4 h-7 w-7" /> Lịch sử thanh toán
                   </DropdownMenuItem>
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     className="text-xl"
                     onClick={handleNavigate}
                   >
                     <Key className="mr-4 h-7 w-7" /> Thay đổi mật khẩu
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
 
                   <DropdownMenuSeparator className="my-2" />
                   <DropdownMenuItem

@@ -22,7 +22,7 @@ const NewsSection = () => {
       title: "Tìm Hiểu Sức Khỏe Tâm Thần: Phá Vỡ Định Kiến",
       content:
         "Sức khỏe tâm thần quan trọng không kém gì sức khỏe thể chất. Tìm hiểu về các vấn đề sức khỏe tâm thần phổ biến, dấu hiệu của chúng và cách tìm kiếm sự giúp đỡ khi cần.",
-      imageUrl: "/loginLeft.jpg",
+      imageUrl: "https://hcdc.vn/public/img/02bf8460bf0d6384849ca010eda38cf8e9dbc4c7/images/dangbai1/images/dinh-kien-ve-suc-khoe-tam-than--nhung-rao-can-vo-hinh/images/9ea0a35dfd3c45621c2d.jpg",
       topic: "Sức Khỏe Tâm Thần",
       created_at: "Ngày 15 tháng 3, 2024",
       author: {
@@ -35,7 +35,7 @@ const NewsSection = () => {
       title: "Khoa Học Về Giấc Ngủ: Tại Sao Giấc Ngủ Chất Lượng Quan Trọng",
       content:
         "Khám phá những nghiên cứu mới nhất về khoa học giấc ngủ và tìm hiểu các mẹo thực tế để cải thiện chất lượng giấc ngủ, nâng cao sức khỏe và hạnh phúc tổng thể.",
-      imageUrl: "/loginLeft.jpg",
+      imageUrl: "https://tamanhhospital.vn/wp-content/uploads/2024/06/ban-chat-giac-ngu.jpg",
       topic: "Sức Khỏe Toàn Diện",
       created_at: "Ngày 15 tháng 3, 2024",
       author: {

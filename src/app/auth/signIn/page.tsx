@@ -135,7 +135,7 @@ const LoginPage = () => {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
-                {!["staff", "nurse"].includes(role) && (
+                {!["staff", "nurse", "admin"].includes(role) && (
                   <button
                     onClick={toggleForm}
                     className="text-lg font-medium whitespace-nowrap cursor-pointer hover:underline"

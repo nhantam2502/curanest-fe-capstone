@@ -147,7 +147,7 @@ export function LoginForm({
             </div>
           </div>
 
-          <div className="w-full flex items-center justify-between">
+          {/* <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center" />
             <Link
               href=""
@@ -155,7 +155,7 @@ export function LoginForm({
             >
               Quên mật khẩu ?
             </Link>
-          </div>
+          </div> */}
 
           {error && <div className="text-red-500 text-lg">{error}</div>}
 

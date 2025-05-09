@@ -49,18 +49,18 @@ const Hero = () => {
                 nghiệp, tiện lợi và đáng tin cậy.
               </p>
 
-                <button
-                  data-aos="fade-right"
-                  data-aos-delay="50"
-                  data-aos-duration="1200"
-                  data-aos-easing="ease-in-out"
-                  className="btn mt-12 text-[20px]"
-                  onClick={() => {
-                    router.push("/auth/signIn");
-                  }}
-                >
-                  Trải nghiệm ngay
-                </button>
+              <button
+                data-aos="fade-right"
+                data-aos-delay="50"
+                data-aos-duration="1200"
+                data-aos-easing="ease-in-out"
+                className="btn mt-12 text-[20px]"
+                onClick={() => {
+                  router.push("/auth/signIn");
+                }}
+              >
+                Trải nghiệm ngay
+              </button>
             </div>
           </div>
         </div>
@@ -122,17 +122,18 @@ const Hero = () => {
               data-aos-easing="ease-in-out-back"
             >
               <div className="flex items-center justify-center">
-                <img src="./icon02.png" alt="icon2" className="w-60 h-60" />
+                <img src="./checkList.png" alt="icon2" className="w-60 h-60" />
               </div>
 
               <div className="mt-[30px]">
                 <h2 className="text-[26px] leading-9 text-headingColor font-[700] text-center">
-                  Tìm kiếm điều dưỡng xung quanh bạn
+                  Tuỳ chỉnh gói dịch vụ theo nhu cầu
                 </h2>
 
                 <p className="text-[20px] leading-7 text-textColor font-[400] mt-4 text-center">
-                  Dễ dàng kết nối với đội ngũ điều dưỡng chuyên nghiệp xung
-                  quanh khu vực sinh sống của bạn.
+                  Chúng tôi cung cấp nhiều gói dịch vụ chăm sóc sức khỏe khác
+                  nhau, giúp bạn dễ dàng lựa chọn và điều chỉnh theo nhu cầu
+                  riêng của mình.
                 </p>
 
                 {/* <Link
@@ -222,24 +223,23 @@ const Hero = () => {
                 </li>
 
                 <li className="text_para">
-                  2. Hệ thống thông minh gợi ý điều dưỡng phù hợp nhất, đáp ứng
-                  nhu cầu và khung thời gian của bạn
+                  2. Hệ thống sẽ gán điều dưỡng phù hợp nhất, đáp ứng nhu cầu và
+                  khung thời gian của bạn
                 </li>
               </ul>
 
-             
-                <button
-                  data-aos="fade-right"
-                  data-aos-delay="50"
-                  data-aos-duration="1200"
-                  data-aos-easing="ease-in-out"
-                  className="btn mt-[38px] text-[20px]"
-                  onClick={() => {
-                    router.push("/auth/signIn");
-                  }}
-                >
-                  Trải nghiệm ngay
-                </button>
+              <button
+                data-aos="fade-right"
+                data-aos-delay="50"
+                data-aos-duration="1200"
+                data-aos-easing="ease-in-out"
+                className="btn mt-[38px] text-[20px]"
+                onClick={() => {
+                  router.push("/auth/signIn");
+                }}
+              >
+                Trải nghiệm ngay
+              </button>
             </div>
 
             {/* Feature Image */}
@@ -323,7 +323,7 @@ const Hero = () => {
         </div>
       </section>
 
-      <DownloadAppSection />
+      {/* <DownloadAppSection /> */}
 
       {/* Feedbacks Section*/}
       <section id="feedback">

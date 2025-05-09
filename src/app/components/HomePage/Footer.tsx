@@ -91,7 +91,7 @@ const Footer = () => {
               <ul className="mt-6 space-y-4 text-lg">
                 <li>
                   <a
-                    href="#about"
+                    href="/#about"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Giới thiệu
@@ -100,7 +100,7 @@ const Footer = () => {
 
                 <li>
                   <a
-                    href="#nursing"
+                    href="/#nursing"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Đội ngũ điều dưỡng
@@ -109,7 +109,7 @@ const Footer = () => {
 
                 <li>
                   <a
-                    href="#feedback"
+                    href="/#feedback"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Phản hồi từ khách hàng
@@ -132,7 +132,7 @@ const Footer = () => {
 
                 <li>
                   <a
-                    href="#faq"
+                    href="/#faq"
                     className="text-gray-700 transition hover:opacity-75"
                   >
                     Câu hỏi thường gặp
