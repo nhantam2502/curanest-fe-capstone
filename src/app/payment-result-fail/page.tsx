@@ -47,6 +47,7 @@ const PaymentResultFail = () => {
     try {
       setIsProcessing(true);
       const response = await invoiceApiRequest.cancelPaymentUrl(code);
+      console.log("Response cancelPaymentUrl:", response);
       
       if (response.payload.data) {
         toast({
