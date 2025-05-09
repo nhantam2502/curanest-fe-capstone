@@ -26,6 +26,8 @@ import { PatientRecord } from "@/types/patient";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import NotificationDropdown from "@/app/components/Relatives/Notification";
+import notificationApiRequest from "@/apiRequest/notification/apiNotification";
 
 interface ScheduleEvent {
   id: string;
@@ -55,7 +57,62 @@ const NurseScheduleCalendar = () => {
   // Lấy session từ useSession
   const { data: session, status } = useSession();
   const nursingId = session?.user?.id || null;
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  
+  useEffect(() => {
+    const fetchUnreadNotificationsCount = async () => {
+      if (!session?.user?.id) return;
 
+      try {
+        const response = await notificationApiRequest.getNotification(
+          session.user.id,
+          100
+        );
+        if (response.payload.data) {
+          const unreadCount = response.payload.data.filter(
+            (notification: any) => notification["read-at"] === null
+          ).length;
+          setUnreadNotificationsCount(unreadCount);
+        }
+      } catch (error) {
+        console.error("Failed to fetch unread notifications:", error);
+      }
+    };
+
+    if (status === "authenticated") {
+      fetchUnreadNotificationsCount();
+    }
+  }, [status, session?.user?.id]);
+
+  useEffect(() => {
+    if (
+      !isNotificationsOpen &&
+      status === "authenticated" &&
+      session?.user?.id
+    ) {
+      const fetchUpdatedNotifications = async () => {
+        if (!session?.user?.id) return;
+
+        try {
+          const response = await notificationApiRequest.getNotification(
+            session.user.id,
+            100
+          );
+          if (response.payload.data) {
+            const unreadCount = response.payload.data.filter(
+              (notification: any) => notification["read-at"] === null
+            ).length;
+            setUnreadNotificationsCount(unreadCount);
+          }
+        } catch (error) {
+          console.error("Failed to update notifications count:", error);
+        }
+      };
+
+      fetchUpdatedNotifications();
+    }
+  }, [isNotificationsOpen, status, session?.user?.id]);
   // Hàm tính thời gian kết thúc từ thời gian bắt đầu và thời lượng (tính bằng phút)
   const calculateEndTime = (startTimeStr: string, durationMinutes: number) => {
     const [hours, minutes] = startTimeStr.split(":").map(Number);
@@ -178,6 +235,7 @@ const NurseScheduleCalendar = () => {
     if (type === "success") return "bg-green-50 border-green-100";
     if (type === "confirmed") return "bg-yellow-50 border-yellow-100";
     if (type === "upcoming") return "bg-blue-50 border-blue-100";
+    if (type === "cancel") return "bg-red-50 border-red-100";
   };
 
   // Sửa hàm getTimeSlotsForShift để bao gồm cả thời điểm cuối
@@ -193,14 +251,50 @@ const NurseScheduleCalendar = () => {
     const startTimeInMinutes = startHour * 60 + startMinute;
     const endTimeInMinutes = endHour * 60 + endMinute;
 
-    // Tạo khoảng thời gian 15 phút và bao gồm cả thời điểm cuối
+    // Tạo khoảng thời gian 15 phút và bao gồm các khoảng thời gian mở rộng
     const slots = [];
-    for (let time = startTimeInMinutes; time <= endTimeInMinutes; time += 15) {
-      const hours = Math.floor(time / 60);
-      const minutes = time % 60;
-      slots.push(
-        `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
-      );
+
+    // Mở rộng khoảng thời gian cho các ca
+    if (shiftId === "morning") {
+      // Ca sáng mở rộng đến 12:45
+      for (let time = startTimeInMinutes; time <= 12 * 60 + 45; time += 15) {
+        const hours = Math.floor(time / 60);
+        const minutes = time % 60;
+        slots.push(
+          `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+        );
+      }
+    } else if (shiftId === "afternoon") {
+      // Ca chiều mở rộng đến 17:45
+      for (let time = startTimeInMinutes; time <= 17 * 60 + 45; time += 15) {
+        const hours = Math.floor(time / 60);
+        const minutes = time % 60;
+        slots.push(
+          `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+        );
+      }
+    } else if (shiftId === "evening") {
+      // Ca tối mở rộng đến 22:45
+      for (let time = startTimeInMinutes; time <= 22 * 60 + 45; time += 15) {
+        const hours = Math.floor(time / 60);
+        const minutes = time % 60;
+        slots.push(
+          `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+        );
+      }
+    } else {
+      // Trường hợp mặc định
+      for (
+        let time = startTimeInMinutes;
+        time <= endTimeInMinutes;
+        time += 15
+      ) {
+        const hours = Math.floor(time / 60);
+        const minutes = time % 60;
+        slots.push(
+          `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+        );
+      }
     }
 
     return slots;
@@ -281,13 +375,14 @@ const NurseScheduleCalendar = () => {
     return <div>Loading...</div>;
   }
 
-  // Get time slots for the active shift
-  const timeSlots = getTimeSlotsForShift(activeShift);
-
+  const handleNotificationsClick = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
 
   const renderShiftContent = (shiftId: string) => {
     const shiftTimeSlots = getTimeSlotsForShift(shiftId);
-
     return (
       <ScrollArea className="h-[calc(100vh-260px)]">
         <div className="grid grid-cols-8 min-w-[1000px] ">
@@ -366,7 +461,7 @@ const NurseScheduleCalendar = () => {
                                 </div>
                               </div>
                             </div>
-                      
+
                             <div className="flex items-center justify-center gap-1 mt-2">
                               <Users className="w-5 h-5 text-gray-600 flex-shrink-0" />
                               <div>
@@ -375,8 +470,10 @@ const NurseScheduleCalendar = () => {
                                 </span>
                               </div>
                             </div>
-                      
-                            <div className="text-sm text-center mt-1">{getStatusText(event.status)}</div>
+
+                            <div className="text-sm text-center mt-1">
+                              {getStatusText(event.status)}
+                            </div>
                           </div>
                         </div>
                       );
@@ -457,16 +554,27 @@ const NurseScheduleCalendar = () => {
                   })}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="hover:bg-blue-50"
-                >
-                  <Bell className="w-4 h-4 mr-2" />
-                  Thông báo
-                </Button>
-              </div>
+            <div className="flex items-center gap-2">
+  <Button
+    onClick={handleNotificationsClick}
+    variant="outline"
+    size="sm"
+    className="hover:bg-blue-50 relative"
+  >
+    <Bell className="w-4 h-4 mr-2" />
+    Thông báo
+    {unreadNotificationsCount > 0 && (
+      <span className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+        {unreadNotificationsCount}
+      </span>
+    )}
+  </Button>
+
+  <NotificationDropdown
+    isOpen={isNotificationsOpen}
+    onClose={() => setIsNotificationsOpen(false)}
+  />
+</div>
             </div>
           </CardHeader>
 

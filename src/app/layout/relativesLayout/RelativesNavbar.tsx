@@ -1,4 +1,5 @@
 "use client";
+import notificationApiRequest from "@/apiRequest/notification/apiNotification";
 import NotificationDropdown from "@/app/components/Relatives/Notification";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -30,6 +31,7 @@ const RelativesNavbar = () => {
   const headerRef = useRef<HTMLElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -64,6 +66,60 @@ const RelativesNavbar = () => {
     e.stopPropagation();
     setIsNotificationsOpen(!isNotificationsOpen);
   };
+
+  useEffect(() => {
+    const fetchUnreadNotificationsCount = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        const response = await notificationApiRequest.getNotification(
+          session.user.id,
+          100
+        );
+        if (response.payload.data) {
+          const unreadCount = response.payload.data.filter(
+            (notification: any) => notification["read-at"] === null
+          ).length;
+          setUnreadNotificationsCount(unreadCount);
+        }
+      } catch (error) {
+        console.error("Failed to fetch unread notifications:", error);
+      }
+    };
+
+    if (status === "authenticated") {
+      fetchUnreadNotificationsCount();
+    }
+  }, [status, session?.user?.id]);
+
+  useEffect(() => {
+    if (
+      !isNotificationsOpen &&
+      status === "authenticated" &&
+      session?.user?.id
+    ) {
+      const fetchUpdatedNotifications = async () => {
+        if (!session?.user?.id) return;
+
+        try {
+          const response = await notificationApiRequest.getNotification(
+            session.user.id,
+            100
+          );
+          if (response.payload.data) {
+            const unreadCount = response.payload.data.filter(
+              (notification: any) => notification["read-at"] === null
+            ).length;
+            setUnreadNotificationsCount(unreadCount);
+          }
+        } catch (error) {
+          console.error("Failed to update notifications count:", error);
+        }
+      };
+
+      fetchUpdatedNotifications();
+    }
+  }, [isNotificationsOpen, status, session?.user?.id]);
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
@@ -102,9 +158,11 @@ const RelativesNavbar = () => {
                 <div onClick={handleNotificationsClick}>
                   <Bell className="h-7 w-7" />
                   {/* Notification Badge */}
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                    6
-                  </span>
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
                 </div>
 
                 {/* Notification Dropdown */}

@@ -5,10 +5,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, XCircle, Hourglass, Loader2 } from "lucide-react";
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  Hourglass,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { PatientRecord } from "@/types/patient";
 import { Appointment, CusPackageResponse } from "@/types/appointment";
 import { formatDate, getStatusText } from "@/lib/utils";
@@ -18,6 +27,17 @@ import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import invoiceApiRequest from "@/apiRequest/invoice/apiInvoice";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
 interface PatientDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,6 +71,10 @@ const getStatusColor = (status: string) => {
     case "confirmed":
     case "not_done":
       return "bg-white hover:bg-white cursor-pointer font-semibold text-yellow-500";
+    case "upcoming":
+      return "font-semibold text-blue-800 bg-blue-100 hover:bg-blue-200";
+    case "cancel":
+      return "font-semibold text-red-500 ";
     default:
       return "font-semibold text-gray-800";
   }
@@ -149,7 +173,9 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   const tasks = appointment.cusPackage?.data?.tasks || [];
   const [isLoading, setIsLoading] = useState(false);
   const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
   const [isContentLoading, setIsContentLoading] = useState(true);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Simulate content loading when dialog opens
   React.useEffect(() => {
@@ -165,47 +191,40 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   const handlePayment = async () => {
     try {
       setIsPaymentLoading(true);
-      
+
       // 1. Lấy thông tin hóa đơn
-      const invoiceResponse = await appointmentApiRequest.getInvoice(
+      let invoiceResponse = await appointmentApiRequest.getInvoice(
         packageData?.id || ""
       );
-      const invoiceData = invoiceResponse.payload.data;
+
+      if (!invoiceResponse?.payload?.data) {
+        throw new Error("Không nhận được dữ liệu hóa đơn từ server");
+      }
+
+      let invoiceData = invoiceResponse.payload.data;
 
       if (invoiceData && invoiceData.length > 0) {
-        console.log("Invoice data:", invoiceData);
-        
-        // 2. Kiểm tra nếu đã có URL thanh toán
-        if (invoiceData[0]["payos-url"]) {
+        // Nếu đã có URL thì chuyển hướng luôn
+        if (typeof invoiceData[0]["payos-url"] === "string") {
           router.push(invoiceData[0]["payos-url"]);
-        } 
-        // Nếu chưa có URL thanh toán, tạo mới
-        else {
-          const invoiceID = invoiceData[0].id;
-          
-          // 3. Gọi API tạo URL thanh toán
-          const paymentUrlResponse = await invoiceApiRequest.createPaymentUrl(invoiceID);
-          
-          if (paymentUrlResponse.payload.data) {
-            // Kiểm tra xem có URL thanh toán từ response không
-            if (paymentUrlResponse.payload.data["payos-url"]) {
-              router.push(paymentUrlResponse.payload.data["payos-url"]);
-            } else {
-              // Nếu không có URL trực tiếp, thử lấy lại invoice mới nhất
-              const refreshedInvoiceResponse = await appointmentApiRequest.getInvoice(
-                packageData?.id || ""
-              );
-              const refreshedInvoiceData = refreshedInvoiceResponse.payload.data;
-              
-              if (refreshedInvoiceData) {
-                router.push(refreshedInvoiceData[0]["payos-url"]);
-              } else {
-                throw new Error("Không tìm thấy URL thanh toán");
-              }
-            }
-          } else {
-            throw new Error("Không thể tạo URL thanh toán");
-          }
+          return;
+        }
+
+        // Nếu chưa có thì tạo URL
+        const invoiceID = invoiceData[0].id;
+        await invoiceApiRequest.createPaymentUrl(invoiceID);
+
+        // Gọi lại getInvoice để lấy URL mới
+        invoiceResponse = await appointmentApiRequest.getInvoice(
+          packageData?.id || ""
+        );
+        invoiceData = invoiceResponse.payload.data;
+
+        if (invoiceData[0] && typeof invoiceData[0]["payos-url"] === "string") {
+          router.push(invoiceData[0]["payos-url"]);
+          return;
+        } else {
+          throw new Error("Không thể tạo URL thanh toán");
         }
       } else {
         throw new Error("Không tìm thấy thông tin hóa đơn");
@@ -213,8 +232,11 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
     } catch (error) {
       console.error("Lỗi khi xử lý thanh toán:", error);
       toast({
-        title: "Lỗi",
-        description: "Không thể xử lý thanh toán. Vui lòng thử lại sau.",
+        title: "Lỗi thanh toán",
+        description:
+          error instanceof Error
+            ? `${error.message}. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.`
+            : "Không thể xử lý thanh toán. Vui lòng thử lại sau.",
         variant: "destructive",
       });
     } finally {
@@ -222,201 +244,304 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
     }
   };
 
+  const handleCancelPackage = async () => {
+    try {
+      setIsCancelLoading(true);
+
+      if (!packageData?.id) {
+        throw new Error("Không tìm thấy ID gói dịch vụ");
+      }
+
+      const response = await appointmentApiRequest.cancelAppointmentCusPackage(
+        packageData.id
+      );
+
+      if (response && response.payload.success === true) {
+        toast({
+          title: "Hủy gói dịch vụ thành công",
+          description: "Gói dịch vụ đã được hủy thành công",
+          variant: "default",
+        });
+
+        // Đóng dialog và refresh dữ liệu nếu cần
+        onClose();
+        router.refresh();
+      } else {
+        throw new Error("Không thể hủy gói dịch vụ");
+      }
+    } catch (error) {
+      console.error("Lỗi khi hủy gói dịch vụ:", error);
+      toast({
+        title: "Lỗi hủy gói dịch vụ",
+        description:
+          error instanceof Error
+            ? `${error.message}. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.`
+            : "Không thể hủy gói dịch vụ. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCancelLoading(false);
+      setShowCancelConfirm(false);
+    }
+  };
+
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={() => {
-        if (!isLoading && !isPaymentLoading) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className="sm:max-w-[1500px] max-h-[90vh] overflow-y-auto p-8">
-        <DialogHeader className="mb-6">
-          <DialogTitle className="text-3xl font-bold text-gray-800">
-            Chi tiết lịch hẹn
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={() => {
+          if (!isLoading && !isPaymentLoading && !isCancelLoading) {
+            onClose();
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[1500px] max-h-[90vh] overflow-y-auto p-8">
+          <DialogHeader className="mb-6">
+            <DialogTitle className="text-3xl font-bold text-gray-800">
+              Chi tiết lịch hẹn
+            </DialogTitle>
+          </DialogHeader>
 
-        {isContentLoading ? (
-          <>
-            <LoadingSkeleton />
-            <TaskSkeleton />
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Thông tin bệnh nhân */}
-              <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">
-                  Bệnh nhân
-                </h3>
-                <div className="flex items-center space-x-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarFallback className="text-xl">
-                      {(() => {
-                        const fullName = patient["full-name"];
-                        const words = fullName?.split(" ").filter(Boolean);
-                        const lastWord = words?.slice(-1)[0];
-                        const initial = lastWord?.[0]?.toUpperCase();
-                        return initial || "?";
-                      })()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-xl font-semibold">
-                    {patient["full-name"]}
-                  </div>
-                </div>
-                <PatientInfo
-                  label="Ngày sinh"
-                  value={formatDate(new Date(patient.dob))}
-                />
-                <PatientInfo
-                  label="Số điện thoại"
-                  value={patient["phone-number"]}
-                />
-                <PatientInfo label="Địa chỉ" value={patient.address} />
-                <PatientInfo
-                  label="Mô tả bệnh lý"
-                  value={patient["desc-pathology"] || "Chưa có"}
-                />
-              </div>
-
-              {/* Thông tin điều dưỡng và lịch hẹn */}
-              <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">
-                  Điều dưỡng & Lịch hẹn
-                </h3>
-                <div className="flex items-center space-x-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage
-                      src={nurse?.["nurse-picture"]}
-                      alt="Nurse Avatar"
-                    />
-                    <AvatarFallback>
-                      {nurse?.["nurse-name"]?.[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="text-xl font-semibold">
-                    {nurse?.["nurse-name"]}
-                  </div>
-                </div>
-                <PatientInfo
-                  label="Ngày hẹn"
-                  value={formatDate(new Date(appointment.apiData["est-date"]))}
-                />
-                <PatientInfo
-                  label="Thời gian"
-                  value={`${appointment.estTimeFrom} - ${appointment.estTimeTo}`}
-                />
-
-                <div className="flex items-center space-x-2">
-                  <p className="text-gray-500 text-xl">Trạng thái:</p>
-                  <div>
-                    <span
-                      className={`text-xl ${getStatusColor(appointment.apiData.status)}`}
-                    >
-                      {getStatusText(appointment.apiData.status)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Thông tin gói dịch vụ và tác vụ */}
-              <div className="space-y-6">
-                <h3 className="text-2xl font-semibold text-gray-800">
-                  Gói dịch vụ
-                </h3>
-                {packageData ? (
-                  <>
-                    <div className="text-gray-500 text-xl">
-                      Tên gói
-                      <div className="text-primary font-semibold">
-                        {packageData.name}
-                      </div>
+          {isContentLoading ? (
+            <>
+              <LoadingSkeleton />
+              <TaskSkeleton />
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Thông tin bệnh nhân */}
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold text-gray-800">
+                    Bệnh nhân
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="w-16 h-16">
+                      <AvatarFallback className="text-xl">
+                        {(() => {
+                          const fullName = patient["full-name"];
+                          const words = fullName?.split(" ").filter(Boolean);
+                          const lastWord = words?.slice(-1)[0];
+                          const initial = lastWord?.[0]?.toUpperCase();
+                          return initial || "?";
+                        })()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-xl font-semibold">
+                      {patient["full-name"]}
                     </div>
-                    <div className="text-gray-500 text-xl">
-                      Tổng phí
-                      <div className="text-red-500 font-semibold">{`${packageData["total-fee"].toLocaleString()} VND`}</div>
-                    </div>
+                  </div>
+                  <PatientInfo
+                    label="Ngày sinh"
+                    value={formatDate(new Date(patient.dob))}
+                  />
+                  <PatientInfo
+                    label="Số điện thoại"
+                    value={patient["phone-number"]}
+                  />
+                  <PatientInfo label="Địa chỉ" value={patient.address} />
+                  <PatientInfo
+                    label="Mô tả bệnh lý"
+                    value={patient["desc-pathology"] || "Chưa có"}
+                  />
+                </div>
 
-                    <PatientInfo
-                      label="Trạng thái thanh toán"
-                      value={
-                        packageData["payment-status"] === "unpaid"
-                          ? "Chưa thanh toán"
-                          : "Đã thanh toán"
-                      }
-                    />
-                    {/* Thêm nút thanh toán khi chưa thanh toán */}
-                    {packageData["payment-status"] === "unpaid" && (
-                      <Button
-                        className="w-full mt-4 text-xl"
-                        onClick={handlePayment}
-                        disabled={isPaymentLoading}
-                      >
-                        {isPaymentLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Đang xử lý...
-                          </>
-                        ) : (
-                          "Thanh toán ngay"
-                        )}
-                      </Button>
+                {/* Thông tin điều dưỡng và lịch hẹn */}
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold text-gray-800">
+                    Điều dưỡng & Lịch hẹn
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage
+                        src={nurse?.["nurse-picture"]}
+                        alt="Nurse Avatar"
+                      />
+                      <AvatarFallback>
+                        {nurse?.["nurse-name"]?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="text-xl font-semibold">
+                      {nurse?.["nurse-name"]}
+                    </div>
+                  </div>
+                  <PatientInfo
+                    label="Ngày hẹn"
+                    value={formatDate(
+                      new Date(appointment.apiData["est-date"])
                     )}
-                  </>
-                ) : (
-                  <p className="text-gray-500">Chưa có thông tin gói dịch vụ</p>
-                )}
-              </div>
-            </div>
+                  />
+                  <PatientInfo
+                    label="Thời gian"
+                    value={`${appointment.estTimeFrom} - ${appointment.estTimeTo}`}
+                  />
 
-            {/* Danh sách tác vụ */}
-            {tasks.length > 0 && (
-              <div className="mt-8">
-                <h3 className="text-2xl font-semibold text-gray-800 mb-4">
-                  Danh sách tác vụ
-                </h3>
-                <div className="space-y-4">
-                  {tasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-xl font-semibold text-gray-800">
-                            {task["task-order"]}. {task.name}
-                          </p>
-                          <p className="text-lg text-red-600 mt-1">
-                            {task["client-note"]
-                              ? `Ghi chú: ${task["client-note"]}`
-                              : ""}
-                          </p>
-                        </div>
-                        <Badge
-                          className={`${getStatusColor(task.status)} text-sm px-3 py-1 flex items-center gap-2`}
-                        >
-                          {getStatusIcon(task.status)}
-                          {task.status === "not_done"
-                            ? "Chưa hoàn thành"
-                            : getStatusText(task.status)}
-                        </Badge>
-                      </div>
-                      <div className="mt-2 flex items-center text-gray-600 text-lg">
-                        <Clock className="w-4 h-4 mr-2" />
-                        <span>{task["est-duration"]} phút</span>
-                      </div>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-gray-500 text-xl">Trạng thái:</p>
+                    <div>
+                      <span
+                        className={`text-xl ${getStatusColor(appointment.apiData.status)}`}
+                      >
+                        {getStatusText(appointment.apiData.status)}
+                      </span>
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                {/* Thông tin gói dịch vụ và tác vụ */}
+                <div className="space-y-6">
+                  <h3 className="text-2xl font-semibold text-gray-800">
+                    Gói dịch vụ
+                  </h3>
+                  {packageData ? (
+                    <>
+                      <div className="text-gray-500 text-xl">
+                        Tên gói
+                        <div className="text-primary font-semibold">
+                          {packageData.name}
+                        </div>
+                      </div>
+                      <div className="text-gray-500 text-xl">
+                        Tổng phí
+                        <div className="text-red-500 font-semibold">{`${packageData["total-fee"].toLocaleString()} VND`}</div>
+                      </div>
+
+                      <PatientInfo
+                        label="Trạng thái thanh toán"
+                        value={
+                          packageData["payment-status"] === "unpaid"
+                            ? "Chưa thanh toán"
+                            : "Đã thanh toán"
+                        }
+                      />
+
+                      {/* Thêm nút thanh toán và hủy khi chưa thanh toán */}
+                      {packageData["payment-status"] === "unpaid" && (
+                        <div className="flex gap-4">
+                          <Button
+                            className="flex-1 text-lg"
+                            onClick={handlePayment}
+                            disabled={isPaymentLoading || isCancelLoading}
+                          >
+                            {isPaymentLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Đang xử lý...
+                              </>
+                            ) : (
+                              "Thanh toán ngay"
+                            )}
+                          </Button>
+                          <Button
+                            className="flex-1 text-lg"
+                            variant="destructive"
+                            onClick={() => setShowCancelConfirm(true)}
+                            disabled={isPaymentLoading || isCancelLoading}
+                          >
+                            {isCancelLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Đang hủy...
+                              </>
+                            ) : (
+                              "Hủy gói dịch vụ"
+                            )}
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-500">
+                      Chưa có thông tin gói dịch vụ
+                    </p>
+                  )}
                 </div>
               </div>
-            )}
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+
+              {/* Danh sách tác vụ */}
+              {tasks.length > 0 && (
+                <div className="mt-8">
+                  <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+                    Danh sách tác vụ
+                  </h3>
+                  <div className="space-y-4">
+                    {tasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="border rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-xl font-semibold text-gray-800">
+                              {task["task-order"]}. {task.name}
+                            </p>
+                            <p className="text-lg text-red-600 mt-1">
+                              {task["client-note"]
+                                ? `Ghi chú: ${task["client-note"]}`
+                                : ""}
+                            </p>
+                          </div>
+                          <Badge
+                            className={`${getStatusColor(task.status)} text-sm px-3 py-1 flex items-center gap-2`}
+                          >
+                            {getStatusIcon(task.status)}
+                            {task.status === "not_done"
+                              ? "Chưa hoàn thành"
+                              : getStatusText(task.status)}
+                          </Badge>
+                        </div>
+                        <div className="mt-2 flex items-center text-gray-600 text-lg">
+                          <Clock className="w-4 h-4 mr-2" />
+                          <span>{task["est-duration"]} phút</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Hộp thoại xác nhận hủy */}
+      <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl flex items-center gap-2">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+              Xác nhận hủy gói dịch vụ
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              Bạn có chắc chắn muốn hủy gói dịch vụ này? Hành động này không thể
+              hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelLoading}>
+              Quay lại
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancelPackage();
+              }}
+              disabled={isCancelLoading}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {isCancelLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang hủy...
+                </>
+              ) : (
+                "Xác nhận hủy"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

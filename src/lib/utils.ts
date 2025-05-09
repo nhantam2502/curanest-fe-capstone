@@ -21,7 +21,7 @@ export const getStatusColor = (status: string) => {
       return "bg-blue-500";
     case "waiting":
       return "bg-yellow-500";
-    case "canceled":
+    case "cancel":
       return "bg-red-500";
     default:
       return "bg-gray-500";
@@ -36,10 +36,10 @@ export const getStatusText = (status: string) => {
     case "confirmed":
       return "Đã xác nhận";
     case "waiting":
-      return "Đang chờ gán điều dưỡng";
+      return "Đang chờ";
     case "upcoming":
       return "Đang tới";
-    case "canceled":
+    case "cancel":
       return "Đã hủy";
     case "not_done":
       return "Chưa hoàn thành";
