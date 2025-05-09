@@ -16,7 +16,8 @@ import { NurseItemType } from "@/types/nurse";
 import { Button } from "@/components/ui/button";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { useRouter } from "next/navigation";
-
+import { toast } from "@/hooks/use-toast";
+import invoiceApiRequest from "@/apiRequest/invoice/apiInvoice";
 interface PatientDetailDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -164,18 +165,58 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
   const handlePayment = async () => {
     try {
       setIsPaymentLoading(true);
+      
+      // 1. Lấy thông tin hóa đơn
       const invoiceResponse = await appointmentApiRequest.getInvoice(
         packageData?.id || ""
       );
       const invoiceData = invoiceResponse.payload.data;
 
-      // Chuyển hướng đến URL thanh toán nếu có
       if (invoiceData && invoiceData.length > 0) {
-        router.push(invoiceData[0]["payos-url"]);
+        console.log("Invoice data:", invoiceData);
+        
+        // 2. Kiểm tra nếu đã có URL thanh toán
+        if (invoiceData[0]["payos-url"]) {
+          router.push(invoiceData[0]["payos-url"]);
+        } 
+        // Nếu chưa có URL thanh toán, tạo mới
+        else {
+          const invoiceID = invoiceData[0].id;
+          
+          // 3. Gọi API tạo URL thanh toán
+          const paymentUrlResponse = await invoiceApiRequest.createPaymentUrl(invoiceID);
+          
+          if (paymentUrlResponse.payload.data) {
+            // Kiểm tra xem có URL thanh toán từ response không
+            if (paymentUrlResponse.payload.data["payos-url"]) {
+              router.push(paymentUrlResponse.payload.data["payos-url"]);
+            } else {
+              // Nếu không có URL trực tiếp, thử lấy lại invoice mới nhất
+              const refreshedInvoiceResponse = await appointmentApiRequest.getInvoice(
+                packageData?.id || ""
+              );
+              const refreshedInvoiceData = refreshedInvoiceResponse.payload.data;
+              
+              if (refreshedInvoiceData) {
+                router.push(refreshedInvoiceData[0]["payos-url"]);
+              } else {
+                throw new Error("Không tìm thấy URL thanh toán");
+              }
+            }
+          } else {
+            throw new Error("Không thể tạo URL thanh toán");
+          }
+        }
+      } else {
+        throw new Error("Không tìm thấy thông tin hóa đơn");
       }
-    } catch (invoiceError) {
-      console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
-      router.push("/relatives/appointments");
+    } catch (error) {
+      console.error("Lỗi khi xử lý thanh toán:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể xử lý thanh toán. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
     } finally {
       setIsPaymentLoading(false);
     }
