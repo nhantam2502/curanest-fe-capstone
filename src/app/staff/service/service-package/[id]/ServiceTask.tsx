@@ -259,15 +259,12 @@ function ServiceTaskComponent({
       </Card>
     );
   }
-  // --- End Simple Loading State ---
 
   return (
-    // Removed outer space-y-4 div, Card handles structure
-    <Card>
+    <Card
+    >
       <CardHeader>
-        {/* First line: Title on Left, Actions on Right */}
-        <div className="flex justify-between items-center mb-2">
-
+        <div className="flex justify-between items-center">
           <div>
             <CardTitle className="text-xl">Công việc gói dịch vụ</CardTitle>
             <CardDescription>
@@ -306,7 +303,7 @@ function ServiceTaskComponent({
                 onClick={handleSaveChanges}
                 disabled={isSavingOrder}
                 size="sm"
-                className="h-9" // Removed order class
+                className="h-9 bg-emerald-400 hover:bg-emerald-400/90"
               >
                 {isSavingOrder ? "Đang lưu..." : "Lưu thứ tự"}
               </Button>

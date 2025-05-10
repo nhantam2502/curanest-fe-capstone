@@ -32,7 +32,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   onOpenChange,
   onSuccess, // Use onSuccess callback
 }) => {
-  // Initial state for a new service
   const initialServiceState: CreateServiceCate = {
     name: "",
     description: "",
@@ -42,7 +41,6 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when dialog closes or categoryId changes (optional, but good practice)
   useEffect(() => {
     if (!open) {
       setNewService(initialServiceState); // Reset on close
@@ -91,20 +89,18 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         "est-duration": newService["est-duration"],
       };
 
-      // Call API to create service under the selected category
       const response = await serviceApiRequest.createService(
-        categoryId, // Use categoryId from props
+        categoryId,
         payload
       );
 
-      if (response && (response.status === 201 || response.status === 200)) { // Check common success statuses
+      if (response && (response.status === 201 || response.status === 200)) {
         toast({
           title: "Thành công",
           description: `Đã tạo dịch vụ "${payload.name}" thành công.`,
         });
-        onSuccess(); // Call the success callback passed from parent
-        onOpenChange(false); // Close the dialog
-        // No need to reset state here if useEffect handles it on !open
+        onSuccess();
+        onOpenChange(false);
       } else {
         toast({
           title: "Lỗi tạo dịch vụ",
@@ -128,15 +124,12 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   };
 
   return (
-    // Dialog component controlled by parent's state via 'open' and 'onOpenChange' props
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        {/* Disable button if no category is selected */}
-        <Button disabled={!categoryId}>Thêm dịch vụ</Button>
+        <Button disabled={!categoryId} className="bg-emerald-400 hover:bg-emerald-400/90">Thêm dịch vụ</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          {/* Updated Title and Description */}
           <DialogTitle>Thêm dịch vụ mới</DialogTitle>
           <DialogDescription>
             Nhập thông tin cho dịch vụ mới vào danh mục đã chọn.

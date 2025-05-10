@@ -124,12 +124,11 @@ export function NurseSheet({
               </p>
             </div>
 
-            {/* Timesheet Section */}
             <div className="mt-6 pt-4 border-t">
               <Button
                 onClick={() => setShowConfirmDialog(true)}
                 disabled={assigning}
-                className="w-full"
+                className="w-full bg-emerald-400 hover:bg-emerald-400/90"
               >
                 {assigning ? (
                   <>

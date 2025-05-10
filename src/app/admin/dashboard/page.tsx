@@ -73,11 +73,11 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Main Charts - 2 columns on large screens */}
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <div className="rounded-lg border shadow-sm p-4">
+      <div className="">
+        {/* <div className="rounded-lg border shadow-sm p-4">
           <h3 className="text-lg font-semibold mb-4">Lịch hẹn theo thời gian</h3>
           <AppointmentsChart />
-        </div>
+        </div> */}
         <div className="rounded-lg border shadow-sm p-4">
           <h3 className="text-lg font-semibold mb-4">Doanh thu</h3>
           <RevenueChart />
@@ -85,12 +85,12 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Full-width Charts */}
-      <div className="grid gap-6 grid-cols-1">
+      {/* <div className="grid gap-6 grid-cols-1">
         <div className="rounded-lg border shadow-sm p-4">
           <h3 className="text-lg font-semibold mb-4">Dịch vụ phổ biến</h3>
           <ServicePopularityChart />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }

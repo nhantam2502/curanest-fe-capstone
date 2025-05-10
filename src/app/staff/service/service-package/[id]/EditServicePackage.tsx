@@ -46,7 +46,7 @@ interface EditServicePackageProps {
 
 const formSchema = z.object({
   name: z.string().min(2, {
-    message: "Tên phải có ít nhất 2 ký tự.", // Tiếng Việt
+    message: "Tên phải có ít nhất 2 ký tự.", 
   }),
   description: z.string().optional(),
   "combo-days": z.coerce.number().default(0),
@@ -121,7 +121,6 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
     }
   }
 
-  // Xử lý khi dialog mở ra để đảm bảo form có giá trị mới nhất nếu servicePackage prop thay đổi
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) {
       // Reset form về giá trị của prop khi mở dialog
@@ -270,7 +269,7 @@ const EditServicePackage: React.FC<EditServicePackageProps> = ({
 
             <AlertDialogFooter>
               <AlertDialogCancel>Hủy</AlertDialogCancel>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="bg-emerald-400 hover:bg-emerald-400/90">
                 {isSubmitting ? "Đang cập nhật..." : "Cập nhật"}
               </Button>
             </AlertDialogFooter>

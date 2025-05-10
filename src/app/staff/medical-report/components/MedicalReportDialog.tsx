@@ -94,22 +94,18 @@ export function ViewMedicalReportDialog({
     }
   }, [appId, open]);
 
-  // Handle confirmation input submission
   const handleConfirm = async (confirmation: string) => {
     if (!report?.id) return;
-
     try {
       await medicalReportApiRequest.updateMedicalReport(report.id, {
-        "nursing-report": "", // optional
+        "nursing-report": "",
         "staff-confirmation": confirmation.trim(),
       });
-
       toast({
         title: "Thành công",
-        description: "Cập nhật xác nhận thành công",
+        description: "Xác nhận hoàn thành báo cáo y tế thành công.",
       });
-
-      // Update UI
+      setIsConfirmDialogOpen(false);
       setReport((prev) =>
         prev
           ? {
@@ -118,6 +114,7 @@ export function ViewMedicalReportDialog({
             }
           : null
       );
+
     } catch (error) {
       console.error("Error confirming completion:", error);
       toast({
@@ -147,19 +144,23 @@ export function ViewMedicalReportDialog({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Mã báo cáo</p>
-                <p className="font-medium">{report.id}</p>
+                <p className="font-medium text-nowrap">{report.id}</p>
               </div>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Ghi chú điều dưỡng</p>
+              <p className="text-sm text-muted-foreground">
+                Ghi chú điều dưỡng
+              </p>
               <p className="font-medium">
                 {report["nursing-report"] || "Chưa có ghi chú"}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Xác nhận của nhân viên</p>
+              <p className="text-sm text-muted-foreground">
+                Xác nhận của nhân viên
+              </p>
               <p className="font-medium">
                 {report["staff-confirmation"] || "Chưa xác nhận"}
               </p>
@@ -196,9 +197,9 @@ export function ViewMedicalReportDialog({
             Đóng
           </Button>
           <Button
-            variant="default"
             onClick={() => setIsConfirmDialogOpen(true)}
             disabled={!report || isLoading}
+            className="bg-emerald-400 hover:bg-emerald-400/90"
           >
             Xác nhận hoàn thành
           </Button>

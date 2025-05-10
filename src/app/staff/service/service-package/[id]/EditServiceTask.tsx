@@ -389,7 +389,7 @@ const EditServiceTask: React.FC<EditServiceTaskProps> = ({
             {/* Form Actions */}
             <AlertDialogFooter className="col-span-1 sm:col-span-2 lg:col-span-3 flex justify-end gap-4 mt-4">
               <AlertDialogCancel>Hủy</AlertDialogCancel>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="bg-emerald-400 hover:bg-emerald-400/90">
                 {isSubmitting ? "Đang cập nhật..." : "Cập nhật Task"}
               </Button>
             </AlertDialogFooter>

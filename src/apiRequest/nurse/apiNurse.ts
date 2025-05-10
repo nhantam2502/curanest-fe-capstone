@@ -1,11 +1,15 @@
 import http from "@/lib/http";
-import { CreateNurse, CreateRes, GetAllNurseFilter, NurseListResType } from "@/types/nurse";
+import {
+  CreateNurse,
+  CreateRes,
+  GetAllNurseFilter,
+  NurseListResType,
+} from "@/types/nurse";
 
 const nurseApiRequest = {
-
-  getAllNurse: (params: { 
-    filter: GetAllNurseFilter; 
-    paging: { page: number; size: number} 
+  getAllNurse: (params: {
+    filter: GetAllNurseFilter;
+    paging: { page: number; size: number };
   }) => {
     const queryParams = new URLSearchParams();
     if (params.filter["service-id"]) {
@@ -22,7 +26,7 @@ const nurseApiRequest = {
     const url = `/nurse/api/v1/nurses?${queryParams.toString()}`;
     return http.get<CreateRes>(url);
   },
-  
+
   getAllNurseDetail: (id: string) =>
     http.get<CreateRes>(`/nurse/api/v1/nurses/${id}/private-detail`),
 
@@ -35,13 +39,16 @@ const nurseApiRequest = {
   mapNurseToService: (nurseId: string, body: { "service-ids": string[] }) =>
     http.post<CreateRes>(`/nurse/api/v1/nurses/${nurseId}/services`, body),
 
-  getListNurse: (
-    page: number,
-    size: number,
-  ) =>
+  getListNurse: (page: number, size: number) =>
     http.get<NurseListResType>(
       `/nurse/api/v1/nurses?page=${page}&size=${size}`
     ),
+
+  updateNurse: (body: CreateNurse) =>
+    http.put<CreateRes>("/nurse/api/v1/nurses", body),
+
+  deleteNurse: (id: string) =>
+    http.patch<CreateRes>(`/nurse/api/v1/nurses/${id}`),
 };
 
 export default nurseApiRequest;
