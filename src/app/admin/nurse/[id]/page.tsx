@@ -25,7 +25,7 @@ const ServiceChip: React.FC<ServiceChipProps> = ({ service, selected, onToggle }
       onClick={() => onToggle(serviceIdStr, !selected)}
       className={`px-3 py-1 rounded-full text-sm transition-colors border ${
         selected
-          ? "bg-blue-500 text-white border-blue-500"
+          ? "bg-emerald-500 text-white border-emerald-500"
           : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
       }`}
     >
@@ -210,7 +210,7 @@ const NurseServiceMappingPage: React.FC = () => {
                 .map((serviceId) => (
                   <span
                     key={serviceId}
-                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm"
+                    className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-sm"
                   >
                     {serviceIdToNameMap.get(serviceId) || `ID: ${serviceId}`} {/* Fallback if name not found */}
                   </span>
@@ -220,7 +220,7 @@ const NurseServiceMappingPage: React.FC = () => {
             <p className="text-gray-500">Chưa chọn dịch vụ nào.</p>
           )}
           <div className="mt-4 flex justify-end">
-            <Button onClick={handleSubmitMapping}>Thêm</Button>
+            <Button onClick={handleSubmitMapping} className="bg-emerald-400 hover:bg-emerald-400/90">Thêm</Button>
           </div>
         </div>
 

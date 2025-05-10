@@ -16,40 +16,37 @@ interface ConfirmCompletionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   reportId: string;
-  onConfirm: (reportId: string, confirmation: string) => Promise<void>;
+  onConfirm: ( confirmation: string) => Promise<void>;
 }
 
 export function ConfirmCompletionDialog({
   open,
   onOpenChange,
-  reportId,
   onConfirm,
 }: ConfirmCompletionDialogProps) {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleConfirm = async () => {
-    if (!inputValue.trim().toString()) {
-      return;
-    }
+const handleConfirm = async () => {
+  const trimmedValue = inputValue.trim();
+  if (!trimmedValue) return;
 
-    setIsLoading(true);
-    try {
-      await onConfirm(reportId, inputValue);
-      setInputValue("");
-      onOpenChange(false);
-      // window.location.reload();
-    } catch (error) {
-      toast({
-        title: "Lỗi",
-        description: "Không thể báo cáo. Vui lòng thử lại sau.",
-        variant: "destructive",
-      });
-      console.error("Error confirming completion:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  setIsLoading(true);
+  try {
+    await onConfirm(trimmedValue);
+    setInputValue("");
+    onOpenChange(false);
+  } catch (error) {
+    toast({
+      title: "Lỗi",
+      description: "Không thể báo cáo. Vui lòng thử lại sau.",
+      variant: "destructive",
+    });
+    console.error("Error confirming completion:", error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,7 +74,7 @@ export function ConfirmCompletionDialog({
           >
             Hủy
           </Button>
-          <Button onClick={handleConfirm} disabled={isLoading}>
+          <Button onClick={handleConfirm} disabled={isLoading} className="bg-emerald-400 hover:bg-emerald-400/90">
             {isLoading ? "Đang xử lý..." : "Xác nhận"}
           </Button>
         </DialogFooter>

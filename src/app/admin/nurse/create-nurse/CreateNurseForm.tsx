@@ -81,13 +81,12 @@ type NurseFormValues = z.infer<typeof formSchema>;
 
 const NurseForm: React.FC = () => {
   const router = useRouter();
-  const { toast } = useToast(); // Initialize toast hook
+  const { toast } = useToast();
   const [districts, setDistricts] = useState<Geo[]>([]);
   const [wards, setWards] = useState<Geo[]>([]);
-  const cityCode = "79"; // Ho Chi Minh City Code
+  const cityCode = "79";
   const [selectedDistrictCode, setSelectedDistrictCode] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Removed submissionError and submissionSuccess states as toasts are called directly
 
   const form = useForm<NurseFormValues>({
     resolver: zodResolver(formSchema),
@@ -135,13 +134,12 @@ const NurseForm: React.FC = () => {
       }
     };
     fetchDistricts();
-  }, [toast]); // Keep toast in dependency array for this useEffect
+  }, [toast]);
 
-  // Fetching Wards - Includes Toast on Error
   useEffect(() => {
     if (selectedDistrictCode) {
       const fetchWards = async () => {
-        setWards([]); // Clear wards immediately when district changes
+        setWards([]);
         try {
           const response = await fetch(
             `https://provinces.open-api.vn/api/d/${selectedDistrictCode}?depth=2`
@@ -696,7 +694,7 @@ const NurseForm: React.FC = () => {
           <Button type="button" variant="outline" onClick={handleBack}>
             Quay lại
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} className="bg-emerald-400 hover:bg-emerald-400/90">
             {isSubmitting ? (
               <>
                 <span className="animate-spin inline-block h-4 w-4 border-t-2 border-b-2 border-primary-foreground rounded-full mr-2"></span>

@@ -24,8 +24,6 @@ import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import serviceApiRequest from "@/apiRequest/service/apiServices";
 import { ServiceItem } from "@/types/service";
 import { Button } from "@/components/ui/button";
-import medicalReportApiRequest from "@/apiRequest/medicalReport/apiMedicalReport";
-import { ConfirmCompletionDialog } from "./ConfirmCompletionDialog";
 import { ViewMedicalReportDialog } from "./MedicalReportDialog";
 
 interface PatientInfo {
@@ -49,8 +47,7 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // For view details
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const fetchAppointments = async () => {
     try {
@@ -225,22 +222,20 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
       setIsFetchingPatients(false);
     }
   }, [appointments, isLoadingAppointments]);
-
-  const handleConfirmCompletion = async (
-    reportId: string,
-    confirmation: string
-  ) => {
-    try {
-      await medicalReportApiRequest.updateMedicalReport(reportId, {
-        "nursing-report": null,
-        "staff-confirmation": confirmation.trim(),
-      });
-    } catch (error) {
-      console.error("Failed to update medical report:", error);
-      console.log(reportId, confirmation);
-      throw error;
-    }
-  };
+  //   reportId: string,
+  //   confirmation: string
+  // ) => {
+  //   try {
+  //     await medicalReportApiRequest.updateMedicalReport(reportId, {
+  //       "nursing-report": null,
+  //       "staff-confirmation": confirmation.trim(),
+  //     });
+  //   } catch (error) {
+  //     console.error("Failed to update medical report:", error);
+  //     console.log(reportId, confirmation);
+  //     throw error;
+  //   }
+  // };
 
   const filteredAppointments = useMemo(() => {
     if (isLoadingServices) return [];

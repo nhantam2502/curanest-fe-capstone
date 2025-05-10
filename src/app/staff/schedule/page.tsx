@@ -281,6 +281,8 @@ const NurseScheduleCalendar = () => {
         return "bg-yellow-100 border-yellow-300 text-yellow-800";
       case "confirmed":
         return "bg-blue-100 border-blue-300 text-blue-800";
+      case "cancel":
+        return "bg-red-100 border-red-300 text-red-800";
       default:
         return "bg-gray-100 border-gray-300 text-gray-800";
     }
@@ -375,6 +377,11 @@ const NurseScheduleCalendar = () => {
         status: "confirmed",
         label: translateStatusToVietnamese("confirmed"),
         colorClass: "bg-blue-100",
+      },
+      {
+        status: "cancel",
+        label: translateStatusToVietnamese("cancel"),
+        colorClass: "bg-red-100",
       },
     ],
     []

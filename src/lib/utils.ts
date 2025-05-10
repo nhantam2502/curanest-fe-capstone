@@ -139,16 +139,18 @@ export const translateStatusToVietnamese = (
   const lowerCaseStatus = status.toLowerCase();
 
   switch (lowerCaseStatus) {
-    case "waiting":
-      return "Đang chờ";
-    case "confirmed":
-      return "Đã xác nhận";
-    case "success":
-      return "Hoàn thành";
-    case "upcoming":
-      return "Sắp diễn ra";
-    default:
-      return status;
+      case "waiting":
+          return "Đang chờ";
+      case "confirmed":
+          return "Đã xác nhận";
+      case "success":
+          return "Hoàn thành";
+      case "upcoming":
+          return "Sắp diễn ra";
+      case "cancel":
+          return "Đã hủy";
+      default:
+          return status;
   }
 };
 
