@@ -20,6 +20,11 @@ const appointmentApiRequest = {
   createAppointmentCusPackage: (body: CreateAppointmentCusPackage) =>
     http.post<CreateRes>("/appointment/api/v1/cuspackage", body),
 
+  cancelAppointmentCusPackage: (cusPackageID: string) =>
+    http.patch<PatchRes>(
+      `/appointment/api/v1/cuspackage/${cusPackageID}/cancel`
+    ),
+
   getAppointment: (nursingId?: string, patientId?: string) =>
     http.get<AppointmentRes>(
       `/appointment/api/v1/appointments${
@@ -128,10 +133,10 @@ const appointmentApiRequest = {
       `/appointment/api/v1/appointments/nursing-timesheet?nursing-id=${nursingId}&est-date-from=${estDateFrom}&est-date-to=${estDateTo}`
     ),
 
-    assignNurseToAppointment: (appointmentId: string, nursingId: string) =>
-      http.patch<Res>(
-        `/appointment/api/v1/appointments/${appointmentId}/assign-nursing/${nursingId}`
-      ),
+  assignNurseToAppointment: (appointmentId: string, nursingId: string) =>
+    http.patch<Res>(
+      `/appointment/api/v1/appointments/${appointmentId}/assign-nursing/${nursingId}`
+    ),
 };
 
 export default appointmentApiRequest;

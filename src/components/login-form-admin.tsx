@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
+import { getSession, signIn, signOut } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,17 @@ export function AdminLoginForm({
     },
   });
 
+  useEffect(() => {
+    if (!loading) return;
+    const checkNavigation = setInterval(() => {
+      if (document.readyState === "complete") {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearInterval(checkNavigation);
+  }, [loading]);
+
   const onSubmit = async (data: any) => {
     try {
       setLoading(true);
@@ -45,23 +56,53 @@ export function AdminLoginForm({
 
       if (result?.error) {
         setError("Invalid email or password");
+        setLoading(false);
         return;
       }
 
       const session = await getSession();
-      if (session?.user?.role === "admin") {
-        router.push("/admin");
-      } else {
-        setError("Unauthorized access");
-        return;
+
+      switch (session?.user?.role) {
+        case "admin":
+          router.push("/admin");
+          break;
+        case "nurse":
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          signOut({ redirect: false });
+          router.push("/auth/signIn?callbackUrl=%2Fnurse");
+          break;
+        case "staff":
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          signOut({ redirect: false });
+
+          router.push("/auth/signIn?callbackUrl=%2Fnurse");
+          break;
+        case "relatives":
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          // Xóa session cho vai trò relatives
+          signOut({ redirect: false });
+          router.push("/auth/signIn");
+          return;
+        default:
+          setError(
+            "Chỉ có quản trị viên mới có quyền truy cập vào trang admin"
+          );
+          setLoading(false);
+          return;
       }
     } catch (error) {
       console.error("Error logging in: ", error);
-      setError("An error occurred during login");
-    } finally {
+      setError("An error occurred during login.");
       setLoading(false);
     }
   };
+
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -106,15 +147,14 @@ export function AdminLoginForm({
             </div>
           </div>
 
-          <div className="w-full flex items-center justify-between">
-            <div className="w-full flex items-center" />
+          {/* <div className="w-full flex items-center justify-between">
             <Link
               href=""
               className="text-lg font-medium whitespace-nowrap cursor-pointer"
             >
-              Quên mật khẩu ?
+              Quên mật khẩu?
             </Link>
-          </div>
+          </div> */}
 
           {error && <div className="text-red-500 text-base">{error}</div>}
 

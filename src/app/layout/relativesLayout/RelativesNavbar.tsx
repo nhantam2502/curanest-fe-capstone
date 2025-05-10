@@ -1,4 +1,6 @@
 "use client";
+import notificationApiRequest from "@/apiRequest/notification/apiNotification";
+import NotificationDropdown from "@/app/components/Relatives/Notification";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -9,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   ArrowLeft,
+  Bell,
   Key,
   LogOut,
   MenuIcon,
@@ -27,6 +30,8 @@ const RelativesNavbar = () => {
   const { data: session, status } = useSession();
   const headerRef = useRef<HTMLElement | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -41,22 +46,6 @@ const RelativesNavbar = () => {
     };
   }, [isMenuOpen]);
 
-  // useEffect(() => {
-  //   const handleStickyHeader = () => {
-  //     if (
-  //       document.body.scrollTop > 80 ||
-  //       document.documentElement.scrollTop > 80
-  //     ) {
-  //       headerRef.current?.classList.add("sticky_header");
-  //     } else {
-  //       headerRef.current?.classList.remove("sticky_header");
-  //     }
-  //   };
-
-  //   window.addEventListener("scroll", handleStickyHeader);
-  //   return () => window.removeEventListener("scroll", handleStickyHeader);
-  // }, []);
-
   const Menu = [
     { id: 1, name: "Hồ sơ bệnh nhân", path: "/relatives/booking" },
     {
@@ -68,13 +57,69 @@ const RelativesNavbar = () => {
     { id: 4, name: "Lịch sử cuộc hẹn", path: "/relatives/appointmentHistory" },
   ];
 
-  // const handleClick = () => {
-  //   router.push("/");
-  // };
-
   const handleNavigate = () => {
     router.push("/relatives/settings");
   };
+
+  const handleNotificationsClick = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
+
+  useEffect(() => {
+    const fetchUnreadNotificationsCount = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        const response = await notificationApiRequest.getNotification(
+          session.user.id,
+          100
+        );
+        if (response.payload.data) {
+          const unreadCount = response.payload.data.filter(
+            (notification: any) => notification["read-at"] === null
+          ).length;
+          setUnreadNotificationsCount(unreadCount);
+        }
+      } catch (error) {
+        console.error("Failed to fetch unread notifications:", error);
+      }
+    };
+
+    if (status === "authenticated") {
+      fetchUnreadNotificationsCount();
+    }
+  }, [status, session?.user?.id]);
+
+  useEffect(() => {
+    if (
+      !isNotificationsOpen &&
+      status === "authenticated" &&
+      session?.user?.id
+    ) {
+      const fetchUpdatedNotifications = async () => {
+        if (!session?.user?.id) return;
+
+        try {
+          const response = await notificationApiRequest.getNotification(
+            session.user.id,
+            100
+          );
+          if (response.payload.data) {
+            const unreadCount = response.payload.data.filter(
+              (notification: any) => notification["read-at"] === null
+            ).length;
+            setUnreadNotificationsCount(unreadCount);
+          }
+        } catch (error) {
+          console.error("Failed to update notifications count:", error);
+        }
+      };
+
+      fetchUpdatedNotifications();
+    }
+  }, [isNotificationsOpen, status, session?.user?.id]);
 
   return (
     <header className="header flex items-center relative" ref={headerRef}>
@@ -106,7 +151,28 @@ const RelativesNavbar = () => {
           </div>
 
           {/* Nav Right */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
+            {/* Notification Bell - Desktop */}
+            {status === "authenticated" && (
+              <div className="hidden md:flex relative cursor-pointer">
+                <div onClick={handleNotificationsClick}>
+                  <Bell className="h-7 w-7" />
+                  {/* Notification Badge */}
+                  {unreadNotificationsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                      {unreadNotificationsCount}
+                    </span>
+                  )}
+                </div>
+
+                {/* Notification Dropdown */}
+                <NotificationDropdown
+                  isOpen={isNotificationsOpen}
+                  onClose={() => setIsNotificationsOpen(false)}
+                />
+              </div>
+            )}
+
             {/* Desktop Auth */}
             {status === "authenticated" && session ? (
               <DropdownMenu>
@@ -114,12 +180,13 @@ const RelativesNavbar = () => {
                   <Avatar className="w-[70px] h-[70px] hidden md:block">
                     <AvatarImage src={session.user.image || ""} />
                     <AvatarFallback>
-                      {session.user.name
-                        ? session.user.name
-                            .split(" ")
-                            .slice(-1)[0][0]
-                            .toUpperCase()
-                        : "?"}
+                      {(() => {
+                        const fullName = session.user.name;
+                        const words = fullName?.split(" ").filter(Boolean);
+                        const lastWord = words?.slice(-1)[0];
+                        const initial = lastWord?.[0]?.toUpperCase();
+                        return initial || "?";
+                      })()}
                     </AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
@@ -137,12 +204,12 @@ const RelativesNavbar = () => {
                   >
                     <Wallet className="mr-4 h-7 w-7" /> Lịch sử thanh toán
                   </DropdownMenuItem>
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     className="text-xl"
                     onClick={handleNavigate}
                   >
                     <Key className="mr-4 h-7 w-7" /> Thay đổi mật khẩu
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
 
                   <DropdownMenuSeparator className="my-2" />
                   <DropdownMenuItem
@@ -187,25 +254,10 @@ const RelativesNavbar = () => {
                   >
                     <ArrowLeft className="h-6 w-6" />
                   </button>
-                  <h2 className="text-center text-lg font-semibold">Curanest</h2>
+                  <h2 className="text-center text-lg font-semibold">
+                    Curanest
+                  </h2>
                 </div>
-
-                {/* Balance Card */}
-                {/* {status === "authenticated" && (
-                  <div className="m-4 bg-white">
-                    <div className="bg-gradient-to-r from-blue-300 to-yellow-300 rounded-xl p-6 text-white">
-                      <p className="text-2xl">Số dư ví</p>
-
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold">0</span>
-                        <span className="text-2xl">VND</span>
-                      </div>
-                      <button className="px-6 py-2 bg-white/20 rounded-full text-lg font-semibold backdrop-blur-sm">
-                        Xem ví
-                      </button>
-                    </div>
-                  </div>
-                )} */}
 
                 {/* Menu Items */}
                 <div className="flex-1 bg-white p-4">
@@ -230,6 +282,19 @@ const RelativesNavbar = () => {
                   {status === "authenticated" ? (
                     <div className="mt-4 pt-4 border-t">
                       <div className="space-y-1">
+                        {/* Notification Bell - Mobile */}
+                        <Link
+                          href="/relatives/notifications"
+                          className="flex items-center gap-3 px-4 py-3 text-xl text-gray-700 hover:bg-gray-50 rounded-lg"
+                        >
+                          <div className="relative">
+                            <Bell size={25} />
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">
+                              6
+                            </span>
+                          </div>
+                          <span>Thông báo</span>
+                        </Link>
                         <Link
                           href="/relatives/settings"
                           className="flex items-center gap-3 px-4 py-3 text-xl text-gray-700 hover:bg-gray-50 rounded-lg"

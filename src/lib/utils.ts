@@ -16,10 +16,12 @@ export const getStatusColor = (status: string) => {
     case "success":
       return "bg-green-500";
     case "confirmed":
-      return "bg-yellow-500";
+      return "bg-orange-500";
     case "upcoming":
       return "bg-blue-500";
-    case "canceled":
+    case "waiting":
+      return "bg-yellow-500";
+    case "cancel":
       return "bg-red-500";
     default:
       return "bg-gray-500";
@@ -34,10 +36,10 @@ export const getStatusText = (status: string) => {
     case "confirmed":
       return "Đã xác nhận";
     case "waiting":
-      return "Đang chờ ";
+      return "Đang chờ";
     case "upcoming":
       return "Đang tới";
-    case "canceled":
+    case "cancel":
       return "Đã hủy";
     case "not_done":
       return "Chưa hoàn thành";
@@ -153,15 +155,42 @@ export const translateStatusToVietnamese = (
 };
 
 // Function to get the days in the next 14 days
-export const getDaysInRange = (): Date[] => {
+export const getDaysInRange = (centerDate: Date = new Date()): Date[] => {
   const days: Date[] = [];
-  const startOfRange = new Date();
-
-  for (let i = 0; i <= 14; i++) {
-    const date = new Date(startOfRange);
-    date.setDate(startOfRange.getDate() + i);
-    days.push(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Ngày mai
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Ngày trung tâm (ngày đã chọn hoặc ngày mai nếu không có)
+  const center = new Date(centerDate);
+  center.setHours(0, 0, 0, 0);
+  
+  // Đảm bảo centerDate không nhỏ hơn ngày mai
+  const startDate = center < tomorrow ? tomorrow : center;
+  
+  // Tạo 7 ngày trước và 7 ngày sau ngày trung tâm, nhưng không bao giờ nhỏ hơn ngày mai
+  for (let i = -7; i <= 7; i++) {
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + i);
+    
+    // Chỉ thêm vào nếu ngày không nhỏ hơn ngày mai
+    if (date >= tomorrow) {
+      days.push(date);
+    }
   }
+  
+  // Nếu số ngày ít hơn 14, thêm ngày vào cuối để đủ 14 ngày
+  if (days.length < 14) {
+    const lastDate = new Date(days[days.length - 1]);
+    while (days.length < 14) {
+      lastDate.setDate(lastDate.getDate() + 1);
+      days.push(new Date(lastDate));
+    }
+  }
+  
   return days;
 };
 

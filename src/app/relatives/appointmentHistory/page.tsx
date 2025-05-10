@@ -375,7 +375,7 @@ const AppointmentHistory = () => {
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover min-h-screen pb-16">
       <div className="max-w-full w-[1600px] px-4 mx-auto flex flex-col">
-        <div>
+        <div className="mb-6">
           <div className="flex items-center space-x-4 mb-6">
             <CalendarDays size={40} />
             <h2 className="text-4xl font-bold text-gray-800">

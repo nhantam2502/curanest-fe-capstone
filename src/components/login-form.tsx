@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,13 +12,15 @@ import {
   PhoneLoginSchema,
   PhoneLoginInput,
 } from "@/schemaValidation/auth.schema";
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
+import { useToast } from "@/hooks/use-toast";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
   const router = useRouter();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -34,57 +36,73 @@ export function LoginForm({
     },
   });
 
+  useEffect(() => {
+    if (!loading) return;
+    const checkNavigation = setInterval(() => {
+      if (document.readyState === "complete") {
+        setLoading(false);
+      }
+    }, 500);
+
+    return () => clearInterval(checkNavigation);
+  }, [loading]);
+
   const onSubmit = async (data: PhoneLoginInput) => {
     try {
       setLoading(true);
       setError("");
-  
+
       const result = await signIn("credentials", {
-        redirect: false, 
-        identifier: data["phone-number"], 
+        redirect: false,
+        identifier: data["phone-number"],
         password: data.password,
       });
-  
+
       if (result?.error) {
-        setError("Thông tin đăng nhập không chính xác."); 
+        setError("Thông tin đăng nhập không chính xác.");
         console.error("Đăng nhập thất bại:", result.error);
+        setLoading(false);
         return;
       }
-  
-      // Fetch session để lấy thông tin role và điều hướng
-      const session = await fetch("/api/auth/session").then((res) => res.json());
-      // console.log("session: ", session.user)
+
+      const session = await fetch("/api/auth/session").then((res) =>
+        res.json()
+      );
 
       if (session?.user?.access_token) {
-        localStorage.setItem('sessionToken', session.user.access_token);
+        localStorage.setItem("sessionToken", session.user.access_token);
       }
 
       if (session?.user?.role) {
-        console.log("User role:", session.user.role);
         switch (session.user.role) {
-          // case "nurse":
-          //   router.push("/nurse");
-          //   break;
-          // case "staff":
-          //   router.push("/staff");
-          //   break;
           case "relatives":
             router.push("/relatives/booking");
             break;
+          case "admin":
+            setError("Không có quyền truy cập.");
+            signOut({ redirect: false });
+            router.replace("/auth/signIn?callbackUrl=%2Fadmin");
+            break;
+          case "nurse":
+          case "staff":
+            setError("Không có quyền truy cập.");
+            signOut({ redirect: false });
+            router.replace("/auth/signIn?callbackUrl=%2Fnurse");
+            break;
           default:
-            router.push("/");
+            router.refresh();
         }
       } else {
         setError("Không thể xác định vai trò của người dùng.");
+        setLoading(false);
       }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);
       setError("Có lỗi xảy ra trong quá trình đăng nhập.");
-    } finally {
       setLoading(false);
     }
-  };  
-  
+  };
+
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -129,7 +147,7 @@ export function LoginForm({
             </div>
           </div>
 
-          <div className="w-full flex items-center justify-between">
+          {/* <div className="w-full flex items-center justify-between">
             <div className="w-full flex items-center" />
             <Link
               href=""
@@ -137,7 +155,7 @@ export function LoginForm({
             >
               Quên mật khẩu ?
             </Link>
-          </div>
+          </div> */}
 
           {error && <div className="text-red-500 text-lg">{error}</div>}
 

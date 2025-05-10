@@ -9,3 +9,8 @@ export type InvoiceBody = {
   "is-admin": boolean;
   "patient-ids": [];
 };
+
+export type PatchRes = {
+  success: boolean;
+  message: string;
+};

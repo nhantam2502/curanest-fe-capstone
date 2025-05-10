@@ -9,7 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon, CheckCircle2, CircleX } from "lucide-react";
-import { cn, createISOString } from "@/lib/utils";
+import { cn, createISOString, getDaysInRange } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import StartTimeSelection from "./StartTimeSelection";
@@ -45,7 +45,11 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
   serviceID,
   onNurseSelect,
 }) => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] =  useState<Date>(() => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return tomorrow;
+    });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTime, setStartTime] = useState<string>("08:00");
@@ -137,18 +141,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
     }
   }, [dialogOpen, selectedDate, selectedTimeSlot, fetchAvailableNurses]);
 
-  // Function to get the days in the next 15 days
-  const getDaysInWeek = (): Date[] => {
-    const days: Date[] = [];
-    const startOfWeek = new Date();
-
-    for (let i = 0; i <= 14; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      days.push(date);
-    }
-    return days;
-  };
+ 
 
   // Function to generate available time slots based on start time
   const getTimeSlots = (startTimeStr: string): TimeSlot[] => {
@@ -280,7 +273,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
 
       <ScrollArea className="w-full">
         <div className="flex gap-4 mb-4">
-          {getDaysInWeek().map((date) => {
+          {getDaysInRange().map((date) => {
             const formattedDate = formatDate(date);
             const isSelected =
               selectedDate &&
