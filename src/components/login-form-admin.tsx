@@ -60,7 +60,16 @@ export function AdminLoginForm({
         return;
       }
 
-      const session = await getSession();
+      // const session = await getSession();
+
+      const session = await fetch("/api/auth/session").then((res) =>
+        res.json()
+      );
+
+      if (session?.user?.access_token) {
+        localStorage.setItem("sessionToken", session.user.access_token);
+      }
+      console.log("Session:", session);
 
       switch (session?.user?.role) {
         case "admin":
