@@ -39,7 +39,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// Removed unused Relatives imports
 import {
   Select,
   SelectContent,
@@ -50,6 +49,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { NurseItemType } from "@/types/nurse"; // Assuming path is correct
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
+import { EditCategory } from "./EditCategory";
+
 
 interface CategoryManagementProps {
   onCategorySelect: (categoryId: string) => void;
@@ -117,25 +118,21 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const response = await nurseApiRequest.getListNurse(
-          1,
-          100,
-        );
+        const response = await nurseApiRequest.getListNurse(1, 100);
         if (response.status === 200 && response.payload?.data) {
-            setUsers(response.payload.data);
+          setUsers(response.payload.data);
         } else {
-            console.error("Failed to fetch staff:", response);
-            setUsers([]);
+          console.error("Failed to fetch staff:", response);
+          setUsers([]);
         }
-
       } catch (error) {
         console.error("Error fetching users:", error);
-        setUsers([]); 
+        setUsers([]);
         toast({
-            title: "Lỗi tải danh sách y tá",
-            description: "Không thể tải danh sách y tá để lựa chọn.",
-            variant: "destructive"
-        })
+          title: "Lỗi tải danh sách y tá",
+          description: "Không thể tải danh sách y tá để lựa chọn.",
+          variant: "destructive",
+        });
       }
     };
     fetchStaff();
@@ -193,7 +190,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     // }
   };
 
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery({ name: e.target.value });
   };
@@ -210,9 +206,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
-    setSelectedCategoryId(categoryId); 
+    setSelectedCategoryId(categoryId);
     setSelectedNurseInfo(staffInfo);
-    setSelectedStaffId(""); 
+    setSelectedStaffId("");
     setNurseInfoDialogOpen(true);
   };
 
@@ -246,12 +242,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   // Removes the currently assigned nurse from the selected category
   const handleRemoveStaff = async () => {
     if (!selectedCategoryId || !selectedNurseInfo) {
-         toast({
-            title: "Thông tin không hợp lệ",
-            description: "Không có y tá nào được chỉ định cho danh mục này.",
-            variant: "destructive",
-         });
-        return;
+      toast({
+        title: "Thông tin không hợp lệ",
+        description: "Không có y tá nào được chỉ định cho danh mục này.",
+        variant: "destructive",
+      });
+      return;
     }
     try {
       // Assuming removeStaffToCate just needs the categoryId
@@ -275,8 +271,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   return (
     <div className="w-full p-4 border rounded-lg shadow-sm h-fit bg-card">
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <Label className="text-xl font-semibold">Quản lý danh mục dịch vụ</Label>
-        {/* Ensure CategoryForm handles its own open state via props */}
+        <Label className="text-xl font-semibold">
+          Quản lý danh mục dịch vụ
+        </Label>
         <CategoryForm
           open={open}
           onOpenChange={setOpen}
@@ -301,7 +298,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
             <TableRow>
               <TableHead className="w-[20%]">Tên danh mục</TableHead>
               <TableHead className="w-[50%]">Mô tả</TableHead>
-              <TableHead className="w-[15%] text-center">Người phụ trách</TableHead>
+              <TableHead className="w-[15%] text-center">
+                Người phụ trách
+              </TableHead>
               <TableHead className="w-[20%] text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
@@ -323,26 +322,41 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   className={`hover:bg-accent cursor-pointer ${
                     selectedCategoryId === category.id ? "bg-muted" : "" // Use muted for selection
                   }`}
-                  data-state={selectedCategoryId === category.id ? "selected" : undefined}
+                  data-state={
+                    selectedCategoryId === category.id ? "selected" : undefined
+                  }
                 >
                   <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground"> {/* Limit lines */}
+                  <TableCell className="text-sm text-muted-foreground">
+                    {" "}
+                    {/* Limit lines */}
                     {category.description}
                   </TableCell>
                   <TableCell className="text-center">
                     {category["staff-info"] ? (
                       <div
                         className="flex flex-col justify-center items-center cursor-pointer group"
-                        onClick={(e) => handleNurseInfoClick(category["staff-info"], category.id, e)}
+                        onClick={(e) =>
+                          handleNurseInfoClick(
+                            category["staff-info"],
+                            category.id,
+                            e
+                          )
+                        }
                       >
                         <Avatar className="w-8 h-8 group-hover:ring-2 group-hover:ring-primary">
                           <AvatarImage
-                            src={ category["staff-info"]["nurse-picture"] || undefined } // Use undefined for missing src
+                            src={
+                              category["staff-info"]["nurse-picture"] ||
+                              undefined
+                            } // Use undefined for missing src
                             alt={category["staff-info"]["nurse-name"]}
                           />
                           <AvatarFallback>
-                             {/* Simple fallback */}
-                            {category["staff-info"]["nurse-name"]?.charAt(0)?.toUpperCase() || 'N'}
+                            {/* Simple fallback */}
+                            {category["staff-info"]["nurse-name"]
+                              ?.charAt(0)
+                              ?.toUpperCase() || "N"}
                           </AvatarFallback>
                         </Avatar>
                         <p className="mt-2 text-sm font-medium">
@@ -354,7 +368,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                         variant="link"
                         size="sm"
                         className="h-auto p-0 w-full"
-                        onClick={(e) => handleNurseInfoClick(null, category.id, e)}
+                        onClick={(e) =>
+                          handleNurseInfoClick(null, category.id, e)
+                        }
                       >
                         Thêm y tá
                       </Button>
@@ -365,38 +381,16 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                     {/* <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
                          <Edit className="h-4 w-4" />
                     </Button> */}
-                    <AlertDialog onOpenChange={(isOpen) => { if (!isOpen) setCategoryToDeleteId(null); }}>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={(e) => prepareDeleteCategory(category.id, e)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      {categoryToDeleteId === category.id && (
-                          <AlertDialogContent>
-                          <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xoá</AlertDialogTitle>
-                              <AlertDialogDescription>
-                              Bạn có chắc chắn muốn xoá danh mục "{category.name}"? Hành động này sẽ xoá vĩnh viễn danh mục và không thể hoàn tác.
-                              </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                              <AlertDialogCancel onClick={() => setCategoryToDeleteId(null)}>Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                  onClick={confirmDeleteCategory}
-                                  disabled={isDeleting}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90" // Destructive styling
-                              >
-                              {isDeleting ? "Đang xoá..." : "Xoá vĩnh viễn"}
-                              </AlertDialogAction>
-                          </AlertDialogFooter>
-                          </AlertDialogContent>
-                      )}
-                    </AlertDialog>
+                    <div className="flex-shrink-0">
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <EditCategory
+                          categoryId={category.id}
+                          currentName={category.name}
+                          currentDescription={category.description}
+                          onUpdated={fetchCategories}
+                        />
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -447,14 +441,24 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           <div className="flex py-4 space-y-4 w-full">
             {selectedNurseInfo ? (
               <div className="flex flex-col space-y-2 w-full">
-                 <div className="flex items-center gap-4">
-                     <Avatar className="w-16 h-16">
-                          <AvatarImage src={ selectedNurseInfo["nurse-picture"] || undefined } alt={selectedNurseInfo["nurse-name"]} />
-                          <AvatarFallback> {selectedNurseInfo["nurse-name"]?.charAt(0)?.toUpperCase() || 'N'} </AvatarFallback>
-                     </Avatar>
-                    <p className="font-medium">{selectedNurseInfo["nurse-name"]}</p>
-                 </div>
-                 <Button
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-16 h-16">
+                    <AvatarImage
+                      src={selectedNurseInfo["nurse-picture"] || undefined}
+                      alt={selectedNurseInfo["nurse-name"]}
+                    />
+                    <AvatarFallback>
+                      {" "}
+                      {selectedNurseInfo["nurse-name"]
+                        ?.charAt(0)
+                        ?.toUpperCase() || "N"}{" "}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p className="font-medium">
+                    {selectedNurseInfo["nurse-name"]}
+                  </p>
+                </div>
+                <Button
                   variant="outline"
                   className="w-full"
                   onClick={handleRemoveStaff}
@@ -462,7 +466,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   Xoá khỏi danh mục này
                 </Button>
               </div>
-              
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="nurse-select">Chọn y tá để thêm:</Label>
@@ -475,7 +478,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {users.length > 0 ? (
-                       // --- CORRECTED SELECT OPTIONS ---
+                      // --- CORRECTED SELECT OPTIONS ---
                       users.map((user) => (
                         <SelectItem
                           key={user["nurse-id"]} // Use correct ID for key
@@ -484,8 +487,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                           {user["nurse-name"]} {/* Display correct name */}
                         </SelectItem>
                       ))
-                      // ---------------------------------
                     ) : (
+                      // ---------------------------------
                       <div className="p-4 text-center text-sm text-muted-foreground">
                         Không có y tá nào.
                       </div>
@@ -503,7 +506,12 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
             )}
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setNurseInfoDialogOpen(false)}>Đóng</Button>
+            <Button
+              variant="ghost"
+              onClick={() => setNurseInfoDialogOpen(false)}
+            >
+              Đóng
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

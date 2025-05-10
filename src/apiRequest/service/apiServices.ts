@@ -7,7 +7,7 @@ import {
   ServicePackageTypeRes,
   ServiceTaskTypeRes,
 } from "@/types/service";
-import { CreateServicePackage } from "@/types/servicesPack";
+// import { CreateServicePackage } from "@/types/servicesPack";
 
 const serviceApiRequest = {
   getService: (cateId: string, filter: ServiceFilter | null) => {
@@ -44,6 +44,9 @@ const serviceApiRequest = {
 
   createService: (cateId: string, body: CreateServiceCate) =>
     http.post<Res>(`/appointment/api/v1/categories/${cateId}/services`, body),
+
+  updateService: (body: any) =>
+    http.post<Res>(`/appointment/api/v1/services`, body),
 };
 
 export default serviceApiRequest;

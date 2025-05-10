@@ -103,7 +103,6 @@ function Page() {
     }));
   };
 
-  // --- End Simple Text Loading State ---
 
   if (error) {
     return <div className="text-red-500 text-center p-10">Lỗi: {error}</div>;
@@ -145,11 +144,6 @@ function Page() {
                 return (
                   <motion.div
                     key={service.id}
-                    whileHover={{
-                      y: -5,
-                      boxShadow:
-                        "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                    }} // Enhanced hover effect
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleServiceClick(service.id, service.name)}
                     className="cursor-pointer"

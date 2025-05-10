@@ -95,7 +95,6 @@ export default function InvoiceTable({}: InvoiceTableProps) {
             Chưa thanh toán
           </span>
         );
-      case "overdue":
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs bg-red-100 text-red-800">
             Quá hạn
@@ -125,7 +124,7 @@ export default function InvoiceTable({}: InvoiceTableProps) {
               placeholder="Tìm kiếm..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 w-full sm:w-[400px]"
+              className="w-full sm:w-[400px]"
             />
           </div>
         </div>

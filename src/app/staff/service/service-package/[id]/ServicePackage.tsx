@@ -156,7 +156,7 @@ function ServicePackageComponent({
                   <TooltipTrigger asChild>
                     <Card
                       className={cn(
-                        "border hover:shadow-md transition-shadow duration-150 cursor-pointer overflow-hidden",
+                        "border hover:shadow-md transition-shadow duration-150 cursor-pointer overflow-hidden max-h-[200px]",
                         servicePackage.status === "available"
                           ? "border-green-200"
                           : "border-gray-200"
@@ -175,7 +175,7 @@ function ServicePackageComponent({
                           </div>
                           {servicePackage.description && (
                             <div>
-                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider ">
                                 Mô tả
                               </h4>
                               <p className="text-sm text-gray-700 line-clamp-2">

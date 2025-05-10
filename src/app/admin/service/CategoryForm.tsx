@@ -83,7 +83,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button>Thêm danh mục</Button>
+        <Button className="bg-emerald-400 hover:bg-emerald-400/90">Thêm danh mục</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

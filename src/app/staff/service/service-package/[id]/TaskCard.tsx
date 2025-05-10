@@ -5,9 +5,6 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GripVertical } from "lucide-react"; // Using Grip as drag handle
@@ -48,15 +45,14 @@ export function SortableTaskCard({
     cursor: isReorderingEnabled ? "grab" : "default",
   };
 
-  // Handle potential null/undefined status gracefully
   const status = serviceTask.status ?? "unavailable"; // Default if status is missing
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
       <Card
-        className={`border transition-shadow duration-150 ${ // Using default border
-          isReorderingEnabled ? "hover:shadow-md" : "hover:shadow-sm" // Slightly reduced hover shadow
-        } ${isDragging ? "shadow-lg border-primary" : ""}`} // Add emphasis when dragging
+        className={`border transition-shadow duration-150 ${
+          isReorderingEnabled ? "hover:shadow-md" : "hover:shadow-sm"
+        } ${isDragging ? "shadow-lg border-primary" : ""}`}
       >
         <CardContent className="p-4 flex justify-between items-start gap-3"> {/* Adjusted gap */}
           {isReorderingEnabled && (

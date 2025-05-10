@@ -48,7 +48,7 @@ function MainPage() {
         Quay lại
       </Button>
       <h1 className="text-xl font-semibold mb-4">
-        Quản lý cho dịch vụ: {serviceName}
+        Quản lý dịch vụ: {serviceName}
       </h1>
       <div className="flex">
         <div className="w-1/2 p-3 border-r border-gray-200">

@@ -145,6 +145,8 @@ export const translateStatusToVietnamese = (
           return "Hoàn thành";
       case "upcoming":
           return "Sắp diễn ra";
+      case "cancel":
+          return "Đã hủy";
       default:
           return status;
   }

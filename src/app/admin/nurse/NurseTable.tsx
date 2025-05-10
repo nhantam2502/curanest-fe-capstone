@@ -31,7 +31,7 @@ import {
 import { GetAllNurse } from "@/types/nurse";
 import { useRouter } from "next/navigation";
 import { useNurse } from "@/app/context/NurseContext";
-import { StarRating } from "./components/StarRatings"; // Assuming path
+import { StarRating } from "./components/StarRatings"; 
 import Link from "next/link";
 import {
   Tooltip,
@@ -106,7 +106,7 @@ export default function RenovatedNurseTable({
           <div></div>
           <div>
             <Link href="/admin/nurse/create-nurse">
-              <Button>Thêm Điều dưỡng</Button>
+              <Button className="bg-emerald-400 hover:bg-emerald-400/90">Thêm Điều dưỡng</Button>
             </Link>
           </div>
         </CardHeader>

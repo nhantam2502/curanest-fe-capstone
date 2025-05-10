@@ -239,7 +239,7 @@ export default function RenovatedNurseFilter({
           <X className="h-4 w-4 mr-1" />
           Xóa bộ lọc
         </Button>
-        <Button size="sm" onClick={handleSearch} disabled={isLoading}>
+        <Button size="sm" onClick={handleSearch} disabled={isLoading} className="bg-emerald-400 hover:bg-emerald-400/90">
           {isLoading ? (
             <span className="animate-spin h-4 w-4 border-t-2 border-b-2 border-primary-foreground rounded-full mr-1"></span>
           ) : (

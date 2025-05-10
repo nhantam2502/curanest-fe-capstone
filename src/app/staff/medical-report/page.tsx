@@ -12,7 +12,6 @@ function page() {
     <div className="mx-auto space-y-6">
       <h1 className="text-2xl font-bold">Báo cáo về cuộc hẹn</h1>
       <div className="">
-        {/* Left Column: Appointments Table */}
           <AppointmentTable
             onSelect={(appointment) => setSelectedAppointmentId(appointment.id)}
           />

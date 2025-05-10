@@ -142,7 +142,7 @@ const ServiceTaskCreationForm: React.FC<ServiceTaskCreationFormProps> = ({
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button>Tạo Task dịch vụ mới</Button>
+        <Button className="bg-emerald-400 hover:bg-emerald-400/90">Tạo Task dịch vụ mới</Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-4xl h-[80vh] overflow-y-auto">
         <AlertDialogHeader>

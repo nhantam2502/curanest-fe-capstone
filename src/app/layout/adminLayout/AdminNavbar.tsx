@@ -153,7 +153,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
                 className="text-red-500 hover:bg-red-50"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Log out
+                Đăng xuất
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
