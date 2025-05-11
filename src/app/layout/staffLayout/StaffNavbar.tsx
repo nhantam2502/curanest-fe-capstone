@@ -111,6 +111,14 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({ isCollapsed }) => {
     setIsOpen(!isOpen);
   };
 
+  const handleSignOut = () => {
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("next-auth.callback-url");
+    localStorage.removeItem("next-auth.csrf-token");
+    // Sau đó gọi hàm signOut
+    signOut({ callbackUrl: "/" });
+  };
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -171,7 +179,7 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({ isCollapsed }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-56">
               <DropdownMenuItem
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={handleSignOut}
                 className="text-red-500 focus:bg-red-50"
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -214,7 +222,7 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({ isCollapsed }) => {
             ))}
             <Button
               onClick={() => {
-                signOut({ callbackUrl: "/" });
+                handleSignOut();
                 toggleMobileMenu();
               }}
               variant="ghost"

@@ -24,14 +24,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
-// Custom signOut function that also removes sessionToken
-const customSignOut = async (options = {}) => {
-  // Remove sessionToken from sessionStorage
-  sessionStorage.removeItem("sessionToken");
-  // Call the original signOut function
-  return signOut(options);
-};
-
 const PRIMARY_COLOR = "text-emerald-600";
 const ACTIVE_BG_COLOR = "bg-emerald-50";
 const ICON_COLOR = "text-emerald-500";
@@ -86,8 +78,12 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
   const pathname = usePathname();
   const { data: session } = useSession();
 
-  const handleSignOut = async (callbackUrl = "/") => {
-    await customSignOut({ callbackUrl });
+  const handleSignOut = () => {
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("next-auth.callback-url");
+    localStorage.removeItem("next-auth.csrf-token");
+    // Sau đó gọi hàm signOut
+    signOut({ callbackUrl: "/" });
   };
 
   if (!session?.user) {
@@ -160,7 +156,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => handleSignOut("/")}
+                onClick={handleSignOut}
                 className="text-red-500 hover:bg-red-50"
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -203,7 +199,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
             ))}
             <Button
               onClick={() => {
-                handleSignOut("/");
+                handleSignOut;
                 toggleMobileMenu();
               }}
               variant="ghost"

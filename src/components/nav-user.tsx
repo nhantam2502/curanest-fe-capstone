@@ -52,6 +52,14 @@ export function NavUser() {
     return null;
   }
 
+  const handleSignOut = () => {
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("next-auth.callback-url");
+    localStorage.removeItem("next-auth.csrf-token");
+    // Sau đó gọi hàm signOut
+    signOut({ callbackUrl: "/" });
+  };
+
   const { name, email, image: avatar } = session.user;
   return (
     <SidebarMenu>
@@ -88,7 +96,10 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage
-                    src={profileData?.data["nurse-picture"] || "https://github.com/shadcn.png"}
+                    src={
+                      profileData?.data["nurse-picture"] ||
+                      "https://github.com/shadcn.png"
+                    }
                   />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
@@ -116,7 +127,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
 
             <DropdownMenuItem
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleSignOut}
               className="text-red-600 hover:bg-red-100"
             >
               <LogOut className="mr-4 h-7 w-7" /> Đăng xuất

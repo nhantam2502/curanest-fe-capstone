@@ -121,6 +121,14 @@ const RelativesNavbar = () => {
     }
   }, [isNotificationsOpen, status, session?.user?.id]);
 
+  const handleSignOut = () => {
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("next-auth.callback-url");
+    localStorage.removeItem("next-auth.csrf-token");
+    // Sau đó gọi hàm signOut
+    signOut({ callbackUrl: "/" });
+  };
+
   return (
     <header className="header flex items-center relative" ref={headerRef}>
       <div className="max-w-full w-[1140px] mx-auto">
@@ -213,7 +221,7 @@ const RelativesNavbar = () => {
 
                   <DropdownMenuSeparator className="my-2" />
                   <DropdownMenuItem
-                    onClick={() => signOut({ callbackUrl: "/" })}
+                    onClick={handleSignOut}
                     className="text-xl text-red-600 hover:bg-red-100"
                   >
                     <LogOut className="mr-4 h-7 w-7" /> Đăng xuất
@@ -310,7 +318,7 @@ const RelativesNavbar = () => {
                           <span>Lịch sử thanh toán </span>
                         </Link>
                         <button
-                          onClick={() => signOut({ callbackUrl: "/" })}
+                          onClick={handleSignOut}
                           className="flex w-full items-center gap-3 px-4 py-3 text-xl text-red-600 hover:bg-red-50 rounded-lg"
                         >
                           <LogOut size={25} />
