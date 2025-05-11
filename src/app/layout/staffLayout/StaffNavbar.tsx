@@ -115,7 +115,6 @@ const StaffNavbar: React.FC<StaffNavbarProps> = ({ isCollapsed }) => {
     localStorage.removeItem("sessionToken");
     localStorage.removeItem("next-auth.callback-url");
     localStorage.removeItem("next-auth.csrf-token");
-    // Sau đó gọi hàm signOut
     signOut({ callbackUrl: "/" });
   };
 
