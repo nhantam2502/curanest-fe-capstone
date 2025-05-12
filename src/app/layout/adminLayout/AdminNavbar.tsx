@@ -41,7 +41,6 @@ const menuItems: MenuItem[] = [
   { title: "Dịch vụ", link: "/service", icon: <BriefcaseBusiness /> },
   { title: "Giao dịch", link: "/invoice", icon: <Receipt /> },
   // { title: "Bài đăng", link: "/post", icon: <BookA /> },
-
 ];
 
 const DesktopMenuItem: React.FC<{ item: MenuItem; isCollapsed: boolean }> = ({
@@ -78,6 +77,13 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const { data: session } = useSession();
+
+  const handleSignOut = () => {
+    localStorage.removeItem("sessionToken");
+    localStorage.removeItem("next-auth.callback-url");
+    localStorage.removeItem("next-auth.csrf-token");
+    signOut({ callbackUrl: "/" });
+  };
 
   if (!session?.user) {
     return null;
@@ -149,7 +155,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={handleSignOut}
                 className="text-red-500 hover:bg-red-50"
               >
                 <LogOut className="mr-2 h-4 w-4" />
@@ -192,7 +198,7 @@ const AdminNavbar: React.FC<AdminNavbarProps> = ({ isCollapsed }) => {
             ))}
             <Button
               onClick={() => {
-                signOut({ callbackUrl: "/" });
+                handleSignOut;
                 toggleMobileMenu();
               }}
               variant="ghost"
