@@ -46,7 +46,7 @@ const serviceApiRequest = {
     http.post<Res>(`/appointment/api/v1/categories/${cateId}/services`, body),
 
   updateService: (body: any) =>
-    http.post<Res>(`/appointment/api/v1/services`, body),
+    http.put<Res>(`/appointment/api/v1/services`, body),
 };
 
 export default serviceApiRequest;

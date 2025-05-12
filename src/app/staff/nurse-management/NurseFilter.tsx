@@ -197,7 +197,7 @@ export default function RenovatedNurseFilter({
                 <SelectValue placeholder="Chọn dịch vụ..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tất cả dịch vụ</SelectItem>
+                <SelectItem value="all">Tất cả dịch vụ trong danh mục</SelectItem>
                 {allServices.map((service) => (
                   <SelectItem key={service.id} value={service.id}>
                     {service.name}

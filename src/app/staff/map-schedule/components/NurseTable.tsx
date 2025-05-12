@@ -83,7 +83,7 @@ export default function NurseTable({ selectedAppointment }: NurseTableProps) {
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle>Danh sách điều dưỡng</CardTitle>
-        <CardDescription>Danh sách điều dưỡng đang hoạt động.</CardDescription>
+        <CardDescription>Danh sách điều dưỡng phù hợp với cuộc hẹn.</CardDescription>
       </CardHeader>
 
       <CardContent className="flex-grow overflow-y-auto">

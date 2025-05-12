@@ -1,14 +1,24 @@
-import React from 'react'
-import { StatCard } from './components/StatCard';
-import { Activity, Clock, Stethoscope, UserCheck } from 'lucide-react';
-import { AppointmentsChart } from './components/AppointmentChart';
-import RevenueChart from './components/RevenueChart';
-import { ServicePopularityChart } from './components/ServiceChart';
+import React from "react";
+import { StatCard } from "./components/StatCard";
+import { Activity, Clock, Stethoscope, UserCheck } from "lucide-react";
+import { AppointmentsChart } from "./components/AppointmentChart";
+import RevenueChart from "./components/RevenueChart";
+import { ServicePopularityChart } from "./components/ServiceChart";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function page() {
   return (
-    <div className="flex-1 space-y-6 p-4 pt-4">
-      <h2 className="text-3xl font-bold tracking-tight mb-4">Thống kê</h2>
+    <div className="flex-1 space-y-6">
+      <Card className="mb-6 bg-gradient-to-r from-emerald-400/10 to-transparent border-l-4 border-emerald-300">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-emerald-500">
+            Thống kê
+          </CardTitle>
+          <CardDescription>
+            Theo dõi hiệu suất và hoạt động của các điều dưỡng.
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Các y tá đang làm việc"
@@ -47,4 +57,4 @@ function page() {
   );
 }
 
-export default page
+export default page;

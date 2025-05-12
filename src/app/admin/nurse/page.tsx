@@ -3,11 +3,15 @@
 import React, { useCallback, useEffect, useState } from "react";
 import NurseTable from "@/app/admin/nurse/NurseTable";
 import NurseFilter from "./NurseFilter";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import { useToast } from "@/hooks/use-toast";
 import { GetAllNurse, GetAllNurseFilter } from "@/types/nurse";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type SortDirection = "asc" | "desc";
 
@@ -21,7 +25,7 @@ export default function NurseManagementPage() {
     "service-id": "",
     rate: "",
   });
-  const itemsPerPage = 5; // adjust as needed
+  const itemsPerPage = 5;
 
   const fetchNurses = useCallback(async () => {
     try {
@@ -51,7 +55,6 @@ export default function NurseManagementPage() {
         if (hasActiveFilters && receivedNurses.length === 0) {
           toast({
             title: "Không tìm thấy",
-            // Using "điều dưỡng" instead of "người thân" as per component context
             description: "Không có điều dưỡng nào khớp với bộ lọc.",
           });
         }
@@ -132,9 +135,16 @@ export default function NurseManagementPage() {
 
   return (
     <div>
-      <div className="flex justify-between">
-        <h1 className="text-2xl font-bold mb-4">Quản lý điều dưỡng</h1>
-      </div>
+      <Card className="mb-4 bg-gradient-to-r from-emerald-400/10 to-transparent border-l-4 border-emerald-300">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-emerald-500">
+            Quản lý điều dưỡng
+          </CardTitle>
+          <CardDescription>
+            Danh sách điều dưỡng trong hệ thống.
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <NurseFilter onSearch={handleSearch} onReset={resetFilters} />
       <NurseTable
         nurses={sortedNurses}

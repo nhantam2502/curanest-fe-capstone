@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useMemo } from "react";
-// Removed unused Image import
+
 import {
   Table,
   TableBody,
@@ -10,33 +10,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Keep Input if you add search back
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
   ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-  Search, // Keep Search if you add search back
-  UserPlus, // Keep UserPlus if you add the button back
+  ChevronRight, // Keep UserPlus if you add the button back
 } from "lucide-react";
 import { RelativesFilter } from "@/types/relatives";
 import { Switch } from "@/components/ui/switch";

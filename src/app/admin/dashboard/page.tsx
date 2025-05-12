@@ -7,6 +7,12 @@ import { AppointmentsChart } from "./components/AppointmentChart";
 import { NurseStatusChart } from "./components/NurseChart";
 import { ServicePopularityChart } from "./components/ServiceChart";
 import RevenueChart from "./components/RevenueChart";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type TimeRange = "today" | "week" | "month";
 
@@ -14,28 +20,18 @@ export default function AdminDashboardPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>("today");
 
   return (
-    <div className="flex-1 space-y-6 p-4 pt-4">
-      {/* Global Filter */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">Thống kê</h2>
-
-        <div className="flex items-center space-x-2">
-          <label htmlFor="time-range" className="text-sm font-medium mr-2">
-            Lọc theo:
-          </label>
-          <select
-            id="time-range"
-            value={timeRange}
-            onChange={(e) =>
-              setTimeRange(e.target.value as TimeRange)
-            }
-            className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="today">Hôm nay</option>
-            <option value="week">Tuần này</option>
-            <option value="month">Tháng này</option>
-          </select>
-        </div>
+    <div className="flex-1 space-y-6 pt-4">
+      <div>
+        <Card className="mb-6 bg-gradient-to-r from-emerald-400/10 to-transparent border-l-4 border-emerald-300">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-emerald-500">
+              Thống kê
+            </CardTitle>
+            <CardDescription>
+              Theo dõi hiệu suất và hoạt động của các điều dưỡng.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
 
       {/* Stat Cards - 4 columns on large screens */}
@@ -48,8 +44,8 @@ export default function AdminDashboardPage() {
             timeRange === "today"
               ? "+2 so với hôm qua"
               : timeRange === "week"
-              ? "+5 so với tuần trước"
-              : "+10 so với tháng trước"
+                ? "+5 so với tuần trước"
+                : "+10 so với tháng trước"
           }
         />
         <StatCard
@@ -71,17 +67,8 @@ export default function AdminDashboardPage() {
           description="Theo khoảng thời gian đã chọn"
         />
       </div>
-
-      {/* Main Charts - 2 columns on large screens */}
-      <div className="">
-        {/* <div className="rounded-lg border shadow-sm p-4">
-          <h3 className="text-lg font-semibold mb-4">Lịch hẹn theo thời gian</h3>
-          <AppointmentsChart />
-        </div> */}
-        <div className="rounded-lg border shadow-sm p-4">
-          <h3 className="text-lg font-semibold mb-4">Doanh thu</h3>
-          <RevenueChart />
-        </div>
+      <div>
+        <RevenueChart />
       </div>
 
       {/* Full-width Charts */}

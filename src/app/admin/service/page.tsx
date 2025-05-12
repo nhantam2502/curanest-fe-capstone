@@ -12,7 +12,7 @@ const ServiceManagementPage: React.FC = () => {
   };
 
   return (
-    <div className="p-4 flex min-h-fit">
+    <div className="flex min-h-fit">
       {/* Left Side - Category Management */}
       <div className="w-1/2 pr-4 flex">
         <CategoryManagement onCategorySelect={handleCategorySelect} />

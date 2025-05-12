@@ -62,20 +62,20 @@ export default function RenovatedNurseTable({
   onSort,
 }: NurseTableProps) {
   const router = useRouter();
-  const { setSelectedNurse } = useNurse();
+  // const { setSelectedNurse } = useNurse();
   const handleRowClick = (nurseId: string) => {
     router.push(`/admin/nurse/${nurseId}`);
   };
 
-  const handleAssignServiceClick = (
-    event: React.MouseEvent,
-    nurse: GetAllNurse
-  ) => {
-    event.stopPropagation();
-    setSelectedNurse(nurse);
-    console.log("Trigger delete/action for:", nurse["nurse-name"]);
-    // Add actual delete/action logic here
-  };
+  // const handleAssignServiceClick = (
+  //   event: React.MouseEvent,
+  //   nurse: GetAllNurse
+  // ) => {
+  //   event.stopPropagation();
+  //   setSelectedNurse(nurse);
+  //   console.log("Trigger delete/action for:", nurse["nurse-name"]);
+  //   // Add actual delete/action logic here
+  // };
 
   const getInitials = (name: string | undefined): string => {
     if (!name) return "N";
@@ -166,13 +166,8 @@ export default function RenovatedNurseTable({
                           onClick={() => handleRowClick(nurse["nurse-id"])}
                           className="cursor-pointer hover:bg-muted/50"
                         >
-                          {/* Apply cell styles */}
                           <TableCell className="hidden sm:table-cell pl-4">
-                            {" "}
-                            {/* Added padding-y */}
                             <Avatar className="h-11 w-11">
-                              {" "}
-                              {/* Slightly larger Avatar */}
                               <AvatarImage
                                 src={nurse["nurse-picture"] || undefined}
                                 alt={nurse["nurse-name"] || "Avatar"}
@@ -192,8 +187,6 @@ export default function RenovatedNurseTable({
                             )}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-lg">
-                            {" "}
-                            {/* Applied text-lg, kept muted */}
                             {typeof nurse.gender === "boolean" ? (
                               nurse.gender ? (
                                 "Nam"
@@ -212,25 +205,10 @@ export default function RenovatedNurseTable({
                             )}
                           </TableCell>
                           <TableCell className="">
-                            {" "}
-                            {/* Added padding-y */}
-                            {/* Assuming StarRating handles its own size/style */}
                             <StarRating rating={nurse.rate} size={20} />{" "}
                             {/* Slightly larger stars */}
                           </TableCell>
                           <TableCell className="text-right space-x-1 pr-4">
-                            <Button
-                              variant="outline"
-                              size="icon" // Changed to icon size for a compact look
-                              onClick={(e) =>
-                                handleAssignServiceClick(e, nurse)
-                              }
-                              className="h-9 w-9 border-destructive hover:bg-destructive/10" // Adjusted size, added specific border/hover for delete
-                              aria-label={`Delete ${nurse["nurse-name"]}`}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />{" "}
-                              {/* Use theme's destructive color */}
-                            </Button>
                             <Button
                               variant="outline"
                               size="icon"
@@ -245,7 +223,7 @@ export default function RenovatedNurseTable({
                       </TooltipTrigger>
                       <TooltipContent side="bottom" align="center"className="bg-white text-black">
                         <p>
-                          Bấm để em chi tiết
+                          Bấm để xem chi tiết
                         </p>
                       </TooltipContent>
                     </Tooltip>

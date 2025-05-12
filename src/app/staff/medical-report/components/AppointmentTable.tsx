@@ -343,9 +343,6 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
     <Card className="w-full h-[600px]">
       <CardHeader>
         <CardTitle>Cuộc hẹn chờ phê duyệt</CardTitle>
-        <CardDescription>
-          Danh sách các cuộc hẹn đang chờ được phê duyệt là hoàn thành.
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>

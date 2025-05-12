@@ -192,10 +192,7 @@ export default function NurseDetailPageRenovated() {
       </div>
 
       <Separator />
-
-      {/* Details Grid */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Column 1: Personal & Contact */}
         <div className="space-y-6 lg:col-span-1">
           <Card className="h-[60vh]">
             <CardHeader>
@@ -204,11 +201,6 @@ export default function NurseDetailPageRenovated() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <InfoItem
-                icon={UserIcon}
-                label="Vai trò"
-                value={nurseDetail.role}
-              />
               <InfoItem
                 icon={UserIcon}
                 label="Giới tính"
