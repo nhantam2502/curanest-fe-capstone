@@ -39,7 +39,7 @@ const fetchAppointments = async () => {
     const today = new Date();
     const estDateFrom = today.toISOString().split("T")[0];
     const nextDay = new Date(today);
-    nextDay.setDate(nextDay.getDate() + 7);
+    nextDay.setDate(nextDay.getDate() + 30);
     const estDateTo = nextDay.toISOString().split("T")[0];
 
     const params = {
@@ -329,15 +329,8 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
       <CardHeader>
         <CardTitle>Cuộc hẹn chờ giao</CardTitle>
         <CardDescription>
-          Danh sách các cuộc hẹn hôm nay chưa có điều dưỡng.
+          Danh sách các cuộc hẹn chưa có điều dưỡng.
         </CardDescription>
-        {/* <div className="pt-2">
-          <Input
-            placeholder="Tìm bệnh nhân, dịch vụ..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div> */}
       </CardHeader>
       <CardContent>
         <Table>

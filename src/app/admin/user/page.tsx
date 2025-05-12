@@ -6,7 +6,13 @@ import UserTable from "./UserTable";
 import { RelativesFilter as UserType } from "@/types/relatives"; // Renamed for clarity
 import relativesApiRequest from "@/apiRequest/relatives/apiRelatives";
 import { useToast } from "@/hooks/use-toast"; // Import useToast
-import  UserFilter, { ActiveUserFilters } from "./UserFilter";
+import UserFilter, { ActiveUserFilters } from "./UserFilter";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type SortDirection = "asc" | "desc";
 
@@ -18,7 +24,7 @@ function Page() {
   const [sortColumn, setSortColumn] = useState<keyof UserType | "">("");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
-  const { toast } = useToast(); 
+  const { toast } = useToast();
 
   const fetchUsers = useCallback(
     async (filters: ActiveUserFilters = {}) => {
@@ -115,14 +121,21 @@ function Page() {
 
   return (
     <div className="rounded-md h-full">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Thống kê người dùng</h1>
-      </div>
+      <Card className="mb-6 bg-gradient-to-r from-emerald-400/10 to-transparent border-l-4 border-emerald-300">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-emerald-500">
+            Quản lý tài khoản người thân
+          </CardTitle>
+          <CardDescription>
+            Quản lý tài khoản người thân của bệnh nhân.
+          </CardDescription>
+        </CardHeader>
+      </Card>
       {/* Use the refactored filter component */}
       <UserFilter
         onSearch={handleSearch}
         onReset={handleReset}
-        isLoading={isLoading} 
+        isLoading={isLoading}
       />
       <UserTable
         users={sortedUsers}

@@ -9,6 +9,12 @@ import nurseApiRequest from "@/apiRequest/nurse/apiNurse";
 import { useToast } from "@/hooks/use-toast";
 import { GetAllNurse, GetAllNurseFilter } from "@/types/nurse";
 import RenovatedNurseTable from "./NurseTable";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type SortDirection = "asc" | "desc";
 
@@ -89,23 +95,30 @@ export default function NurseManagementPage() {
     const valueB = b[sortColumn] ?? "";
 
     if (typeof valueA === "string" && typeof valueB === "string") {
-        return sortDirection === "asc"
-            ? valueA.localeCompare(valueB)
-            : valueB.localeCompare(valueA);
+      return sortDirection === "asc"
+        ? valueA.localeCompare(valueB)
+        : valueB.localeCompare(valueA);
     }
 
     if (typeof valueA === "number" && typeof valueB === "number") {
-        return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
+      return sortDirection === "asc" ? valueA - valueB : valueB - valueA;
     }
 
     return 0;
-});
+  });
 
   return (
     <div>
-      <div className="flex justify-between">
-        <h1 className="text-2xl font-bold mb-4">Quản lý điều dưỡng</h1>     
-      </div>
+      <Card className="mb-6 bg-gradient-to-r from-emerald-400/10 to-transparent border-l-4 border-emerald-300">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-emerald-500">
+            Quản lý điều dưỡng
+          </CardTitle>
+          <CardDescription>
+            Danh sách điều dưỡng hiện đang trong danh mục.
+          </CardDescription>
+        </CardHeader>
+      </Card>
       <NurseFilter onSearch={handleSearch} onReset={resetFilters} />
       <RenovatedNurseTable
         nurses={sortedNurses}

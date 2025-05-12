@@ -120,9 +120,6 @@ NurseTableProps) {
                 <TableHead className="cursor-pointer hover:bg-muted/50 transition-colors font-semibold text-lg">
                   <div className="flex items-center">Đánh giá</div>
                 </TableHead>
-                <TableHead className="text-right w-[100px] pr-4 font-semibold text-lg">
-                  Thao tác
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -169,30 +166,6 @@ NurseTableProps) {
                     </TableCell>
                     <TableCell>
                       <StarRating rating={nurse.rate} size={20} />
-                    </TableCell>
-                    <TableCell className="text-right space-x-1 pr-4">
-                      {/* Delete Button - onClick removed, needs implementation via props if required */}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        // onClick={() => onDelete?.(nurse["nurse-id"])} // Example: Add handler via prop
-                        className="h-9 w-9 border-destructive hover:bg-destructive/10"
-                        aria-label={`Delete ${nurse["nurse-name"]}`}
-                        // disabled={!onDelete} // Optionally disable if no handler provided
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                      {/* Edit Button - onClick needs implementation via props if required */}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        // onClick={() => onEdit?.(nurse["nurse-id"])} // Example: Add handler via prop
-                        className="h-9 w-9"
-                        aria-label={`Edit ${nurse["nurse-name"]}`}
-                        // disabled={!onEdit} // Optionally disable if no handler provided
-                      >
-                        <Pencil className="h-4 w-4 text-blue-600" />
-                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

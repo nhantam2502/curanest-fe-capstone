@@ -75,13 +75,19 @@ export const EditService: React.FC<EditServiceProps> = ({
     setIsSubmitting(true);
     try {
       const payload = {
-        "category-id": selectedCategoryId?.trim(),
-        description: values.description?.trim(),
-        "est-duration": values["est-duration"]?.trim(),
-        id: serviceId?.trim(),
-        name: values.name?.trim(),
+        "category-id": selectedCategoryId?.trim(), 
+        description: values.description?.trim() ?? null, 
+        "est-duration": values["est-duration"]?.trim() ?? null, 
+        id: serviceId?.trim(), 
+        name: values.name?.trim(), 
         status: values.status?.trim(),
       };
+      Object.keys(payload).forEach(key => {
+        const typedKey = key as keyof typeof payload;
+        if (payload[typedKey] === undefined) {
+          delete payload[typedKey];
+        }
+      });
       console.log("Sending payload:", payload);
       const response = await serviceApiRequest.updateService(payload);
 
