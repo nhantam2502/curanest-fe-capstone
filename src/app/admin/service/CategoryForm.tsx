@@ -85,7 +85,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
       <DialogTrigger asChild>
         <Button className="bg-emerald-400 hover:bg-emerald-400/90">Thêm danh mục</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>Thêm danh mục mới</DialogTitle>{" "}
           {/* Static modal title */}
@@ -103,6 +103,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               value={newCategory.name}
               onChange={handleInputChange}
               placeholder="Ví dụ: Chăm sóc tại nhà"
+              required
             />
           </div>
           <div className="grid gap-2">
@@ -113,6 +114,7 @@ const CategoryForm: React.FC<CategoryFormProps> = ({
               value={newCategory.description}
               onChange={handleInputChange}
               placeholder="Mô tả ngắn gọn về danh mục"
+              required
             />
           </div>
         </div>
