@@ -74,7 +74,6 @@ export const EditCategory: React.FC<EditCategoryProps> = ({
         id: categoryId,
         name: values.name,
         description: values.description,
-        status: values.status,
       };
   
       const response = await categoryApiRequest.updateCategory(
@@ -127,7 +126,7 @@ export const EditCategory: React.FC<EditCategoryProps> = ({
                 <FormItem>
                   <FormLabel>Tên danh mục</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} required/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,13 +140,13 @@ export const EditCategory: React.FC<EditCategoryProps> = ({
                 <FormItem>
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} required/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+{/* 
             <FormField
               control={form.control}
               name="status"
@@ -173,7 +172,7 @@ export const EditCategory: React.FC<EditCategoryProps> = ({
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
 
             <AlertDialogFooter>
               <AlertDialogCancel>Hủy</AlertDialogCancel>
