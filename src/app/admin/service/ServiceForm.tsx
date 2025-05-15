@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react"; // Removed useCallback as fetchCategories is gone
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label } from "@/components/ui/label"; // Keep Label if not using FormLabel exclusively
 import {
   Dialog,
   DialogContent,
@@ -11,56 +11,88 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
-// Removed Select imports as category selection is removed
 import { useToast } from "@/hooks/use-toast";
-import { CreateServiceCate } from "@/types/service"; // Type for the service data
+import { CreateServiceCate } from "@/types/service"; // Ensure this type aligns with form data
 import serviceApiRequest from "@/apiRequest/service/apiServices";
-import { Textarea } from "@/components/ui/textarea"; // Added Textarea import
+import { Textarea } from "@/components/ui/textarea";
 
-// Updated Props Interface
+// Import Zod and Form components from react-hook-form
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+
+// --- Zod Schema Definition ---
+const serviceFormSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Tên dịch vụ không được để trống." }),
+  description: z
+    .string()
+    .max(1000, { message: "Mô tả không được vượt quá 1000 ký tự." })
+    .or(z.literal("")), 
+  "est-duration": z
+    .string()
+    .optional()
+    .or(z.literal(""))
+    .refine(
+      (val) => {
+        if (val === "" || val === undefined) return true; // Optional, so empty is fine
+        const num = Number(val);
+        return !isNaN(num) && num >= 0 && Number.isInteger(num); // Must be a non-negative integer
+      },
+      {
+        message: "Thời gian dự kiến phải là một số nguyên không âm (ví dụ: 30, 60).",
+      }
+    ),
+});
+
+type ServiceFormData = z.infer<typeof serviceFormSchema>;
+
 interface ServiceFormProps {
-  categoryId: string | null; // Receive category ID from parent
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSuccess: () => void; // Callback on successful creation
+  categoryId: string | null;
+  onSuccess: () => void;
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
-  categoryId, // Use categoryId from props
-  open,
-  onOpenChange,
-  onSuccess, // Use onSuccess callback
+  categoryId,
+  onSuccess,
 }) => {
-  const initialServiceState: CreateServiceCate = {
-    name: "",
-    description: "",
-    "est-duration": "", // Keep as string for input, convert on save
-  };
-  const [newService, setNewService] = useState<CreateServiceCate>(initialServiceState);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
+  const form = useForm<ServiceFormData>({
+    resolver: zodResolver(serviceFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      "est-duration": "",
+    },
+    mode: "onChange",
+  });
+
   useEffect(() => {
-    if (!open) {
-      setNewService(initialServiceState); // Reset on close
+    if (!isDialogOpen) {
+      form.reset({
+        name: "",
+        description: "",
+        "est-duration": "",
+      });
     }
-  }, [open]);
+  }, [isDialogOpen, form]);
 
-  // Handle input changes
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setNewService((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  // Handle saving the new service
-  const handleSave = async () => {
-    // Check if a category is selected (passed via props)
+  const onSubmit = async (data: ServiceFormData) => {
     if (!categoryId) {
       toast({
         title: "Chưa chọn danh mục",
@@ -70,37 +102,29 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
       return;
     }
 
-    // Basic validation for name
-    if (!newService.name.trim()) {
-       toast({
-        title: "Thiếu tên dịch vụ",
-        description: "Vui lòng nhập tên cho dịch vụ.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsSaving(true);
     try {
-      // Prepare payload with correct types
-      const payload = {
-        name: newService.name,
-        description: newService.description || "", 
-        "est-duration": newService["est-duration"],
+      const payloadForApi: CreateServiceCate = {
+        name: data.name,
+        description: data.description || "", 
+        "est-duration": data["est-duration"] || ""
       };
+      console.log("Sending payload:", payloadForApi);
+
 
       const response = await serviceApiRequest.createService(
         categoryId,
-        payload
+        payloadForApi
       );
 
       if (response && (response.status === 201 || response.status === 200)) {
         toast({
           title: "Thành công",
-          description: `Đã tạo dịch vụ "${payload.name}" thành công.`,
+          description: `Đã tạo dịch vụ "${data.name}" thành công.`,
         });
         onSuccess();
-        onOpenChange(false);
+        form.reset();
+        setIsDialogOpen(false);
       } else {
         toast({
           title: "Lỗi tạo dịch vụ",
@@ -109,7 +133,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             "Không thể tạo dịch vụ. Vui lòng thử lại.",
           variant: "destructive",
         });
-        console.error("Error creating service:", response);
+        console.error("Error creating service (API):", response);
       }
     } catch (error: any) {
       toast({
@@ -117,16 +141,21 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         description: error?.message || "Không thể tạo dịch vụ. Vui lòng thử lại.",
         variant: "destructive",
       });
-      console.error("Error creating service:", error);
+      console.error("Error creating service (Catch):", error);
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button disabled={!categoryId} className="bg-emerald-400 hover:bg-emerald-400/90">Thêm dịch vụ</Button>
+        <Button
+          disabled={!categoryId}
+          className="bg-emerald-400 hover:bg-emerald-400/90"
+        >
+          Thêm dịch vụ
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -135,56 +164,90 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
             Nhập thông tin cho dịch vụ mới vào danh mục đã chọn.
           </DialogDescription>
         </DialogHeader>
-        {/* Form fields for service details */}
-        <div className="grid gap-4 py-4">
-          {/* Name Input */}
-          <div className="grid gap-2">
-            <Label htmlFor="name">
-              Tên dịch vụ <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="name"
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <FormField
+              control={form.control}
               name="name"
-              value={newService.name}
-              onChange={handleInputChange}
-              placeholder="Ví dụ: Thay băng vết thương"
-              required // Added basic required attribute
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Tên dịch vụ <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ví dụ: Thay băng vết thương"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          {/* Description Textarea */}
-          <div className="grid gap-2">
-            <Label htmlFor="description">Mô tả</Label>
-            <Textarea // Use Textarea for description
-              id="description"
+
+            <FormField
+              control={form.control}
               name="description"
-              value={newService.description}
-              onChange={handleInputChange}
-              placeholder="Mô tả ngắn gọn về dịch vụ (không bắt buộc)"
-              rows={3} // Adjust rows as needed
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mô tả</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Mô tả ngắn gọn về dịch vụ (không bắt buộc)"
+                      rows={3}
+                      {...field}
+                      // Zod handles optional, so no need to worry about field.value being null/undefined here
+                      // unless you want specific behavior.
+                      // value={field.value || ""}
+                      // onChange={(e) => field.onChange(e.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          {/* Estimated Duration Input */}
-          <div className="grid gap-2">
-            <Label htmlFor="est-duration">Thời gian dự kiến (phút)</Label>
-            <Input
-              id="est-duration"
+
+            <FormField
+              control={form.control}
               name="est-duration"
-              type="number" // Change type to number
-              min="0" // Prevent negative numbers
-              value={newService["est-duration"]}
-              onChange={handleInputChange}
-              placeholder="0"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Thời gian dự kiến (phút)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number" // Keep type="number" for browser native controls
+                      min="0" // Browser-level min
+                      step="1" // Ensure integer steps
+                      placeholder="Ví dụ: 30"
+                      {...field}
+                      // value={field.value || ""}
+                      // onChange={(e) => field.onChange(e.target.value === '' ? '' : e.target.value)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </div>
-        {/* Dialog Actions */}
-        <DialogFooter>
-           <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
-          {/* Save Button */}
-          <Button type="button" onClick={handleSave} disabled={isSaving || !categoryId}>
-            {isSaving ? "Đang lưu..." : "Lưu dịch vụ"}
-          </Button>
-        </DialogFooter>
+
+            <DialogFooter className="pt-4">
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={isSaving}>Hủy</Button>
+              </DialogClose>
+              <Button type="submit" disabled={isSaving || !categoryId || !form.formState.isValid}>
+                {isSaving ? (
+                   <>
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Đang lưu...
+                  </>
+                ) : "Lưu dịch vụ"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

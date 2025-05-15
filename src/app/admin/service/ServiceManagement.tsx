@@ -134,10 +134,8 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
         <Label className="text-xl font-semibold">Quản lý dịch vụ</Label>
         {/* Pass categoryId and success callback to ServiceForm */}
         <ServiceForm
-          categoryId={selectedCategoryId} // Pass the selected category ID
-          open={openCreateServiceModal}
-          onOpenChange={setOpenCreateServiceModal}
-          onSuccess={handleServiceCreated} // 4. Pass refresh handler
+          categoryId={selectedCategoryId}
+          onSuccess={handleServiceCreated}
         />
       </div>
 

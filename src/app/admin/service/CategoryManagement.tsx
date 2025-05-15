@@ -275,8 +275,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
           Quản lý danh mục dịch vụ
         </Label>
         <CategoryForm
-          open={open}
-          onOpenChange={setOpen}
           onCreateCategory={handleCreateCategory}
         />
       </div>
