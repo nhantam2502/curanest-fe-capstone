@@ -21,7 +21,7 @@ interface FeedbackDialogProps {
   onClose: () => void;
   appointment: {
     estTimeFrom?: string;
-    estTimeTo?: string;    
+    estTimeTo?: string;
     apiData: Appointment;
     cusPackage?: CusPackageResponse | null;
   };
@@ -38,14 +38,16 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
   medicalReportId,
   patientName,
 }) => {
-  console.log("medicalReportId: ", medicalReportId);
-  
+  // console.log("medicalReportId: ", medicalReportId);
+
   const { toast } = useToast();
   const [rating, setRating] = useState(0);
   const [hoveredStar, setHoveredStar] = useState(0);
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingFeedback, setExistingFeedback] = useState<Feedback | null>(null);
+  const [existingFeedback, setExistingFeedback] = useState<Feedback | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
 
   const packageData = appointment.cusPackage?.data?.package;
@@ -68,12 +70,12 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
         setRating(0);
         setContent("");
         setExistingFeedback(null);
-        
+
         try {
           const response = await nurseApiRequest.getFeedback(medicalReportId);
           if (response.payload.data) {
             setExistingFeedback(response.payload.data);
-            
+
             // Pre-fill form with existing feedback data if available
             if (response.payload.data.star) {
               setRating(parseInt(response.payload.data.star));
@@ -98,11 +100,12 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
 
   const handleSubmit = async () => {
     if (rating === 0) return;
-    
+
     if (existingFeedback) {
       toast({
         title: "Thông báo",
-        description: "Bạn đã gửi đánh giá trước đó. Mỗi dịch vụ chỉ được đánh giá một lần.",
+        description:
+          "Bạn đã gửi đánh giá trước đó. Mỗi dịch vụ chỉ được đánh giá một lần.",
         variant: "default",
       });
       onClose();
@@ -122,24 +125,22 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
       };
 
       console.log("Feedback data:", feedbackData);
-      
+
       // Gọi API
       const response = await nurseApiRequest.createFeedback(feedbackData);
-      
+
       // Xử lý kết quả thành công
       if (response.payload.data) {
-        toast({
+        setExistingFeedback(response.payload.data);
+      }
+
+      toast({
           title: "Thành công",
-          description: "Đánh giá của bạn đã được gửi thành công",
+          description: "Đánh giá đã gửi thành công",
           variant: "default",
         });
-        
-        // Set the newly created feedback as existing feedback
-        setExistingFeedback(response.payload.data);
-        
-        // Không đóng dialog ngay, để người dùng thấy trạng thái đã gửi
-        // onClose(); - Comment lại để không đóng dialog
-      }
+              onClose();
+
     } catch (error) {
       console.error("Error submitting feedback:", error);
       toast({
@@ -223,8 +224,12 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
                     <button
                       key={star}
                       className="transition-transform hover:scale-110"
-                      onMouseEnter={() => !existingFeedback && setHoveredStar(star)}
-                      onMouseLeave={() => !existingFeedback && setHoveredStar(0)}
+                      onMouseEnter={() =>
+                        !existingFeedback && setHoveredStar(star)
+                      }
+                      onMouseLeave={() =>
+                        !existingFeedback && setHoveredStar(0)
+                      }
                       onClick={() => !existingFeedback && setRating(star)}
                       disabled={!!existingFeedback}
                     >
@@ -252,7 +257,9 @@ const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
                 placeholder="Chia sẻ trải nghiệm của bạn về dịch vụ..."
                 className="min-h-[150px] text-lg"
                 value={content}
-                onChange={(e) => !existingFeedback && setContent(e.target.value)}
+                onChange={(e) =>
+                  !existingFeedback && setContent(e.target.value)
+                }
                 disabled={!!existingFeedback}
               />
             </div>

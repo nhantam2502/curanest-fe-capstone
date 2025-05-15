@@ -3,34 +3,46 @@ import { z } from "zod";
 export const EmailLoginSchema = z.object({
   email: z
     .string()
+    .trim()
     .email({ message: "Vui lòng nhập địa chỉ email hợp lệ." })
     .min(1, { message: "Email không được để trống." }),
-  password: z.string().min(1, { message: "Mật khẩu không được để trống." }),
+  password: z
+    .string()
+    .trim()
+    .min(1, { message: "Mật khẩu không được để trống." }),
 });
 
 export const PhoneLoginSchema = z.object({
   "phone-number": z
     .string()
+    .trim()
     .regex(/^[0-9]{10}$/, {
       message: "Vui lòng nhập số điện thoại hợp lệ (10 số).",
     })
     .min(1, { message: "Số điện thoại không được để trống." }),
-  password: z.string().min(1, { message: "Mật khẩu không được để trống." }),
+  password: z
+    .string()
+    .trim()
+    .min(1, { message: "Mật khẩu không được để trống." }),
 });
 
 export const RegisterSchema = z
   .object({
-    "full-name": z.string().min(2, {
+    "full-name": z.string().trim().min(2, {
       message: "Họ tên phải có ít nhất 2 ký tự",
     }),
-    email: z.string().email({
+    email: z.string().trim().email({
       message: "Vui lòng nhập đúng định dạng email",
     }),
-    "phone-number": z.string().regex(/^[0-9]{10}$/, {
-      message: "Vui lòng nhập số điện thoại hợp lệ (10 số).",
-    }),
+    "phone-number": z
+      .string()
+      .trim()
+      .regex(/^[0-9]{10}$/, {
+        message: "Vui lòng nhập số điện thoại hợp lệ (10 số).",
+      }),
     password: z
       .string()
+      .trim()
       .min(6, {
         message: "Mật khẩu phải có ít nhất 6 ký tự",
       })
@@ -43,7 +55,7 @@ export const RegisterSchema = z
       .refine((val) => /\d/.test(val), {
         message: "Mật khẩu phải chứa ít nhất một số",
       }),
-    confirmPassword: z.string().min(6, {
+    confirmPassword: z.string().trim().min(6, {
       message: "Mật khẩu nhập lại phải có ít nhất 6 ký tự",
     }),
   })
@@ -53,11 +65,11 @@ export const RegisterSchema = z
   });
 
 export const RegisterBody = z.object({
-  email: z.string(),
-  password: z.string(),
-  // confirmPassword: z.string(),
-  "full-name": z.string(),
-  "phone-number": z.string(),
+  email: z.string().trim(),
+  password: z.string().trim(),
+  confirmPassword: z.string(),
+  "full-name": z.string().trim(),
+  "phone-number": z.string().trim(),
 });
 
 export const LoginRes = z.object({

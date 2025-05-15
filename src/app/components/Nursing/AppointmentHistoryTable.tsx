@@ -37,19 +37,26 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
   appointments,
 }) => {
   const router = useRouter();
+  // console.log("appointments: ", appointments);
 
   // Hàm chuyển đổi trạng thái thành badge
   const getStatusBadge = (status: Appointment["status"]) => {
     switch (status) {
-      case "completed":
+      case "success":
         return (
           <Badge className="bg-green-500 hover:bg-green-600">Hoàn thành</Badge>
         );
-      case "cancelled":
+      case "cancel":
         return <Badge className="bg-red-500 hover:bg-red-600">Đã hủy</Badge>;
       case "waiting":
         return (
-          <Badge className="bg-amber-500 hover:bg-amber-600">Đang đợi</Badge>
+          <Badge className="bg-blue-500 hover:bg-blue-600">Đang tới</Badge>
+        );
+      case "confirmed":
+        return (
+          <Badge className=" bg-yellow-500 hover:bg-yellow-600">
+            Đã xác nhận
+          </Badge>
         );
     }
   };
@@ -142,7 +149,13 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
                     size="sm"
                     variant="ghost"
                     onClick={() =>
-                      handleViewDetails(appointment.patient_info.id, appointment.date, appointment.cusPackageID, appointment.estTimeFrom || "", appointment.estTimeTo || "")
+                      handleViewDetails(
+                        appointment.patient_info.id,
+                        appointment.date,
+                        appointment.cusPackageID,
+                        appointment.estTimeFrom || "",
+                        appointment.estTimeTo || ""
+                      )
                     }
                     className="flex items-center text-[16px]"
                   >
