@@ -260,8 +260,8 @@ const DetailAppointment: React.FC = () => {
     }
   };
 
-  console.log("medicalRecordData", medicalRecordData?.id);
-  console.log("medicalReport", medicalReport);
+  // console.log("medicalRecordData", medicalRecordData?.id);
+  // console.log("medicalReport", medicalReport);
 
   if (loading || patientLoading || medicalRecordLoading) {
     return <div>Loading...</div>;
@@ -299,10 +299,7 @@ const DetailAppointment: React.FC = () => {
       appointmentDate: searchParams.get("estDate") || "N/A",
       estTimeFrom: searchParams.get("estTimeFrom") || "N/A",
       estTimeTo: searchParams.get("estTimeTo") || "N/A",
-      status:
-        appointment.package["payment-status"] === "unpaid"
-          ? "pending"
-          : ("in-progress" as const),
+      status: appointment.package["payment-status"],
       services: updatedTasks.map((task) => ({
         id: task.id,
         name: task.name,

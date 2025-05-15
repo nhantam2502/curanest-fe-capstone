@@ -186,7 +186,13 @@ const AppointmentHistory: React.FC = () => {
       serviceName: "",
       fromDate: null,
       toDate: null,
-      status: "all" as "all" | "completed" | "cancelled" | "no-show",
+      status: "all" as
+        | "all"
+        | "success"
+        | "cancel"
+        | "waiting"
+        | "confirmed"
+        | "upcoming",
       paymentStatus: "all" as "all" | "paid" | "unpaid" | "partial",
     };
 
@@ -197,7 +203,6 @@ const AppointmentHistory: React.FC = () => {
   const transformedAppointments = filteredAppointments.map((appointment) => {
     const packageDetail = packageDetails[appointment["cuspackage-id"]];
     const patientRecord = patientRecords[appointment["patient-id"]];
-
     const startTime = getStartTimeFromEstDate(appointment["est-date"]);
     const duration = appointment["total-est-duration"] || 0;
     const endTime = calculateEndTime(startTime, duration);
@@ -214,7 +219,7 @@ const AppointmentHistory: React.FC = () => {
         packageDetail?.data?.package?.["total-fee"]?.toString() ||
         "Không có thông tin",
       paymentStatus:
-        packageDetail?.data?.package?.["payment-status"] || ("unpaid" as any),
+        packageDetail?.data?.package?.["payment-status"] || ("paid" as any),
       estTimeFrom: startTime,
       estTimeTo: endTime,
     };

@@ -12,6 +12,7 @@ import {
 import { infoRelatives } from "@/types/patient";
 import { District, Ward } from "./EditPatientRecord";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const ProfileContent = () => {
   const router = useRouter();
@@ -35,6 +36,7 @@ const ProfileContent = () => {
     avatar: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {toast} = useToast();
 
   const findDistrictByName = (districts: District[], name: string) => {
     return districts.find((d) => d.name === name)?.code.toString();
@@ -264,6 +266,12 @@ const ProfileContent = () => {
       }));
 
       setSelectedDistrict(formData.district);
+       toast({
+        variant: "default",
+        title: "Cập nhật thành công",
+        description: "Thông tin người dùng đã được cập nhật.",
+        duration: 2000,
+      });
       router.push("/relatives/booking");
 
     } catch (error) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export function LoginFormForNurse({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -107,6 +108,10 @@ export function LoginFormForNurse({
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <div className={cn("", className)} {...props}>
       <form onSubmit={handleSubmit(onSubmit)}>
@@ -131,18 +136,31 @@ export function LoginFormForNurse({
               )}
             </div>
 
-            <div>
+            <div className="relative">
               <Label htmlFor="password" className="text-2xl font-medium">
                 Mật khẩu
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Mật khẩu"
-                className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none"
-                disabled={loading}
-                {...register("password")}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mật khẩu"
+                  className="w-full text-black py-7 text-xl my-3 bg-transparent border-b-2 border-black outline-none focus:outline-none pr-12"
+                  disabled={loading}
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? (
+                    <EyeOff size={35} />
+                  ) : (
+                    <Eye size={35} />
+                  )}
+                </button>
+              </div>
               {errors.password && (
                 <div className="text-red-500 text-lg">
                   {errors.password.message as string}
