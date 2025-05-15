@@ -1,8 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Added useEffect
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -11,119 +10,191 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import categoryApiRequest from "@/apiRequest/category/apiCategory";
-import { CreateCategory } from "@/types/category";
 import { Textarea } from "@/components/ui/textarea";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"; // Make sure you have these Shadcn UI components
+
+const categoryFormSchema = z.object({
+  name: z.string().min(1, {
+    message: "Tên danh mục không được bỏ trống.",
+  }),
+  description: z.string().min(1, {
+    message: "Mô tả không được bỏ trống.",
+  }),
+});
+
+// Infer the TypeScript type from the Zod schema
+type CategoryFormData = z.infer<typeof categoryFormSchema>;
 
 interface CategoryFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCreateCategory: () => void;
+  onCreateCategory: () => void; // Callback after successful creation
 }
 
-const CategoryForm: React.FC<CategoryFormProps> = ({
-  open,
-  onOpenChange,
-  onCreateCategory,
-}) => {
-  const [newCategory, setNewCategory] = React.useState<CreateCategory>({ name: "", description: ""});
-  const [isSaving, setIsSaving] = useState(false); // More generic loading state name
+// No need for React.FC if not using children prop explicitly
+const CategoryForm = ({ onCreateCategory }: CategoryFormProps) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Control dialog open state
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setNewCategory((prevState: CreateCategory) => ({ ...prevState, [name]: value }));
-  };
+  // --- React Hook Form Initialization ---
+  const form = useForm<CategoryFormData>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+    },
+  });
 
-  const handleSave = async () => {
-    setIsSaving(true); // Start loading
+  // Reset form when dialog closes or opens
+  useEffect(() => {
+    if (!isDialogOpen) {
+      form.reset({ name: "", description: "" }); // Reset form when dialog closes
+    }
+  }, [isDialogOpen, form]);
+
+
+  const onSubmit = async (data: CategoryFormData) => {
+    setIsSaving(true);
     try {
-      const response = await categoryApiRequest.createCategory(newCategory);
+      // The data object is already validated and typed by Zod
+      const response = await categoryApiRequest.createCategory(data);
 
       if (response && response.status === 201) {
         toast({
           title: "Thành công",
-          description: `Danh mục dịch vụ đã được tạo thành công.`, // Static message for create
+          description: "Danh mục dịch vụ đã được tạo thành công.",
         });
-        onCreateCategory();
-        setNewCategory({ name: "", description: "" });
-        onOpenChange(false);
+        onCreateCategory(); // Call the success callback
+        form.reset(); // Reset the form fields
+        setIsDialogOpen(false); // Close the dialog
       } else {
         toast({
           title: "Lỗi",
           description:
             response?.payload?.message ||
-            `Không thể tạo danh mục dịch vụ. Vui lòng thử lại.`, // Static error message
+            "Không thể tạo danh mục dịch vụ. Vui lòng thử lại.",
           variant: "destructive",
         });
-        console.error(
-          `Error creating category:`,
-          response
-        );
+        console.error("Error creating category (API):", response);
       }
     } catch (error) {
       toast({
-        title: "Lỗi",
-        description: `Không thể tạo danh mục dịch vụ. Vui lòng thử lại.`, // Static error message
-          variant: "destructive",
-        });
-      console.error(
-        `Error creating category:`,
-        error
-      );
+        title: "Lỗi hệ thống",
+        description: "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+      console.error("Error creating category (Catch):", error);
     } finally {
-      setIsSaving(false); // End loading
+      setIsSaving(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-emerald-400 hover:bg-emerald-400/90">Thêm danh mục</Button>
+        <Button className="bg-emerald-400 hover:bg-emerald-400/90">
+          Thêm danh mục
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>Thêm danh mục mới</DialogTitle>{" "}
-          {/* Static modal title */}
+          <DialogTitle>Thêm danh mục mới</DialogTitle>
           <DialogDescription>
-            Nhập tên và mô tả cho danh mục dịch vụ mới.
-          </DialogDescription>{" "}
-          {/* Static modal description */}
+            Nhập tên và mô tả cho danh mục dịch vụ mới. Các trường bắt buộc được
+            đánh dấu (*).
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="name">Tên danh mục</Label>
-            <Input
-              id="name"
+
+        {/* --- React Hook Form Integration --- */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
+            <FormField
+              control={form.control}
               name="name"
-              value={newCategory.name}
-              onChange={handleInputChange}
-              placeholder="Ví dụ: Chăm sóc tại nhà"
-              required
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên danh mục <span className="text-destructive">*</span></FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ví dụ: Chăm sóc tại nhà"
+                      {...field} // Spread field props (onChange, onBlur, value, name, ref)
+                    />
+                  </FormControl>
+                  <FormMessage /> {/* Displays validation errors for this field */}
+                </FormItem>
+              )}
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">Mô tả</Label>
-            <Textarea
-              id="description"
+
+            <FormField
+              control={form.control}
               name="description"
-              value={newCategory.description}
-              onChange={handleInputChange}
-              placeholder="Mô tả ngắn gọn về danh mục"
-              required
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mô tả <span className="text-destructive">*</span></FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Mô tả ngắn gọn về danh mục (ví dụ: các dịch vụ y tế được cung cấp tại nhà bệnh nhân)."
+                      {...field}
+                      rows={4} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit" onClick={handleSave} disabled={isSaving}>
-            {/* Save Button */}
-            {isSaving ? "Đang lưu..." : "Lưu"} {/* Dynamic button text */}
-          </Button>
-        </DialogFooter>
+
+            <DialogFooter className="pt-4">
+              {/* Optional: Add a cancel button that uses DialogClose */}
+              <DialogClose asChild>
+                 <Button type="button" variant="outline" disabled={isSaving}>
+                    Hủy
+                 </Button>
+              </DialogClose>
+              <Button type="submit" disabled={isSaving || !form.formState.isValid}>
+                {isSaving ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Đang lưu...
+                  </>
+                ) : (
+                  "Lưu danh mục"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

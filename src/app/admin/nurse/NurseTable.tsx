@@ -214,6 +214,9 @@ export default function RenovatedNurseTable({
                               size="icon"
                               className="h-9 w-9"
                               aria-label="Edit"
+                              onClick={(e) => {
+                                e.stopPropagation(); 
+                              }}
                             >
                               {" "}
                               <Pencil className="h-4 w-4 text-blue-600" />{" "}
