@@ -29,7 +29,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
   onServiceComplete,
 }) => {
   const { toast } = useToast();
-  
+
   // Sắp xếp dịch vụ theo taskOrder để hiển thị đúng thứ tự
   const sortedServices = [...services].sort((a, b) => {
     const orderA = a.taskOrder || 0;
@@ -48,13 +48,19 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
     return Infinity; // Nếu tất cả đã hoàn thành
   };
 
-  const [nextTaskOrder, setNextTaskOrder] = useState<number>(getNextTaskOrder());
+  const [nextTaskOrder, setNextTaskOrder] =
+    useState<number>(getNextTaskOrder());
 
   // Khởi tạo trạng thái dịch vụ
   const [serviceStatus, setServiceStatus] = useState<
     Record<
       string,
-      { isChecked: boolean; nurseNote: string; isLoading: boolean; taskOrder: number }
+      {
+        isChecked: boolean;
+        nurseNote: string;
+        isLoading: boolean;
+        taskOrder: number;
+      }
     >
   >(
     services.reduce((acc, service) => {
@@ -82,14 +88,17 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
   const handleCheckboxChange = async (cusTaskID: string) => {
     console.log("Checkbox clicked for service ID:", cusTaskID);
     const currentTaskOrder = serviceStatus[cusTaskID].taskOrder;
-    
+
     // Skip nếu đã check, đang loading, hoặc không phải task tiếp theo cần làm
     if (
       serviceStatus[cusTaskID].isChecked ||
       serviceStatus[cusTaskID].isLoading ||
       !isTaskCheckable(currentTaskOrder)
     ) {
-      if (!isTaskCheckable(currentTaskOrder) && !serviceStatus[cusTaskID].isChecked) {
+      if (
+        !isTaskCheckable(currentTaskOrder) &&
+        !serviceStatus[cusTaskID].isChecked
+      ) {
         toast({
           variant: "destructive",
           title: "Bạn cần hoàn thành các nhiệm vụ theo thứ tự",
@@ -165,7 +174,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
               const isCheckable = isTaskCheckable(currentTaskOrder);
               const isChecked = serviceStatus[serviceId]?.isChecked;
               const isLoading = serviceStatus[serviceId]?.isLoading;
-              
+
               return (
                 <Card
                   key={serviceId}
@@ -173,8 +182,8 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                     isChecked
                       ? "border-l-green-500"
                       : isCheckable
-                      ? "border-l-cyan-500"
-                      : "border-l-gray-300"
+                        ? "border-l-cyan-500"
+                        : "border-l-gray-300"
                   } overflow-hidden`}
                 >
                   <CardHeader
@@ -182,8 +191,8 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                       isChecked
                         ? "bg-green-100"
                         : isCheckable
-                        ? "bg-cyan-100"
-                        : "bg-gray-50"
+                          ? "bg-cyan-100"
+                          : "bg-gray-50"
                     } py-3 px-4`}
                   >
                     <div className="flex items-center justify-between">
@@ -192,13 +201,11 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                           isChecked
                             ? "text-green-600"
                             : isCheckable
-                            ? "text-cyan-600"
-                            : "text-gray-500"
+                              ? "text-cyan-600"
+                              : "text-gray-500"
                         } font-semibold flex items-center gap-2`}
                       >
-                        <span>
-                          {service.taskOrder || index + 1}.
-                        </span>
+                        <span>{service.taskOrder || index + 1}.</span>
                         <span>{service.name}</span>
                         {!isCheckable && !isChecked && (
                           <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full ml-2">
@@ -220,8 +227,8 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                           isChecked
                             ? "border-green-500"
                             : isCheckable
-                            ? "border-cyan-500"
-                            : "border-gray-300"
+                              ? "border-cyan-500"
+                              : "border-gray-300"
                         }`}
                       />
                     </div>
@@ -260,7 +267,9 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                           <p className="text-[16px] font-semibold text-gray-600">
                             Số lần:
                           </p>
-                          <p className="text-sm text-gray-700">{service.times}</p>
+                          <p className="text-sm text-gray-700">
+                            {service.times}
+                          </p>
                         </div>
                       </div>
 

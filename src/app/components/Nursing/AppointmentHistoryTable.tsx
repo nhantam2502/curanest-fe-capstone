@@ -85,6 +85,7 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
 
   // Xử lý khi nhấn vào nút xem chi tiết
   const handleViewDetails = (
+    appointmentID: string,
     patientID: string,
     estDate: string,
     cusPackageID: string,
@@ -92,7 +93,7 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
     estTimeTo: string
   ) => {
     router.push(
-      `/nurse/appointmentHistory/${patientID}?estDate=${encodeURIComponent(estDate)}&cusPackageID=${encodeURIComponent(cusPackageID)}&estTimeFrom=${encodeURIComponent(estTimeFrom)}&estTimeTo=${encodeURIComponent(estTimeTo)}`
+      `/nurse/appointmentHistory/${patientID}?appointmentID=${encodeURIComponent(appointmentID)}&estDate=${encodeURIComponent(estDate)}&cusPackageID=${encodeURIComponent(cusPackageID)}&estTimeFrom=${encodeURIComponent(estTimeFrom)}&estTimeTo=${encodeURIComponent(estTimeTo)}`
     );
   };
 
@@ -150,6 +151,7 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
                     variant="ghost"
                     onClick={() =>
                       handleViewDetails(
+                        appointment.id,
                         appointment.patient_info.id,
                         appointment.date,
                         appointment.cusPackageID,

@@ -23,7 +23,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MedicalRecord } from "@/types/appointment";
 
-// Định nghĩa type từ yêu cầu
 export type CusPackageResponse = {
   success: boolean;
   data: {
@@ -55,12 +54,11 @@ export type Task = {
   "est-date": string;
 };
 
-// Type EnhancedTask được điều chỉnh để khớp với EnhancedService trong ServiceCheckTask
 type EnhancedTask = Task & {
   nurseNote?: string;
   isCompleted?: boolean;
   duration: string; // Ánh xạ từ "est-duration" và "unit"
-  times: number;
+  times: number; // Ánh xạ từ "total-unit"
 };
 
 const DetailAppointment: React.FC = () => {
@@ -209,7 +207,6 @@ const DetailAppointment: React.FC = () => {
     });
   };
 
-  
   const handleSubmitMedicalReport = async () => {
     if (!medicalReport.trim()) {
       toast({
@@ -372,7 +369,7 @@ const DetailAppointment: React.FC = () => {
                 Báo cáo y tế
               </h3>
               <p className="text-gray-600 mb-4">
-                {reportSubmitted 
+                {reportSubmitted
                   ? "Báo cáo y tế đã được lưu."
                   : "Tất cả các nhiệm vụ đã hoàn thành. Vui lòng nhập báo cáo y tế để hoàn tất quy trình."}
               </p>

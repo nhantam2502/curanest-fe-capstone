@@ -32,7 +32,7 @@ interface ServicesListProps {
 }
 
 const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
-  console.log("Service Package:", servicePackage);
+  // console.log("Service Package:", servicePackage);
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; color: string }> = {
