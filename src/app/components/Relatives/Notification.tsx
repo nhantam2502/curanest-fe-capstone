@@ -19,7 +19,7 @@ import notificationApiRequest from "@/apiRequest/notification/apiNotification";
 interface NotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
-  onNotificationsUpdate: () => void;
+  onNotificationsUpdate?: () => void;
 }
 
 const NotificationDropdown = ({
@@ -86,7 +86,7 @@ const NotificationDropdown = ({
             : notification
         )
       );
-      onNotificationsUpdate();
+      onNotificationsUpdate && onNotificationsUpdate();
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -114,7 +114,7 @@ const NotificationDropdown = ({
         "read-at": notification["read-at"] || new Date().toISOString(),
       }))
     );
-    onNotificationsUpdate();
+      onNotificationsUpdate && onNotificationsUpdate();
   };
 
   const filteredNotifications =
