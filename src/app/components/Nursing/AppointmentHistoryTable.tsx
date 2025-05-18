@@ -48,7 +48,7 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
         );
       case "cancel":
         return <Badge className="bg-red-500 hover:bg-red-600">Đã hủy</Badge>;
-      case "waiting":
+      case "upcoming":
         return (
           <Badge className="bg-blue-500 hover:bg-blue-600">Đang tới</Badge>
         );
@@ -90,10 +90,11 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
     estDate: string,
     cusPackageID: string,
     estTimeFrom: string,
-    estTimeTo: string
+    estTimeTo: string,
+    appointmentStatus: string
   ) => {
     router.push(
-      `/nurse/appointmentHistory/${patientID}?appointmentID=${encodeURIComponent(appointmentID)}&estDate=${encodeURIComponent(estDate)}&cusPackageID=${encodeURIComponent(cusPackageID)}&estTimeFrom=${encodeURIComponent(estTimeFrom)}&estTimeTo=${encodeURIComponent(estTimeTo)}`
+      `/nurse/appointmentHistory/${patientID}?appointmentID=${encodeURIComponent(appointmentID)}&estDate=${encodeURIComponent(estDate)}&cusPackageID=${encodeURIComponent(cusPackageID)}&estTimeFrom=${encodeURIComponent(estTimeFrom)}&estTimeTo=${encodeURIComponent(estTimeTo)}&status=${encodeURIComponent(appointmentStatus)}` // Chuyển hướng đến trang chi tiết cuộc hẹn
     );
   };
 
@@ -156,7 +157,8 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
                         appointment.date,
                         appointment.cusPackageID,
                         appointment.estTimeFrom || "",
-                        appointment.estTimeTo || ""
+                        appointment.estTimeTo || "",
+                        appointment.status
                       )
                     }
                     className="flex items-center text-[16px]"

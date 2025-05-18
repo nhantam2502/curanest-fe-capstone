@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Star, Loader2, Calendar, MessageSquare } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 
 const FeedbackPage = () => {
@@ -142,7 +142,7 @@ const FeedbackPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className=" mx-auto p-4 max-w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Phản hồi từ bệnh nhân</h1>
         <p className="text-muted-foreground mt-2">
@@ -245,16 +245,18 @@ const FeedbackPage = () => {
 
           {/* Danh sách phản hồi chi tiết */}
           <h2 className="text-xl font-semibold mb-4">Chi tiết phản hồi</h2>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {feedbacks.map((feedback) => (
+              
               <Card key={feedback.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-2">
                       <div>
-                        <CardTitle className="text-lg">
+                        <CardTitle className="text-lg whitespace-nowrap overflow-hidden text-ellipsis max-w-xs shrink-0 mr-4">
                           {feedback["patient-name"]}
                         </CardTitle>
+
                         {/* <div className="flex items-center gap-2 text-gray-500 text-xs mt-1">
                           <Calendar className="w-3 h-3" />
                           <span>{new Date().toLocaleDateString("vi-VN")}</span>

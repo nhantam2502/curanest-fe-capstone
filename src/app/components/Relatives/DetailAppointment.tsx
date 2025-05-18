@@ -416,39 +416,41 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                       />
 
                       {/* Thêm nút thanh toán và hủy khi chưa thanh toán */}
-                      {packageData["payment-status"] === "unpaid" && (
-                        <div className="flex gap-4">
-                          <Button
-                            className="flex-1 text-lg"
-                            onClick={handlePayment}
-                            disabled={isPaymentLoading || isCancelLoading}
-                          >
-                            {isPaymentLoading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Đang xử lý...
-                              </>
-                            ) : (
-                              "Thanh toán ngay"
-                            )}
-                          </Button>
-                          <Button
-                            className="flex-1 text-lg"
-                            variant="destructive"
-                            onClick={() => setShowCancelConfirm(true)}
-                            disabled={isPaymentLoading || isCancelLoading}
-                          >
-                            {isCancelLoading ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Đang hủy...
-                              </>
-                            ) : (
-                              "Hủy gói dịch vụ"
-                            )}
-                          </Button>
-                        </div>
-                      )}
+                      {packageData["payment-status"] === "unpaid" &&
+                        appointment.apiData.status.toLowerCase() !==
+                          "cancel" && (
+                          <div className="flex gap-4">
+                            <Button
+                              className="flex-1 text-lg"
+                              onClick={handlePayment}
+                              disabled={isPaymentLoading || isCancelLoading}
+                            >
+                              {isPaymentLoading ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Đang xử lý...
+                                </>
+                              ) : (
+                                "Thanh toán ngay"
+                              )}
+                            </Button>
+                            <Button
+                              className="flex-1 text-lg"
+                              variant="destructive"
+                              onClick={() => setShowCancelConfirm(true)}
+                              disabled={isPaymentLoading || isCancelLoading}
+                            >
+                              {isCancelLoading ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Đang hủy...
+                                </>
+                              ) : (
+                                "Hủy gói dịch vụ"
+                              )}
+                            </Button>
+                          </div>
+                        )}
                     </>
                   ) : (
                     <p className="text-gray-500">

@@ -15,7 +15,7 @@ interface Service {
 }
 
 // Type cho gói dịch vụ
-interface ServicePackage {
+export interface ServicePackage {
   id: string;
   name: string;
   appointmentDate: string;
@@ -42,7 +42,7 @@ const ServicesList: React.FC<ServicesListProps> = ({ servicePackage }) => {
       },
       unpaid: {
         label: "Chưa thanh toán",
-        color: "bg-red-100 text-red-800",
+        color: "bg-red-100 text-red-800 hover:bg-red-100 cursor-pointer",
       },
     };
 

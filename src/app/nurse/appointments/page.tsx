@@ -375,12 +375,6 @@ const NurseScheduleCalendar = () => {
     return <div>Loading...</div>;
   }
 
-  const handleNotificationsClick = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsNotificationsOpen(!isNotificationsOpen);
-  };
-
   const renderShiftContent = (shiftId: string) => {
     const shiftTimeSlots = getTimeSlotsForShift(shiftId);
     return (
@@ -449,7 +443,7 @@ const NurseScheduleCalendar = () => {
                           }}
                           onClick={() =>
                             router.push(
-                              `/nurse/appointments/${event.patientInfo?.id}?appointmentID=${encodeURIComponent(event.id || "")}&estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}&estTimeFrom=${encodeURIComponent(event.estTimeFrom || "")}&estTimeTo=${encodeURIComponent(event.estTimeTo || "")}`
+                              `/nurse/appointments/${event.patientInfo?.id}?appointmentID=${encodeURIComponent(event.id || "")}&estDate=${encodeURIComponent(event.estDate || "")}&cusPackageID=${encodeURIComponent(event.cusPackageID || "")}&estTimeFrom=${encodeURIComponent(event.estTimeFrom || "")}&estTimeTo=${encodeURIComponent(event.estTimeTo || "")}&status=${encodeURIComponent(event.status || "")}`
                             )
                           }
                         >
@@ -489,6 +483,31 @@ const NurseScheduleCalendar = () => {
     );
   };
 
+  const handleNotificationsClick = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsNotificationsOpen(!isNotificationsOpen);
+  };
+
+  const handleNotificationsUpdate = async () => {
+    if (!session?.user?.id) return;
+
+    try {
+      const response = await notificationApiRequest.getNotification(
+        session.user.id,
+        100
+      );
+      if (response.payload.data) {
+        const unreadCount = response.payload.data.filter(
+          (notification: any) => notification["read-at"] === null
+        ).length;
+        setUnreadNotificationsCount(unreadCount);
+      }
+    } catch (error) {
+      console.error("Failed to update notifications count:", error);
+    }
+  };
+
   return (
     <div className="w-full h-full bg-gray-100 p-4">
       <div className="flex gap-4 h-full">
@@ -509,6 +528,7 @@ const NurseScheduleCalendar = () => {
             <DonutChart value={44} total={100} />
           </CardHeader>
         </Card>
+
         <Card className="flex-1 h-full shadow-lg">
           <CardHeader className="p-4 border-b">
             <div className="flex items-center justify-between">
@@ -573,6 +593,7 @@ const NurseScheduleCalendar = () => {
                 <NotificationDropdown
                   isOpen={isNotificationsOpen}
                   onClose={() => setIsNotificationsOpen(false)}
+                  onNotificationsUpdate={handleNotificationsUpdate}
                 />
               </div>
             </div>

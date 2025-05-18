@@ -3,9 +3,9 @@ import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import AppointmentHistoryFilters from "@/app/components/Nursing/AppointmentHistoryFilters";
@@ -17,6 +17,7 @@ import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { useSession } from "next-auth/react";
 import { PatientRecord } from "@/types/patient";
 import { getStartTimeFromEstDate } from "@/lib/utils";
+import { toast } from "react-toastify";
 
 const AppointmentHistory: React.FC = () => {
   // State for API data
@@ -27,7 +28,6 @@ const AppointmentHistory: React.FC = () => {
   const [packageDetails, setPackageDetails] = useState<
     Record<string, CusPackageResponse>
   >({});
-  // Thêm state lưu thông tin bệnh nhân
   const [patientRecords, setPatientRecords] = useState<
     Record<string, PatientRecord>
   >({});
@@ -42,11 +42,10 @@ const AppointmentHistory: React.FC = () => {
   // State for filters
   const [filters, setFilters] = useState({
     patientName: "",
-    serviceName: "",
     fromDate: null as Date | null,
     toDate: null as Date | null,
-    status: "",
-    paymentStatus: "",
+    status: "all" as "all" | "success" | "cancel" | "confirmed" | "upcoming",
+    paymentStatus: "all" as "all" | "paid" | "unpaid" | "partial",
   });
 
   // Hàm tính thời gian kết thúc từ thời gian bắt đầu và thời lượng (tính bằng phút)
@@ -73,20 +72,22 @@ const AppointmentHistory: React.FC = () => {
         `Error fetching package details for ID ${cusPackageId}:`,
         error
       );
+      toast.error(`Không thể lấy thông tin gói dịch vụ ${cusPackageId}`);
       return null;
     }
   };
 
-  // Thêm hàm fetch thông tin bệnh nhân
+  // Fetch patient record
   const fetchPatientRecord = async (patientId: string) => {
     try {
       const response = await patientApiRequest.getPatientRecordByID(patientId);
-      return response.payload.data; // Điều chỉnh theo cấu trúc response thực tế của API
+      return response.payload.data;
     } catch (error) {
       console.error(
         `Error fetching patient record for ID ${patientId}:`,
         error
       );
+      toast.error(`Không thể lấy thông tin bệnh nhân ${patientId}`);
       return null;
     }
   };
@@ -95,12 +96,10 @@ const AppointmentHistory: React.FC = () => {
   const fetchAppointments = async () => {
     setIsLoading(true);
     try {
-      // Format date if provided
       const estDateFrom = filters.fromDate
         ? format(filters.fromDate, "yyyy-MM-dd")
         : undefined;
 
-      // Call API with current page and filters
       const response = await appointmentApiRequest.getHistoryAppointment(
         currentPage,
         pageSize,
@@ -112,16 +111,9 @@ const AppointmentHistory: React.FC = () => {
       if (response.payload.success) {
         const appointmentsData = response.payload.data;
         setAppointments(appointmentsData);
-        setFilteredAppointments(appointmentsData);
-        setTotalPages(
-          Math.ceil(
-            response.payload.paging.total / response.payload.paging.size
-          )
-        );
+        setTotalPages(Math.ceil(response.payload.paging.total / pageSize));
 
-        // Fetch package details for each appointment
         const packageDetailsMap: Record<string, CusPackageResponse> = {};
-        // Tạo map lưu thông tin bệnh nhân
         const patientRecordsMap: Record<string, PatientRecord> = {};
 
         await Promise.all(
@@ -148,14 +140,57 @@ const AppointmentHistory: React.FC = () => {
         );
 
         setPackageDetails(packageDetailsMap);
-        setPatientRecords(patientRecordsMap); // Lưu thông tin bệnh nhân vào state
+        setPatientRecords(patientRecordsMap);
+
+        // Apply filters to the fetched data
+        const updatedFilteredAppointments = appointmentsData.filter(
+          (appointment: Appointment) => {
+            const patientRecord = patientRecordsMap[appointment["patient-id"]];
+            const packageDetail =
+              packageDetailsMap[appointment["cuspackage-id"]];
+            const appointmentDate = new Date(appointment["est-date"]);
+
+            const matchesName = filters.patientName
+              ? (patientRecord?.["full-name"]
+                  ?.toLowerCase()
+                  .includes(filters.patientName.toLowerCase()) ?? false)
+              : true;
+
+            const matchesStatus =
+              filters.status === "all" || appointment.status === filters.status;
+
+            const matchesPaymentStatus =
+              filters.paymentStatus === "all" ||
+              packageDetail?.data?.package["payment-status"] ===
+                filters.paymentStatus;
+
+            const matchesFromDate = filters.fromDate
+              ? appointmentDate >= filters.fromDate
+              : true;
+
+            const matchesToDate = filters.toDate
+              ? appointmentDate <= filters.toDate
+              : true;
+
+            return (
+              matchesName &&
+              matchesStatus &&
+              matchesPaymentStatus &&
+              matchesFromDate &&
+              matchesToDate
+            );
+          }
+        );
+
+        setFilteredAppointments(updatedFilteredAppointments);
       } else {
-        console.error("Failed to fetch appointments");
+        toast.error("Không thể lấy danh sách cuộc hẹn");
         setAppointments([]);
         setFilteredAppointments([]);
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
+      toast.error("Đã có lỗi xảy ra khi tải dữ liệu");
       setAppointments([]);
       setFilteredAppointments([]);
     } finally {
@@ -165,8 +200,10 @@ const AppointmentHistory: React.FC = () => {
 
   // Fetch data on component mount and when page or filters change
   useEffect(() => {
-    fetchAppointments();
-  }, [currentPage, nursingId, filters.fromDate]);
+    if (nursingId) {
+      fetchAppointments();
+    }
+  }, [currentPage, nursingId, filters]);
 
   // Handle filter changes
   const handleFilterChange = (newFilters: typeof filters) => {
@@ -186,16 +223,9 @@ const AppointmentHistory: React.FC = () => {
       serviceName: "",
       fromDate: null,
       toDate: null,
-      status: "all" as
-        | "all"
-        | "success"
-        | "cancel"
-        | "waiting"
-        | "confirmed"
-        | "upcoming",
+      status: "all" as "all" | "success" | "cancel" | "confirmed" | "upcoming",
       paymentStatus: "all" as "all" | "paid" | "unpaid" | "partial",
     };
-
     setFilters(defaultFilters);
     setCurrentPage(1);
   };
@@ -209,17 +239,16 @@ const AppointmentHistory: React.FC = () => {
 
     return {
       id: appointment.id,
-      // patient_id: appointment["patient-id"],
-      patient_name: patientRecord?.["full-name"] || "Không có thông tin",
+      patient_name: patientRecord?.["full-name"] ?? "Không có thông tin",
       patient_info: patientRecord,
       date: appointment["est-date"],
       cusPackageID: appointment["cuspackage-id"],
       status: appointment.status,
       totalAmount:
-        packageDetail?.data?.package?.["total-fee"]?.toString() ||
+        packageDetail?.data?.package?.["total-fee"]?.toString() ??
         "Không có thông tin",
       paymentStatus:
-        packageDetail?.data?.package?.["payment-status"] || ("paid" as any),
+        packageDetail?.data?.package?.["payment-status"] ?? "unpaid",
       estTimeFrom: startTime,
       estTimeTo: endTime,
     };
@@ -250,6 +279,10 @@ const AppointmentHistory: React.FC = () => {
               {isLoading ? (
                 <div className="flex justify-center items-center h-40">
                   <p>Đang tải dữ liệu...</p>
+                </div>
+              ) : transformedAppointments.length === 0 ? (
+                <div className="flex justify-center items-center h-40">
+                  <p>Không có cuộc hẹn nào phù hợp với bộ lọc.</p>
                 </div>
               ) : (
                 <>

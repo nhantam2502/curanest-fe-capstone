@@ -66,6 +66,7 @@ const DetailAppointment: React.FC = () => {
   const patientID = params.id as string;
   const searchParams = useSearchParams();
   const appointmentID = searchParams.get("appointmentID");
+  const appointmentStatus = searchParams.get("status");
   // console.log("appointmentID: ", appointmentID);
 
   const [appointment, setAppointment] = useState<
@@ -314,6 +315,17 @@ const DetailAppointment: React.FC = () => {
   // Kiểm tra có hiển thị nút "Lưu báo cáo" hay không
   const showSaveButton = !reportSubmitted && allTasksCompleted;
 
+  const handleTabChange = (value: string) => {
+    if (value === "checklist" && appointmentStatus !== "upcoming") {
+      toast({
+        variant: "warning",
+        title: "Không thể truy cập",
+        description: "Chỉ khi bắt đầu tới điểm hẹn thì mới được check task",
+      });
+      return;
+    }
+    setActiveTab(value);
+  };
   return (
     <div className="mx-auto max-w-full container ">
       <Breadcrumb className=" py-5">
@@ -340,7 +352,7 @@ const DetailAppointment: React.FC = () => {
           <div>
             <Tabs
               value={activeTab}
-              onValueChange={setActiveTab}
+              onValueChange={handleTabChange}
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-2">

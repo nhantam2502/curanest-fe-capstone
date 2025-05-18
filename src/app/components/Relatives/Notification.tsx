@@ -1,12 +1,17 @@
 "use client";
-
 import { useRef, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Bell, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { useSession } from "next-auth/react";
 import { NotificationItem } from "@/types/notification";
 import notificationApiRequest from "@/apiRequest/notification/apiNotification";
@@ -14,9 +19,14 @@ import notificationApiRequest from "@/apiRequest/notification/apiNotification";
 interface NotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
+  onNotificationsUpdate: () => void;
 }
 
-const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) => {
+const NotificationDropdown = ({
+  isOpen,
+  onClose,
+  onNotificationsUpdate,
+}: NotificationDropdownProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -28,7 +38,10 @@ const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) =>
       if (session?.user?.id && isOpen) {
         setIsLoading(true);
         try {
-          const response = await notificationApiRequest.getNotification(session.user.id, 10);
+          const response = await notificationApiRequest.getNotification(
+            session.user.id,
+            10
+          );
           if (response.payload.data) {
             setNotifications(response.payload.data);
           }
@@ -45,7 +58,10 @@ const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) =>
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         onClose();
       }
     };
@@ -63,40 +79,48 @@ const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) =>
     try {
       await notificationApiRequest.seenNotification(notificationId);
 
-      setNotifications(prevNotifications =>
-        prevNotifications.map(notification =>
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
           notification.id === notificationId
             ? { ...notification, "read-at": new Date().toISOString() }
             : notification
         )
       );
+      onNotificationsUpdate();
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
   };
 
   const markAllAsRead = async () => {
-    const unreadNotifications = notifications.filter(notification => notification["read-at"] === null);
+    const unreadNotifications = notifications.filter(
+      (notification) => notification["read-at"] === null
+    );
 
     for (const notification of unreadNotifications) {
       try {
         await notificationApiRequest.seenNotification(notification.id);
       } catch (error) {
-        console.error(`Error marking notification ${notification.id} as read:`, error);
+        console.error(
+          `Error marking notification ${notification.id} as read:`,
+          error
+        );
       }
     }
 
-    setNotifications(prevNotifications =>
-      prevNotifications.map(notification => ({
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) => ({
         ...notification,
-        "read-at": notification["read-at"] || new Date().toISOString()
+        "read-at": notification["read-at"] || new Date().toISOString(),
       }))
     );
+    onNotificationsUpdate();
   };
 
-  const filteredNotifications = activeTab === "unread"
-    ? notifications.filter(notification => notification["read-at"] === null)
-    : notifications;
+  const filteredNotifications =
+    activeTab === "unread"
+      ? notifications.filter((notification) => notification["read-at"] === null)
+      : notifications;
 
   const formatRelativeTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -136,8 +160,12 @@ const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) =>
           className="w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="all" className="text-base">Tất cả</TabsTrigger>
-            <TabsTrigger value="unread" className="text-base">Chưa đọc</TabsTrigger>
+            <TabsTrigger value="all" className="text-base">
+              Tất cả
+            </TabsTrigger>
+            <TabsTrigger value="unread" className="text-base">
+              Chưa đọc
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </CardHeader>
@@ -174,15 +202,24 @@ const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) =>
                     onClick={() => handleNotificationClick(notification.id)}
                   >
                     <div className="flex flex-col gap-2">
-                      <span className="text-lg text-gray-600">{notification.content}</span>
+                      <span className="text-lg text-gray-600">
+                        {notification.content}
+                      </span>
                       <div className="flex items-center gap-1">
                         <span className="text-blue-600 text-lg font-medium">
                           {formatRelativeTime(notification["created-at"])}
                         </span>
                         {isUnread ? (
-                          <Badge variant="default" className="h-3 w-3 p-0 rounded-full bg-blue-500" />
+                          <Badge
+                            variant="default"
+                            className="h-3 w-3 p-0 rounded-full bg-blue-500"
+                          />
                         ) : (
-                          <Button size="icon" variant="ghost" className="h-8 w-8 opacity-0 hover:opacity-100">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8 opacity-0 hover:opacity-100"
+                          >
                             <Check className="h-5 w-5" />
                           </Button>
                         )}
@@ -201,7 +238,9 @@ const NotificationDropdown = ({ isOpen, onClose }: NotificationDropdownProps) =>
       </ScrollArea>
 
       <CardFooter className="flex justify-center p-4 border-t">
-        <Button variant="outline" className="w-full py-3 text-lg">Xem tất cả thông báo</Button>
+        <Button variant="outline" className="w-full py-3 text-lg">
+          Xem tất cả thông báo
+        </Button>
       </CardFooter>
     </Card>
   );
