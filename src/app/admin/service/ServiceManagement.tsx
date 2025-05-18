@@ -132,7 +132,6 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({
     <div className="w-full p-4 border rounded-lg shadow-sm bg-card text-card-foreground">
       <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <Label className="text-xl font-semibold">Quản lý dịch vụ</Label>
-        {/* Pass categoryId and success callback to ServiceForm */}
         <ServiceForm
           categoryId={selectedCategoryId}
           onSuccess={handleServiceCreated}
