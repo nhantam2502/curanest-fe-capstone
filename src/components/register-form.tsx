@@ -52,6 +52,7 @@ export function RegisterForm() {
         email: values.email,
         "phone-number": values["phone-number"],
         password: values.password,
+        confirmPassword: values.confirmPassword,
       };
 
       const response = await authApiRequest.register(registerData);

@@ -23,8 +23,12 @@ import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { calculateAge } from "@/app/components/Relatives/PatientRecord";
 import { formatDate } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { MedicalRecord } from "@/types/appointment";
 
-// Định nghĩa type từ yêu cầu
 export type CusPackageResponse = {
   success: boolean;
   data: {
@@ -56,7 +60,6 @@ export type Task = {
   "est-date": string;
 };
 
-// Type EnhancedTask được điều chỉnh để khớp với EnhancedService trong ServiceCheckTask
 type EnhancedTask = Task & {
   nurseNote?: string;
   isCompleted?: boolean;
@@ -68,12 +71,24 @@ const DetailHistoryAppointment: React.FC = () => {
   const params = useParams();
   const patientID = params.id as string;
   const searchParams = useSearchParams();
+  const appointmentID = searchParams.get("appointmentID");
+
   const [appointment, setAppointment] = useState<
     CusPackageResponse["data"] | null
   >(null);
   const [patientData, setPatientData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [patientLoading, setPatientLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("services");
+
+  // State cho báo cáo y tế
+  const [medicalReport, setMedicalReport] = useState("");
+  const [medicalRecordData, setMedicalRecordData] =
+    useState<MedicalRecord | null>(null);
+  const [medicalRecordLoading, setMedicalRecordLoading] = useState(false);
+  const [hasReport, setHasReport] = useState(false);
+  const [updatedTasks, setUpdatedTasks] = useState<EnhancedTask[]>([]);
+  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -120,26 +135,59 @@ const DetailHistoryAppointment: React.FC = () => {
     };
 
     fetchAppointmentDetails();
-  }, [params, searchParams]);
+  }, [searchParams]);
 
-  const [updatedTasks, setUpdatedTasks] = useState<EnhancedTask[]>([]);
+  // Fetch thông tin báo cáo y tế
+  useEffect(() => {
+    const fetchMedicalRecord = async () => {
+      if (!appointmentID) return;
+
+      try {
+        setMedicalRecordLoading(true);
+        const response =
+          await appointmentApiRequest.getMedicalRecord(appointmentID);
+        setMedicalRecordData(response.payload.data);
+      } catch (error) {
+        console.error("Error fetching medical record:", error);
+      } finally {
+        setMedicalRecordLoading(false);
+      }
+    };
+
+    fetchMedicalRecord();
+  }, [appointmentID]);
+
+  // Cập nhật trạng thái báo cáo từ dữ liệu y tế
+  useEffect(() => {
+    if (medicalRecordData?.["nursing-report"]) {
+      setMedicalReport(String(medicalRecordData["nursing-report"]));
+      setHasReport(true);
+    } else {
+      setHasReport(false);
+    }
+  }, [medicalRecordData]);
 
   useEffect(() => {
     if (appointment) {
-      setUpdatedTasks(
-        appointment.tasks.map((task) => ({
-          ...task,
-          nurseNote: "",
-          isCompleted: task.status === "done",
-          duration: `${task["est-duration"]}`,
-          times: task["total-unit"],
-          staffAdvice: task["staff-advice"], // Đổi thành staffAdvice
-          customerNote: task["client-note"], // Đổi thành customerNote
-        }))
+      const tasks = appointment.tasks.map((task) => ({
+        ...task,
+        nurseNote: "",
+        isCompleted: task.status === "done",
+        duration: `${task["est-duration"]}`,
+        times: task["total-unit"],
+        staffAdvice: task["staff-advice"],
+        customerNote: task["client-note"],
+      }));
+
+      setUpdatedTasks(tasks);
+
+      // Kiểm tra xem tất cả các task đã hoàn thành chưa
+      const allCompleted = tasks.every(
+        (task) => task.status === "done" || task.isCompleted
       );
+      setAllTasksCompleted(allCompleted);
     }
   }, [appointment]);
-  console.log("updatedTasks: ", updatedTasks);
 
   const handleServiceComplete = (taskId: string, nurseNote: string) => {
     setUpdatedTasks((prev) =>
@@ -151,16 +199,28 @@ const DetailHistoryAppointment: React.FC = () => {
     );
   };
 
-  if (loading || patientLoading) {
-    return <div>Loading...</div>;
+  if (loading || patientLoading || medicalRecordLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        Đang tải dữ liệu...
+      </div>
+    );
   }
 
   if (!appointment) {
-    return <div>Không tìm thấy thông tin cuộc hẹn.</div>;
+    return (
+      <div className="text-center text-red-500 p-4">
+        Không tìm thấy thông tin cuộc hẹn.
+      </div>
+    );
   }
 
   if (!patientData) {
-    return <div>Không tìm thấy thông tin bệnh nhân.</div>;
+    return (
+      <div className="text-center text-red-500 p-4">
+        Không tìm thấy thông tin bệnh nhân.
+      </div>
+    );
   }
 
   const totalDuration = appointment.tasks.reduce(
@@ -187,13 +247,11 @@ const DetailHistoryAppointment: React.FC = () => {
       appointmentDate: searchParams.get("estDate") || "N/A",
       estTimeFrom: searchParams.get("estTimeFrom") || "N/A",
       estTimeTo: searchParams.get("estTimeTo") || "N/A",
-      status:
-        appointment.package["payment-status"] === "unpaid"
-          ? "pending"
-          : ("in-progress" as const),
+      status: appointment.package["payment-status"],
       services: updatedTasks.map((task) => ({
         id: task.id,
         name: task.name,
+        taskOrder: task["task-order"],
         duration: task.duration,
         quantity: task["total-unit"],
         staffAdvice: task["staff-advice"],
@@ -232,7 +290,11 @@ const DetailHistoryAppointment: React.FC = () => {
           <PatientProfile appointment={formattedPatientData as any} />
 
           <div>
-            <Tabs defaultValue="services" className="w-full">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="services">Thông tin dịch vụ</TabsTrigger>
                 <TabsTrigger value="checklist">Danh sách kiểm tra</TabsTrigger>
@@ -251,6 +313,29 @@ const DetailHistoryAppointment: React.FC = () => {
             </Tabs>
           </div>
         </div>
+
+        {/* Phần UI Báo cáo y tế */}
+        {allTasksCompleted && (
+          <Card className="mt-6 border-l-4 border-l-cyan-500 shadow-md">
+            <CardContent className="p-5">
+              <h3 className="text-xl font-bold mb-4 text-cyan-600">
+                Báo cáo y tế
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {hasReport
+                  ? "Báo cáo y tế đã được lưu."
+                  : "Tất cả các nhiệm vụ đã hoàn thành nhưng chưa có báo cáo y tế."}
+              </p>
+
+              <Textarea
+                placeholder="Báo cáo y tế chưa được cập nhật."
+                className="min-h-[200px] mb-4"
+                value={medicalReport}
+                readOnly={true}
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
