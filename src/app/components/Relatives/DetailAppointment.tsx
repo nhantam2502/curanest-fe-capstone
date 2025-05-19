@@ -51,13 +51,18 @@ interface PatientDetailDialogProps {
   patient: PatientRecord;
 }
 
-const PatientInfo: React.FC<{ label: string; value: string | number }> = ({
+const PatientInfo: React.FC<{
+  label: string;
+  value: string | number;
+  valueClassName?: string;
+}> = ({
   label,
   value,
+  valueClassName = "font-medium text-xl text-gray-900",
 }) => (
   <div className="mb-4">
     <p className="text-gray-500 text-xl">{label}</p>
-    <p className="font-medium text-xl text-gray-900">{value}</p>
+    <p className={valueClassName}>{value}</p>
   </div>
 );
 
@@ -72,7 +77,7 @@ const getStatusColor = (status: string) => {
     case "not_done":
       return "bg-white hover:bg-white cursor-pointer font-semibold text-yellow-500";
     case "upcoming":
-      return "font-semibold text-blue-800 bg-blue-100 hover:bg-blue-200";
+      return "font-semibold text-blue-500";
     case "cancel":
       return "font-semibold text-red-500 ";
     default:
@@ -412,6 +417,11 @@ const PatientDetailDialog: React.FC<PatientDetailDialogProps> = ({
                           packageData["payment-status"] === "unpaid"
                             ? "Chưa thanh toán"
                             : "Đã thanh toán"
+                        }
+                        valueClassName={
+                          packageData["payment-status"] === "unpaid"
+                            ? "text-red-500 font-semibold text-xl"
+                            : "text-green-500 font-semibold text-xl"
                         }
                       />
 
