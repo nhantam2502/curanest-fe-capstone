@@ -25,6 +25,7 @@ export type GetAppointment = {
   status: string;
   "created-at": string;
   "total-est-duration": number;
+  "is-paid": boolean;
 };
 
 export type AppointmentFilter = {

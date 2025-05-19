@@ -137,6 +137,11 @@ const appointmentApiRequest = {
     http.patch<Res>(
       `/appointment/api/v1/appointments/${appointmentId}/assign-nursing/${nursingId}`
     ),
+
+  updateAppointmentToUpcoming: (appointmentId: string) =>
+    http.patch<Res>(
+      `/appointment/api/v1/appointments/${appointmentId}/update-status-upcoming`
+    ),
 };
 
 export default appointmentApiRequest;
