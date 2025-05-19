@@ -1,6 +1,13 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { CalendarDays, Eye, Info, Loader } from "lucide-react";
+import {
+  AlertCircle,
+  CalendarDays,
+  Eye,
+  Info,
+  Loader,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +22,20 @@ import nurseApiRequest from "@/apiRequest/nursing/apiNursing";
 import { NurseItemType } from "@/types/nurse";
 import { motion } from "framer-motion";
 import { formatDate, getStatusColor, getStatusText } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import invoiceApiRequest from "@/apiRequest/invoice/apiInvoice";
+import { toast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import PaymentStatusFilter from "@/app/components/Relatives/PaymentStatusFilter";
 
 interface AppointmentDisplay {
   id: string;
@@ -29,6 +50,7 @@ interface AppointmentDisplay {
 }
 
 const AppointmentPage: React.FC = () => {
+  const router = useRouter();
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(
     null
@@ -52,6 +74,11 @@ const AppointmentPage: React.FC = () => {
 
   const [selectedNurse, setSelectedNurse] = useState<any>(null);
   const [nurses, setNurses] = useState<NurseItemType[]>([]);
+
+  const [paymentStatus, setPaymentStatus] = useState("all");
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+  const [isCancelLoading, setIsCancelLoading] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Fetch patient records when component mounts
   useEffect(() => {
@@ -111,7 +138,6 @@ const AppointmentPage: React.FC = () => {
         );
 
         if (response.payload && response.payload.success) {
-          // console.log("Appointment data:", response.payload.data);
           // console.log("Available nurses:", nurses);
 
           // Process appointments in sequence to fetch cusPackage for each
@@ -233,11 +259,23 @@ const AppointmentPage: React.FC = () => {
       return;
     }
 
-    const filtered = appointments.filter((apt) => {
+    let filtered = appointments.filter((apt) => {
       return apt.appointment_date === selectedDate;
     });
+
+    // Lọc theo trạng thái thanh toán
+    if (paymentStatus !== "all") {
+      filtered = filtered.filter((apt) => {
+        if (paymentStatus === "paid") {
+          return apt.apiData["is-paid"] === true;
+        } else {
+          return apt.apiData["is-paid"] === false;
+        }
+      });
+    }
+
     setFilteredAppointments(filtered);
-  }, [selectedDate, appointments]);
+  }, [selectedDate, appointments, paymentStatus]);
 
   // Function to get nurse by appointment nursing-id
   const getNurseByAppointment = (appointment: AppointmentDisplay) => {
@@ -246,6 +284,102 @@ const AppointmentPage: React.FC = () => {
     );
   };
 
+  const handlePayment = async () => {
+    try {
+      setIsPaymentLoading(true);
+
+      // 1. Lấy thông tin hóa đơn
+      let invoiceResponse = await appointmentApiRequest.getInvoice(
+        selectedAppointment?.apiData["cuspackage-id"] || ""
+      );
+
+      if (!invoiceResponse?.payload?.data) {
+        throw new Error("Không nhận được dữ liệu hóa đơn từ server");
+      }
+
+      let invoiceData = invoiceResponse.payload.data;
+
+      if (invoiceData && invoiceData.length > 0) {
+        // Nếu đã có URL thì chuyển hướng luôn
+        if (typeof invoiceData[0]["payos-url"] === "string") {
+          router.push(invoiceData[0]["payos-url"]);
+          return;
+        }
+
+        // Nếu chưa có thì tạo URL
+        const invoiceID = invoiceData[0].id;
+        await invoiceApiRequest.createPaymentUrl(invoiceID);
+
+        // Gọi lại getInvoice để lấy URL mới
+        invoiceResponse = await appointmentApiRequest.getInvoice(
+          selectedAppointment?.apiData["cuspackage-id"] || ""
+        );
+        invoiceData = invoiceResponse.payload.data;
+
+        if (invoiceData[0] && typeof invoiceData[0]["payos-url"] === "string") {
+          router.push(invoiceData[0]["payos-url"]);
+          return;
+        } else {
+          throw new Error("Không thể tạo URL thanh toán");
+        }
+      } else {
+        throw new Error("Không tìm thấy thông tin hóa đơn");
+      }
+    } catch (error) {
+      console.error("Lỗi khi xử lý thanh toán:", error);
+      toast({
+        title: "Lỗi thanh toán",
+        description:
+          error instanceof Error
+            ? `${error.message}. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.`
+            : "Không thể xử lý thanh toán. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPaymentLoading(false);
+    }
+  };
+
+  const handleCancelPackage = async () => {
+    try {
+      setIsCancelLoading(true);
+
+      const response = await appointmentApiRequest.cancelAppointmentCusPackage(
+        selectedAppointment?.apiData["cuspackage-id"] || ""
+      );
+
+      if (response && response.payload.success === true) {
+        toast({
+          title: "Hủy gói dịch vụ thành công",
+          description: "Gói dịch vụ đã được hủy thành công",
+          variant: "default",
+        });
+
+        // Đóng dialog và refresh dữ liệu nếu cần
+        setIsDialogOpen(false);
+        router.refresh();
+      } else {
+        throw new Error("Không thể hủy gói dịch vụ");
+      }
+    } catch (error) {
+      console.error("Lỗi khi hủy gói dịch vụ:", error);
+      toast({
+        title: "Lỗi hủy gói dịch vụ",
+        description:
+          error instanceof Error
+            ? `${error.message}. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.`
+            : "Không thể hủy gói dịch vụ. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCancelLoading(false);
+      setShowCancelConfirm(false);
+    }
+  };
+
+  const handlePaymentStatusChange = (status: any) => {
+    setPaymentStatus(status);
+  };
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen flex flex-col">
       <div className="max-w-full w-[1500px] px-4 mx-auto flex-grow">
@@ -336,8 +470,15 @@ const AppointmentPage: React.FC = () => {
                         Danh sách lịch hẹn {formatDate(new Date(selectedDate))}
                       </h3>
 
+                      {/* filter trạng thái thanh toán */}
+                      <PaymentStatusFilter
+                        selectedStatus={paymentStatus}
+                        onStatusChange={handlePaymentStatusChange}
+                      />
+
                       {filteredAppointments.map((appointment) => {
                         const matchedNurse = getNurseByAppointment(appointment);
+
                         return (
                           <Card
                             key={appointment.id}
@@ -410,8 +551,70 @@ const AppointmentPage: React.FC = () => {
                                         Thời gian
                                       </p>
                                       <p className="font-semibold text-xl text-gray-900">
-                                        {appointment.estTimeFrom} - {appointment.estTimeTo}
+                                        {appointment.estTimeFrom} -{" "}
+                                        {appointment.estTimeTo}
                                       </p>
+                                    </div>
+
+                                    <div>
+                                      <div className="text-xl text-gray-500 font-medium flex items-center gap-x-2 whitespace-nowrap">
+                                        Trạng thái thanh toán:
+                                        <span
+                                          className={`text-xl font-semibold ${
+                                            appointment.apiData["is-paid"]
+                                              ? "text-green-600"
+                                              : "text-red-600"
+                                          }`}
+                                        >
+                                          {appointment.apiData["is-paid"]
+                                            ? "Đã thanh toán"
+                                            : "Chưa thanh toán"}
+                                        </span>
+                                      </div>
+
+                                      {!appointment.apiData["is-paid"] &&
+                                        appointment.apiData.status.toLowerCase() !==
+                                          "cancel" && (
+                                          <div className="flex gap-4 mt-4">
+                                            <Button
+                                              className="flex-1 text-lg"
+                                              onClick={handlePayment}
+                                              disabled={
+                                                isPaymentLoading ||
+                                                isCancelLoading
+                                              }
+                                            >
+                                              {isPaymentLoading ? (
+                                                <>
+                                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                  Đang xử lý...
+                                                </>
+                                              ) : (
+                                                "Thanh toán ngay"
+                                              )}
+                                            </Button>
+                                            <Button
+                                              className="flex-1 text-lg"
+                                              variant="destructive"
+                                              onClick={() =>
+                                                setShowCancelConfirm(true)
+                                              }
+                                              disabled={
+                                                isPaymentLoading ||
+                                                isCancelLoading
+                                              }
+                                            >
+                                              {isCancelLoading ? (
+                                                <>
+                                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                  Đang hủy...
+                                                </>
+                                              ) : (
+                                                "Hủy gói dịch vụ"
+                                              )}
+                                            </Button>
+                                          </div>
+                                        )}
                                     </div>
                                   </div>
 
@@ -501,6 +704,44 @@ const AppointmentPage: React.FC = () => {
           }
         />
       )}
+
+      {/* Hộp thoại xác nhận hủy */}
+      <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl flex items-center gap-2">
+              <AlertCircle className="h-6 w-6 text-red-500" />
+              Xác nhận hủy gói dịch vụ
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              Bạn có chắc chắn muốn hủy gói dịch vụ này? Hành động này không thể
+              hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelLoading}>
+              Quay lại
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancelPackage();
+              }}
+              disabled={isCancelLoading}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              {isCancelLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang hủy...
+                </>
+              ) : (
+                "Xác nhận hủy"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 };

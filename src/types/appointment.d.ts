@@ -79,6 +79,7 @@ export interface Appointment {
   "est-date": string;
   "act-date": string;
   status: string;
+  "is-paid": boolean;
   "created-at": string;
   "total-est-duration": number;
   appointment_date?: string;
