@@ -380,6 +380,7 @@ const AppointmentPage: React.FC = () => {
   const handlePaymentStatusChange = (status: any) => {
     setPaymentStatus(status);
   };
+
   return (
     <section className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen flex flex-col">
       <div className="max-w-full w-[1500px] px-4 mx-auto flex-grow">
@@ -439,6 +440,12 @@ const AppointmentPage: React.FC = () => {
               <span>Lịch hẹn sẽ được tô vàng</span>
             </div>
 
+            {/* filter trạng thái thanh toán */}
+            <PaymentStatusFilter
+              selectedStatus={paymentStatus}
+              onStatusChange={handlePaymentStatusChange}
+            />
+
             {/* Main Content - Side by Side Layout */}
             <div className="flex flex-col lg:flex-row gap-8 mt-8">
               {/* Left Side - Appointments List (Moved to the right on desktop) */}
@@ -464,17 +471,28 @@ const AppointmentPage: React.FC = () => {
                     <p className="text-red-500 text-xl">{nurseError}</p>
                   </div>
                 ) : selectedDate ? (
-                  filteredAppointments.length > 0 ? (
+                  appointments.length > 0 &&
+                  filteredAppointments.length === 0 &&
+                  paymentStatus !== "all" ? (
+                    <div className="p-12 text-center">
+                      <AlertCircle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+                      <p className="text-gray-600 text-xl font-medium">
+                        Không có lịch hẹn nào{" "}
+                        {paymentStatus === "paid"
+                          ? "đã thanh toán"
+                          : "chưa thanh toán"}{" "}
+                        vào ngày đã chọn
+                      </p>
+                      <p className="text-gray-500 mt-2">
+                        Vui lòng chọn một trạng thái thanh toán khác hoặc ngày
+                        khác để xem lịch hẹn
+                      </p>
+                    </div>
+                  ) : filteredAppointments.length > 0 ? (
                     <div className="space-y-6">
                       <h3 className="text-2xl font-semibold flex items-center mb-4">
                         Danh sách lịch hẹn {formatDate(new Date(selectedDate))}
                       </h3>
-
-                      {/* filter trạng thái thanh toán */}
-                      <PaymentStatusFilter
-                        selectedStatus={paymentStatus}
-                        onStatusChange={handlePaymentStatusChange}
-                      />
 
                       {filteredAppointments.map((appointment) => {
                         const matchedNurse = getNurseByAppointment(appointment);
@@ -639,7 +657,7 @@ const AppointmentPage: React.FC = () => {
                       })}
                     </div>
                   ) : (
-                    <div className=" p-12 text-center">
+                    <div className="p-12 text-center">
                       <CalendarDays className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-600 text-xl font-medium">
                         Không có lịch hẹn nào vào ngày đã chọn
