@@ -1,12 +1,6 @@
 "use client";
-import {
-  MedicalReport,
-  MedicalReportCard,
-} from "@/app/components/Nursing/MedicalReportCard";
-import {
-  Appointment,
-  PatientProfile,
-} from "@/app/components/Nursing/PatientRecord";
+
+import { PatientProfile } from "@/app/components/Nursing/PatientRecord";
 import React, { useEffect, useState } from "react";
 import {
   Breadcrumb,
@@ -18,14 +12,14 @@ import {
 import ServicesList from "@/app/components/Nursing/ServicesList";
 import ServiceCheckTask from "@/app/components/Nursing/ServiceCheckTask";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { calculateAge } from "@/app/components/Relatives/PatientRecord";
 import { formatDate } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { MedicalRecord } from "@/types/appointment";
 
@@ -72,6 +66,7 @@ const DetailHistoryAppointment: React.FC = () => {
   const patientID = params.id as string;
   const searchParams = useSearchParams();
   const appointmentID = searchParams.get("appointmentID");
+  const appointmentStatus = searchParams.get("status");
 
   const [appointment, setAppointment] = useState<
     CusPackageResponse["data"] | null
@@ -80,15 +75,44 @@ const DetailHistoryAppointment: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [patientLoading, setPatientLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("services");
+  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+  const [hasReport, setHasReport] = useState(false);
 
-  // State cho báo cáo y tế
   const [medicalReport, setMedicalReport] = useState("");
   const [medicalRecordData, setMedicalRecordData] =
     useState<MedicalRecord | null>(null);
   const [medicalRecordLoading, setMedicalRecordLoading] = useState(false);
-  const [hasReport, setHasReport] = useState(false);
-  const [updatedTasks, setUpdatedTasks] = useState<EnhancedTask[]>([]);
-  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch thông tin báo cáo y tế
+  useEffect(() => {
+    const fetchMedicalRecord = async () => {
+      if (!appointmentID) return;
+
+      try {
+        setMedicalRecordLoading(true);
+        const response =
+          await appointmentApiRequest.getMedicalRecord(appointmentID);
+        setMedicalRecordData(response.payload.data);
+      } catch (error) {
+        console.error("Error fetching medical record:", error);
+      } finally {
+        setMedicalRecordLoading(false);
+      }
+    };
+
+    fetchMedicalRecord();
+  }, [appointmentID]);
+
+  // Cập nhật trạng thái báo cáo từ dữ liệu y tế
+  useEffect(() => {
+    if (medicalRecordData?.["nursing-report"]) {
+      setMedicalReport(String(medicalRecordData["nursing-report"]));
+      setHasReport(true);
+    } else {
+      setHasReport(false);
+    }
+  }, [medicalRecordData]);
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -135,37 +159,9 @@ const DetailHistoryAppointment: React.FC = () => {
     };
 
     fetchAppointmentDetails();
-  }, [searchParams]);
+  }, [params, searchParams]);
 
-  // Fetch thông tin báo cáo y tế
-  useEffect(() => {
-    const fetchMedicalRecord = async () => {
-      if (!appointmentID) return;
-
-      try {
-        setMedicalRecordLoading(true);
-        const response =
-          await appointmentApiRequest.getMedicalRecord(appointmentID);
-        setMedicalRecordData(response.payload.data);
-      } catch (error) {
-        console.error("Error fetching medical record:", error);
-      } finally {
-        setMedicalRecordLoading(false);
-      }
-    };
-
-    fetchMedicalRecord();
-  }, [appointmentID]);
-
-  // Cập nhật trạng thái báo cáo từ dữ liệu y tế
-  useEffect(() => {
-    if (medicalRecordData?.["nursing-report"]) {
-      setMedicalReport(String(medicalRecordData["nursing-report"]));
-      setHasReport(true);
-    } else {
-      setHasReport(false);
-    }
-  }, [medicalRecordData]);
+  const [updatedTasks, setUpdatedTasks] = useState<EnhancedTask[]>([]);
 
   useEffect(() => {
     if (appointment) {
@@ -173,10 +169,11 @@ const DetailHistoryAppointment: React.FC = () => {
         ...task,
         nurseNote: "",
         isCompleted: task.status === "done",
+        taskOrder: task["task-order"],
         duration: `${task["est-duration"]}`,
         times: task["total-unit"],
-        staffAdvice: task["staff-advice"],
-        customerNote: task["client-note"],
+        staffAdvice: task["staff-advice"], // Đổi thành staffAdvice
+        customerNote: task["client-note"], // Đổi thành customerNote
       }));
 
       setUpdatedTasks(tasks);
@@ -190,37 +187,41 @@ const DetailHistoryAppointment: React.FC = () => {
   }, [appointment]);
 
   const handleServiceComplete = (taskId: string, nurseNote: string) => {
-    setUpdatedTasks((prev) =>
-      prev.map((task) =>
+    setUpdatedTasks((prev) => {
+      const newTasks = prev.map((task) =>
         task.id === taskId
           ? { ...task, nurseNote, isCompleted: true, status: "done" }
           : task
-      )
-    );
+      );
+
+      // Kiểm tra nếu tất cả task đã hoàn thành
+      const allCompleted = newTasks.every(
+        (task) => task.status === "done" || task.isCompleted
+      );
+      setAllTasksCompleted(allCompleted);
+
+      if (allCompleted) {
+        // Chuyển sang tab checklist nếu tất cả đã hoàn thành
+        setActiveTab("checklist");
+      }
+
+      return newTasks;
+    });
   };
 
+  // console.log("medicalRecordData", medicalRecordData?.id);
+  // console.log("medicalReport", medicalReport);
+
   if (loading || patientLoading || medicalRecordLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        Đang tải dữ liệu...
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   if (!appointment) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        Không tìm thấy thông tin cuộc hẹn.
-      </div>
-    );
+    return <div>Không tìm thấy thông tin cuộc hẹn.</div>;
   }
 
   if (!patientData) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        Không tìm thấy thông tin bệnh nhân.
-      </div>
-    );
+    return <div>Không tìm thấy thông tin bệnh nhân.</div>;
   }
 
   const totalDuration = appointment.tasks.reduce(
@@ -262,6 +263,20 @@ const DetailHistoryAppointment: React.FC = () => {
     },
   };
 
+  // Kiểm tra có hiển thị nút "Lưu báo cáo" hay không
+
+  const handleTabChange = (value: string) => {
+    if (value === "checklist" && appointmentStatus !== "upcoming") {
+      toast({
+        variant: "warning",
+        title: "Không thể truy cập",
+        description: "Chỉ khi bắt đầu tới điểm hẹn thì mới được check task",
+      });
+      return;
+    }
+    setActiveTab(value);
+  };
+
   return (
     <div className="mx-auto max-w-full container ">
       <Breadcrumb className=" py-5">
@@ -285,14 +300,13 @@ const DetailHistoryAppointment: React.FC = () => {
 
       <div>
         <h2 className="text-3xl font-bold mb-8">Chi tiết cuộc hẹn</h2>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <PatientProfile appointment={formattedPatientData as any} />
 
           <div>
             <Tabs
               value={activeTab}
-              onValueChange={setActiveTab}
+              onValueChange={handleTabChange}
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-2">
@@ -314,7 +328,6 @@ const DetailHistoryAppointment: React.FC = () => {
           </div>
         </div>
 
-        {/* Phần UI Báo cáo y tế */}
         {allTasksCompleted && (
           <Card className="mt-6 border-l-4 border-l-cyan-500 shadow-md">
             <CardContent className="p-5">

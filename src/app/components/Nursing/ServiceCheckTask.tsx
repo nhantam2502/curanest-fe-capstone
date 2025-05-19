@@ -154,7 +154,7 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
       // Show error notification
       toast({
         variant: "destructive",
-        title: "Cập nhật trạng thái thất bại",
+        title: "Cuộc hẹn vẫn chưa bắt đầu",
       });
     }
   };
@@ -208,12 +208,12 @@ const ServiceCheckTask: React.FC<ServiceCheckTaskProps> = ({
                         <span>{service.taskOrder || index + 1}.</span>
                         <span>{service.name}</span>
                         {!isCheckable && !isChecked && (
-                          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full ml-2">
+                          <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-full ml-2 mr-2 shrink-0">
                             Chờ đến lượt
                           </span>
                         )}
                         {isCheckable && (
-                          <span className="text-xs bg-cyan-200 text-cyan-700 px-2 py-1 rounded-full ml-2">
+                          <span className="text-xs bg-cyan-200 text-cyan-700 px-2 py-1 rounded-full ml-2 mr-2 shrink-0">
                             Đến lượt
                           </span>
                         )}

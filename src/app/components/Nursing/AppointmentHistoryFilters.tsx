@@ -16,19 +16,24 @@ import {
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { cn, getFormattedDate } from "@/lib/utils";
-import { CalendarIcon, Search, X, Filter } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { CalendarIcon, Search, X } from "lucide-react";
 
 interface AppointmentHistoryFiltersProps {
   filters: {
     patientName: string;
-    serviceName: string;
     fromDate: Date | null;
     toDate: Date | null;
-    status: string;
-    paymentStatus: string;
+    status: "all" | "success" | "cancel" | "confirmed" | "upcoming";
+    paymentStatus: "all" | "paid" | "unpaid" | "partial";
   };
-  onFilterChange: (filters: AppointmentHistoryFiltersProps["filters"]) => void;
+  onFilterChange: (filters: {
+    patientName: string;
+    fromDate: Date | null;
+    toDate: Date | null;
+    status: "all" | "success" | "cancel" | "confirmed" | "upcoming";
+    paymentStatus: "all" | "paid" | "unpaid" | "partial";
+  }) => void;
   onResetFilters: () => void;
 }
 
@@ -58,7 +63,7 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
   ) => {
     setTempFilters((prev) => ({
       ...prev,
-      [field]:  getFormattedDate(date ? date.toISOString() : ""),
+      [field]: date, // Lưu trực tiếp Date object, không chuyển đổi
     }));
   };
 
@@ -71,17 +76,8 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
 
   // Hàm áp dụng bộ lọc khi người dùng nhấn nút tìm kiếm
   const applyFilters = () => {
-    // Chuyển đổi định dạng ngày tháng cho fromDate và toDate
-    const formattedFilters = {
-      ...tempFilters,
-    };
-
-    console.log("Applying filters:", formattedFilters);
-    onFilterChange(formattedFilters);
-  };
-
-  const handleResetFilters = () => {
-    onResetFilters();
+    console.log("Applying filters:", tempFilters);
+    onFilterChange(tempFilters);
   };
 
   return (
@@ -91,7 +87,7 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
         <div className="relative">
           <Input
             placeholder="Tên bệnh nhân..."
-            value={tempFilters.patientName}
+            value={tempFilters.patientName || ""}
             onChange={(e) => handleInputChange("patientName", e.target.value)}
             className="pl-9"
           />
@@ -103,31 +99,10 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
               className="absolute right-1 top-1 h-7 w-7 p-0"
               onClick={() => handleInputChange("patientName", "")}
             >
-              <X />
-            </Button>
-          )}
-        </div>
-
-        {/* Tìm theo tên dịch vụ */}
-        {/* <div className="relative">
-          <Input
-            placeholder="Tên dịch vụ..."
-            value={tempFilters.serviceName}
-            onChange={(e) => handleInputChange("serviceName", e.target.value)}
-            className="pl-9"
-          />
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-          {tempFilters.serviceName && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="absolute right-1 top-1 h-7 w-7 p-0"
-              onClick={() => handleInputChange("serviceName", "")}
-            >
               <X className="h-4 w-4" />
             </Button>
           )}
-        </div> */}
+        </div>
 
         {/* Lọc theo trạng thái cuộc hẹn */}
         <Select
@@ -138,10 +113,11 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
             <SelectValue placeholder="Trạng thái cuộc hẹn" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tất cả trạng thái cuộc hẹn</SelectItem>
-            <SelectItem value="completed">Đã hoàn thành</SelectItem>
-            <SelectItem value="cancelled">Đã hủy</SelectItem>
-            <SelectItem value="waiting">Đang đợi</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="success">Đã hoàn thành</SelectItem>
+            <SelectItem value="confirmed">Đã xác nhận</SelectItem>
+            <SelectItem value="upcoming">Đang tới</SelectItem>
+            <SelectItem value="cancel">Đã hủy</SelectItem>
           </SelectContent>
         </Select>
 
@@ -170,13 +146,13 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left text-lg font-normal",
+                  "w-full justify-start text-left font-normal",
                   !tempFilters.fromDate && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {tempFilters.fromDate
-                  ? format(new Date(tempFilters.fromDate), "dd/MM/yyyy", {
+                  ? format(tempFilters.fromDate, "dd/MM/yyyy", {
                       locale: vi,
                     })
                   : "Từ ngày"}
@@ -185,16 +161,10 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={
-                  tempFilters.fromDate
-                    ? new Date(tempFilters.fromDate)
-                    : undefined
-                }
+                selected={tempFilters.fromDate || undefined}
                 onSelect={(date) => handleDateChange("fromDate", date || null)}
                 disabled={(date) =>
-                  tempFilters.toDate
-                    ? date > new Date(tempFilters.toDate)
-                    : false
+                  tempFilters.toDate ? date > tempFilters.toDate : false
                 }
                 initialFocus
               />
@@ -202,20 +172,20 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
           </Popover>
         </div>
 
-        {/* Chọn đến ngày */}
+        {/* Chọn đến ngày - Thêm vào */}
         <div className="w-full sm:w-auto">
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left text-lg font-normal",
+                  "w-full justify-start text-left font-normal",
                   !tempFilters.toDate && "text-muted-foreground"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {tempFilters.toDate
-                  ? format(new Date(tempFilters.toDate), "dd/MM/yyyy", {
+                  ? format(tempFilters.toDate, "dd/MM/yyyy", {
                       locale: vi,
                     })
                   : "Đến ngày"}
@@ -224,14 +194,10 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
             <PopoverContent className="w-auto p-0">
               <Calendar
                 mode="single"
-                selected={
-                  tempFilters.toDate ? new Date(tempFilters.toDate) : undefined
-                }
+                selected={tempFilters.toDate || undefined}
                 onSelect={(date) => handleDateChange("toDate", date || null)}
                 disabled={(date) =>
-                  tempFilters.fromDate
-                    ? date < new Date(tempFilters.fromDate)
-                    : false
+                  tempFilters.fromDate ? date < tempFilters.fromDate : false
                 }
                 initialFocus
               />
@@ -243,7 +209,7 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
         <Button
           variant="default"
           onClick={applyFilters}
-          className="w-full sm:w-auto "
+          className="w-full sm:w-auto"
         >
           <Search className="mr-2 h-4 w-4" />
           Tìm kiếm
@@ -252,8 +218,8 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
         {/* Nút reset bộ lọc */}
         <Button
           variant="outline"
-          onClick={handleResetFilters}
-          className="w-full sm:w-auto "
+          onClick={onResetFilters}
+          className="w-full sm:w-auto"
         >
           <X className="mr-2 h-4 w-4" />
           Xóa bộ lọc
