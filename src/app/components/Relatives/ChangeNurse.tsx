@@ -62,7 +62,7 @@ const AvailabilityDialog: React.FC<AvailabilityDialogProps> = ({
     return null;
   }
 
-  console.log("availableNurses: ", availableNurses);
+  // console.log("availableNurses: ", availableNurses);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[1200px] max-h-[90vh] overflow-y-auto">

@@ -102,6 +102,14 @@ const BookingNurse = () => {
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(true);
   const [errorProfiles, setErrorProfiles] = useState<string | null>(null);
 
+  const [validationStatus, setValidationStatus] = useState<{
+    hasOverlap: boolean;
+    hasUnavailableNurse: boolean;
+  }>({
+    hasOverlap: false,
+    hasUnavailableNurse: false,
+  });
+
   const steps = [
     { id: 1, title: "Hồ sơ bệnh nhân" },
     { id: 2, title: "Chọn gói theo dịch vụ" },
@@ -174,7 +182,28 @@ const BookingNurse = () => {
       case 2:
         return (selectedServicesTask?.length || 0) > 0;
       case 4:
-        return selectedTime !== null || selectedTimes !== null;
+        const hasNoOverlap = !validationStatus.hasOverlap;
+        const hasNoUnavailableNurse = !validationStatus.hasUnavailableNurse;
+
+        if (
+          selectedPackage &&
+          selectedPackage["combo-days"] &&
+          typeof selectedPackage["combo-days"] === "number" &&
+          selectedPackage["combo-days"] > 1
+        ) {
+          return (
+            Array.isArray(selectedTimes) &&
+            selectedTimes.length === selectedPackage["combo-days"] &&
+            hasNoOverlap &&
+            hasNoUnavailableNurse
+          );
+        }
+        return (
+          ((selectedTime !== null && selectedTime !== undefined) ||
+            (Array.isArray(selectedTimes) && selectedTimes.length > 0)) &&
+          hasNoOverlap &&
+          hasNoUnavailableNurse
+        );
       default:
         return true;
     }
@@ -214,11 +243,6 @@ const BookingNurse = () => {
         const [hours, minutes] = startTime.split(":").map(Number);
 
         const localDate = new Date(year, month, day, hours, minutes);
-
-        console.log("date: ", date);
-        console.log("startTime: ", startTime);
-        console.log("Ngày đã chọn (local): ", `${day}/${month + 1}/${year}`);
-        console.log("localDate: ", localDate);
 
         if (isNaN(localDate.getTime())) {
           throw new Error("Không thể tạo Date hợp lệ từ date và time");
@@ -275,24 +299,25 @@ const BookingNurse = () => {
           appointmentData
         );
 
-        const newAppointmentId = response.payload["object-id"];
+      const newAppointmentId = response.payload["object-id"];
 
-        toast({
-          variant: "default",
-          title: "Bạn đã đặt lịch thành công",
-        });
-  
-        try {
-          const invoiceResponse = await appointmentApiRequest.getInvoice(newAppointmentId);
-          console.log("invoiceResponse: ", invoiceResponse);
-          const invoiceData = invoiceResponse.payload.data;
-          if (invoiceData && invoiceData.length > 0) {
-            router.push(invoiceData[0]["payos-url"]);
-          }
-        } catch (invoiceError) {
-          console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
-          router.push("/relatives/appointments");
+      toast({
+        variant: "default",
+        title: "Bạn đã đặt lịch thành công",
+      });
+
+      try {
+        const invoiceResponse =
+          await appointmentApiRequest.getInvoice(newAppointmentId);
+        console.log("invoiceResponse: ", invoiceResponse);
+        const invoiceData = invoiceResponse.payload.data;
+        if (invoiceData && invoiceData.length > 0) {
+          router.push(invoiceData[0]["payos-url"]);
         }
+      } catch (invoiceError) {
+        console.error("Lỗi khi lấy thông tin hóa đơn:", invoiceError);
+        router.push("/relatives/appointments");
+      }
     } catch (error) {
       console.error("Lỗi khi tạo cuộc hẹn:", error);
       toast({
@@ -492,6 +517,8 @@ const BookingNurse = () => {
             selectedNurse={selectedNurse}
             serviceID={serviceID}
             onNurseSelect={handleNurseSelect}
+            patientId={selectedProfile?.id ?? ""}
+            onValidationChange={setValidationStatus}
           />
         ) : (
           <TimeSelection
@@ -502,6 +529,8 @@ const BookingNurse = () => {
             selectedNurse={selectedNurse}
             serviceID={serviceID}
             onNurseSelect={(nurse) => setSelectedNurse(nurse)}
+            patientId={selectedProfile?.id ?? ""}
+            onValidationChange={setValidationStatus}
           />
         );
 

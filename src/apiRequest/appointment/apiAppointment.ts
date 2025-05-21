@@ -36,6 +36,13 @@ const appointmentApiRequest = {
       }${nursingId && patientId ? `&patient-id=${patientId}` : ""}`
     ),
 
+  getAppointmentofPatient: (patientId?: string, estDateFrom?: string) =>
+    http.get<AppointmentRes>(
+      `/appointment/api/v1/appointments${
+        patientId ? `?patient-id=${patientId}` : ""
+      }${estDateFrom ? `${patientId ? "&" : "?"}est-date-from=${estDateFrom}` : ""}`
+    ),
+
   verifyNurse: (body: VerifyNurse) =>
     http.post<VerifyNurseRes>(
       "/appointment/api/v1/appointments/verify-nurses-dates",

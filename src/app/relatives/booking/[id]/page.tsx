@@ -70,7 +70,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     TransformedCategory[]
   >([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const [servicesByType, setServicesByType] = useState<ServicesByType>({
     oneTime: {},
@@ -108,6 +107,14 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
   const [profiles, setProfiles] = useState<PatientRecord[]>([]);
   const [isLoadingProfiles, setIsLoadingProfiles] = useState(false);
   const [errorProfiles, setErrorProfiles] = useState<string | null>(null);
+
+  const [validationStatus, setValidationStatus] = useState<{
+    hasOverlap: boolean;
+    hasUnavailableNurse: boolean;
+  }>({
+    hasOverlap: false,
+    hasUnavailableNurse: false,
+  });
 
   const getSteps = () => {
     const baseSteps = [
@@ -200,7 +207,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       ? selectedTimes && selectedTimes.length > 0
       : selectedTime !== null;
 
-    // Kiểm tra dữ liệu đầu vào
     if (
       !selectedServicesTask.length ||
       !hasValidTime ||
@@ -216,7 +222,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       return;
     }
 
-    // Kiểm tra thêm nếu là gói nhiều ngày, đảm bảo tất cả buổi có điều dưỡng hợp lệ khi chọn thủ công
     if (
       isMultiDayPackage &&
       nurseSelectionMethod === "manual" &&
@@ -233,7 +238,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     try {
       const convertToUTCString = (date: Date, startTime: string): string => {
         const year = date.getFullYear();
-        const month = date.getMonth(); // 0-11
+        const month = date.getMonth();
         const day = date.getDate();
 
         const [hours, minutes] = startTime.split(":").map(Number);
@@ -244,12 +249,9 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
           throw new Error("Không thể tạo Date hợp lệ từ date và time");
         }
 
-        // Chuyển đổi thành chuỗi ISO UTC
-        const isoString = localDate.toISOString();
-        return isoString.replace(".000Z", "Z");
+        return localDate.toISOString().replace(".000Z", "Z");
       };
 
-      // Tạo ánh xạ ngày và điều dưỡng
       const dateNurseMappings = isMultiDayPackage
         ? selectedTimes.map((time) => ({
             date: convertToUTCString(time.date, time.timeSlot.start),
@@ -291,8 +293,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
         }),
       };
 
-      console.log("appointmentData: ", appointmentData);
-
       const response =
         await appointmentApiRequest.createAppointmentCusPackage(
           appointmentData
@@ -306,7 +306,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       });
 
       try {
-        const invoiceResponse = await appointmentApiRequest.getInvoice(newAppointmentId);
+        const invoiceResponse =
+          await appointmentApiRequest.getInvoice(newAppointmentId);
         const invoiceData = invoiceResponse.payload.data;
         if (invoiceData && invoiceData.length > 0) {
           router.push(invoiceData[0]["payos-url"]);
@@ -330,13 +331,12 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
       case 1:
         return selection !== null;
       case 2:
-        return (selectedServicesTask?.length || 0) > 0;
+        return selectedServicesTask.length > 0;
       case 5:
         if (nurseSelectionMethod === "manual") {
           return selectedNurse !== null;
-        } else {
-          return selectedTime !== null || selectedTimes !== null;
         }
+        return selectedTime !== null || selectedTimes.length > 0;
       case 6:
         if (nurseSelectionMethod === "manual") {
           if (
@@ -344,12 +344,23 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             selectedPackage["combo-days"] &&
             selectedPackage["combo-days"] > 1
           ) {
-            return selectedTimes.length === selectedPackage["combo-days"];
-          } else {
-            return selectedTime !== null;
+            return (
+              selectedTimes.length === selectedPackage["combo-days"] &&
+              !validationStatus.hasOverlap &&
+              !validationStatus.hasUnavailableNurse
+            );
           }
+          return (
+            selectedTime !== null &&
+            !validationStatus.hasOverlap &&
+            !validationStatus.hasUnavailableNurse
+          );
         }
-        return true;
+        return (
+          (selectedTime !== null || selectedTimes.length > 0) &&
+          !validationStatus.hasOverlap &&
+          !validationStatus.hasUnavailableNurse
+        );
       default:
         return true;
     }
@@ -518,7 +529,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     };
 
     fetchNurses();
-  }, [selection, selectedPackage, toast]);
+  }, [selection, toast]);
 
   const handleNurseSelect = (
     nurse: NurseItemType,
@@ -529,28 +540,10 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
     }
   };
 
-  const getSelectedNurseNames = () => {
-    const nurseNames: string[] = [];
-
-    // Trường hợp gói một buổi
-    if (selectedNurse) {
-      nurseNames.push(selectedNurse["nurse-name"]);
-    }
-
-    // Trường hợp gói nhiều buổi
-    if (selectedTimes && selectedTimes.length > 0) {
-      selectedTimes.forEach((timeItem) => {
-        if (timeItem.nurse && timeItem.nurse["nurse-name"]) {
-          nurseNames.push(timeItem.nurse["nurse-name"]);
-        }
-      });
-    }
-
-    // Loại bỏ trùng lặp (nếu có) và trả về danh sách
-    return Array.from(new Set(nurseNames));
-  };
-
   const renderStepContent = (step: number) => {
+    const isMultiDayPackage =
+      selectedPackage?.["combo-days"] && selectedPackage["combo-days"] > 1;
+
     switch (step) {
       case 1:
         return (
@@ -559,7 +552,6 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             selection={selection}
             setSelection={setSelection}
             onNext={handleNextStep}
-            isLoading={isLoading}
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
           />
@@ -615,12 +607,10 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             const selectedNurse = nurses.find(
               (nurse) => nurse["nurse-id"] === nurseId
             );
-
             if (selectedNurse) {
               setSelectedNurse(selectedNurse);
             }
           };
-          const filteredNurses = nurses;
           return (
             <div className="space-y-6 text-lg">
               <h2 className="text-3xl font-bold">Chọn điều dưỡng</h2>
@@ -628,9 +618,9 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                 <p className="text-gray-600">
                   Đang tải danh sách điều dưỡng...
                 </p>
-              ) : filteredNurses.length > 0 ? (
+              ) : nurses.length > 0 ? (
                 <NurseSelectionList
-                  nurses={filteredNurses}
+                  nurses={nurses}
                   onSelect={handleNurseSelectStep}
                 />
               ) : (
@@ -639,11 +629,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             </div>
           );
         }
-        if (
-          selectedPackage &&
-          selectedPackage["combo-days"] &&
-          selectedPackage["combo-days"] > 1
-        ) {
+      case 6:
+        if (nurseSelectionMethod === "manual" && isMultiDayPackage) {
           return (
             <SubscriptionTimeSelection
               totalTime={calculateTotalTime()}
@@ -653,9 +640,11 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
               selectedNurse={selectedNurse}
               serviceID={selection?.serviceId || ""}
               onNurseSelect={handleNurseSelect}
+              patientId={patientId}
+              onValidationChange={setValidationStatus}
             />
           );
-        } else {
+        } else if (!isMultiDayPackage) {
           return (
             <TimeSelection
               totalTime={calculateTotalTime()}
@@ -665,42 +654,10 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
               selectedNurse={selectedNurse}
               serviceID={selection?.serviceId || ""}
               onNurseSelect={(nurse) => setSelectedNurse(nurse)}
+              patientId={patientId}
+              onValidationChange={setValidationStatus}
             />
           );
-        }
-      case 6:
-        if (nurseSelectionMethod === "manual") {
-          if (
-            selectedPackage &&
-            selectedPackage["combo-days"] &&
-            selectedPackage["combo-days"] > 1
-          ) {
-            return (
-              <SubscriptionTimeSelection
-                totalTime={calculateTotalTime()}
-                timeInterval={selectedPackage["time-interval"]}
-                comboDays={selectedPackage["combo-days"] || 0}
-                onTimesSelect={(selectedDates) =>
-                  setSelectedTimes(selectedDates)
-                }
-                selectedNurse={selectedNurse}
-                serviceID={selection?.serviceId || ""}
-                onNurseSelect={handleNurseSelect}
-              />
-            );
-          } else {
-            return (
-              <TimeSelection
-                totalTime={calculateTotalTime()}
-                onTimeSelect={({ date, timeSlot, isoString }) => {
-                  setSelectedTime({ timeSlot, date, isoString });
-                }}
-                selectedNurse={selectedNurse}
-                serviceID={selection?.serviceId || ""}
-                onNurseSelect={(nurse) => setSelectedNurse(nurse)}
-              />
-            );
-          }
         }
         return (
           <Step6Component
@@ -735,6 +692,8 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
             selectedProfile={selectedProfile}
           />
         );
+      default:
+        return null;
     }
   };
 
@@ -827,30 +786,7 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
                     </div>
                   )}
 
-                  {/* <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 space-y-2">
-                    <h3 className="text-xl font-be-vietnam-pro font-semibold text-gray-800">
-                      Danh sách điều dưỡng đã chọn
-                    </h3>
-                    <div className="text-lg text-gray-600 space-y-1">
-                      {getSelectedNurseNames().length > 0 ? (
-                        getSelectedNurseNames().map((nurseName, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center space-x-2"
-                          >
-                            <User className="text-gray-500" size={16} />
-                            <span>{nurseName}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <span className="text-gray-500 italic">
-                          Chưa chọn điều dưỡng
-                        </span>
-                      )}
-                    </div>
-                  </div> */}
-
-                  {selectedServicesTask && selectedServicesTask.length > 0 ? (
+                  {selectedServicesTask.length > 0 ? (
                     <div className="space-y-4">
                       {selectedPackage && (
                         <div>

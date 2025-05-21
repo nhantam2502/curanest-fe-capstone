@@ -284,20 +284,25 @@ const AppointmentPage: React.FC = () => {
     );
   };
 
-  const handlePayment = async () => {
+  const handlePayment = async (appointment: AppointmentDisplay) => {
     try {
       setIsPaymentLoading(true);
 
+      // Use appointment.apiData["cuspackage-id"] directly
+      if (!appointment.apiData["cuspackage-id"]) {
+        throw new Error("Không có cuspackage-id được cung cấp");
+      }
+
       // 1. Lấy thông tin hóa đơn
-      let invoiceResponse = await appointmentApiRequest.getInvoice(
-        selectedAppointment?.apiData["cuspackage-id"] || ""
+      const invoiceResponse = await appointmentApiRequest.getInvoice(
+        appointment.apiData["cuspackage-id"]
       );
 
       if (!invoiceResponse?.payload?.data) {
         throw new Error("Không nhận được dữ liệu hóa đơn từ server");
       }
 
-      let invoiceData = invoiceResponse.payload.data;
+      const invoiceData = invoiceResponse.payload.data;
 
       if (invoiceData && invoiceData.length > 0) {
         // Nếu đã có URL thì chuyển hướng luôn
@@ -311,13 +316,16 @@ const AppointmentPage: React.FC = () => {
         await invoiceApiRequest.createPaymentUrl(invoiceID);
 
         // Gọi lại getInvoice để lấy URL mới
-        invoiceResponse = await appointmentApiRequest.getInvoice(
-          selectedAppointment?.apiData["cuspackage-id"] || ""
+        const updatedInvoiceResponse = await appointmentApiRequest.getInvoice(
+          appointment.apiData["cuspackage-id"]
         );
-        invoiceData = invoiceResponse.payload.data;
+        const updatedInvoiceData = updatedInvoiceResponse.payload.data;
 
-        if (invoiceData[0] && typeof invoiceData[0]["payos-url"] === "string") {
-          router.push(invoiceData[0]["payos-url"]);
+        if (
+          updatedInvoiceData[0] &&
+          typeof updatedInvoiceData[0]["payos-url"] === "string"
+        ) {
+          router.push(updatedInvoiceData[0]["payos-url"]);
           return;
         } else {
           throw new Error("Không thể tạo URL thanh toán");
@@ -596,7 +604,9 @@ const AppointmentPage: React.FC = () => {
                                           <div className="flex gap-4 mt-4">
                                             <Button
                                               className="flex-1 text-lg"
-                                              onClick={handlePayment}
+                                              onClick={() =>
+                                                handlePayment(appointment)
+                                              }
                                               disabled={
                                                 isPaymentLoading ||
                                                 isCancelLoading
