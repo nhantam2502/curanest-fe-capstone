@@ -23,7 +23,7 @@ interface Appointment {
   cusPackageID: string;
   status: string;
   totalAmount: string;
-  paymentStatus: string;
+  paymentStatus: string | null;
   patient_info: PatientRecord;
   estTimeFrom?: string;
   estTimeTo?: string;

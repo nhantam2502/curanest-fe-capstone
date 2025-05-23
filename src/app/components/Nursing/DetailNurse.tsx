@@ -185,7 +185,6 @@ const DetailNurse = ({
 
   return (
     <div className="relative bg-[url('/hero-bg.png')] bg-no-repeat bg-center bg-cover bg-fixed min-h-screen pb-16">
-      {/* Breadcrumb */}
       <Breadcrumb className="px-10 py-10">
         <BreadcrumbList>
           <BreadcrumbItem>

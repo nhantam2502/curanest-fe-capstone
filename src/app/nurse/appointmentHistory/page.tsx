@@ -111,7 +111,7 @@ const AppointmentHistory: React.FC = () => {
       if (response.payload.success) {
         const appointmentsData = response.payload.data;
         setAppointments(appointmentsData);
-        setTotalPages(Math.ceil(response.payload.paging.total / pageSize));
+        setTotalPages(Math.ceil(response.payload.paging.total));
 
         const packageDetailsMap: Record<string, CusPackageResponse> = {};
         const patientRecordsMap: Record<string, PatientRecord> = {};

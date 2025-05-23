@@ -12,7 +12,7 @@ import {
 import ServicesList from "@/app/components/Nursing/ServicesList";
 import ServiceCheckTask from "@/app/components/Nursing/ServiceCheckTask";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
 import { calculateAge } from "@/app/components/Relatives/PatientRecord";
@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { MedicalRecord } from "@/types/appointment";
+import { ArrowLeft } from "lucide-react";
 
 export type CusPackageResponse = {
   success: boolean;
@@ -62,6 +63,7 @@ type EnhancedTask = Task & {
 };
 
 const DetailAppointment: React.FC = () => {
+  const router = useRouter();
   const params = useParams();
   const patientID = params.id as string;
   const searchParams = useSearchParams();
@@ -328,21 +330,32 @@ const DetailAppointment: React.FC = () => {
   };
   return (
     <div className="mx-auto max-w-full container ">
-      <Breadcrumb className=" py-5">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/nurse/appointments" className="text-xl">
-              Danh sách cuộc hẹn sắp tới
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator className="text-gray-400" />
-          <BreadcrumbItem>
-            <BreadcrumbLink className="text-xl">
-              Chi tiết cuộc hẹn: {formattedPatientData.patient_name}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <div className="flex items-center justify-between py-5">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/nurse/appointments" className="text-xl">
+                Danh sách cuộc hẹn sắp tới
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator className="text-gray-400" />
+            <BreadcrumbItem>
+              <BreadcrumbLink className="text-xl">
+                Chi tiết cuộc hẹn: {formattedPatientData.patient_name}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <Button
+          variant="outline"
+          onClick={() => router.back()}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Quay lại
+        </Button>
+      </div>
 
       <div>
         <h2 className="text-3xl font-bold mb-8">Chi tiết cuộc hẹn</h2>

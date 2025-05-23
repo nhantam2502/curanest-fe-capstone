@@ -171,48 +171,44 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
 
   const timeSlots = getActiveTimeSlots();
 
-  // Kiểm tra một ca có lịch hẹn nào không
-  const hasAppointmentsInTimeRange = (range: TimeRange) => {
-    let slots: string[] = [];
+const hasAppointmentsInTimeRange = (range: TimeRange) => {
+  const [startHour, endHour] = {
+    morning: [8, 12],
+    afternoon: [12, 17],
+    evening: [17, 22],
+  }[range];
 
-    switch (range) {
-      case "morning":
-        slots = getMorningSlots();
-        break;
-      case "afternoon":
-        slots = getAfternoonSlots();
-        break;
-      case "evening":
-        slots = getEveningSlots();
-        break;
-    }
+  const currentWeekAppointments = appointments.filter((apt) => {
+    if (!apt.appointment_date) return false;
 
-    // Lọc các lịch hẹn trong tuần hiện tại
-    const currentWeekAppointments = appointments.filter(apt => {
-      if (!apt.appointment_date) return false;
-      
-      const aptDate = new Date(apt.appointment_date);
-      if (isNaN(aptDate.getTime())) return false;
-      
-      const formattedAptDate = formatDate(aptDate);
-      return weekDays.includes(formattedAptDate);
-    });
+    const aptDate = new Date(apt.appointment_date);
+    if (isNaN(aptDate.getTime())) return false;
 
-    return currentWeekAppointments.some((apt) => {
-      if (!apt.estTimeFrom || !apt.estTimeTo) return false;
+    const formattedAptDate = formatDate(aptDate);
+    const isInWeek = weekDays.includes(formattedAptDate);
 
-      const aptStartHour = parseInt(apt.estTimeFrom.split(":")[0]);
+    return isInWeek;
+  });
 
-      if (range === "morning" && aptStartHour >= 8 && aptStartHour < 12)
-        return true;
-      if (range === "afternoon" && aptStartHour >= 12 && aptStartHour < 17)
-        return true;
-      if (range === "evening" && aptStartHour >= 17 && aptStartHour < 22)
-        return true;
+  return currentWeekAppointments.some((apt) => {
+    if (!apt.estTimeFrom || !apt.estTimeTo) return false;
 
-      return false;
-    });
-  };
+    const toMinutes = (time: string) => {
+      const [hours, minutes] = time.split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const aptStartMinutes = toMinutes(apt.estTimeFrom);
+    const aptEndMinutes = toMinutes(apt.estTimeTo);
+    const rangeStartMinutes = startHour * 60;
+    const rangeEndMinutes = endHour * 60;
+
+    const hasOverlap = aptStartMinutes < rangeEndMinutes && aptEndMinutes > rangeStartMinutes;
+    // console.log(`Checking ${range} for ${apt.estTimeFrom}-${apt.estTimeTo}:`, hasOverlap);
+    return hasOverlap;
+  });
+};
+
 
   // Render bảng lịch trình
   const renderScheduleTable = () => {
@@ -328,19 +324,19 @@ const TimeTableNurse = ({ nurseId }: TimeTableNurseProps) => {
         <TabsList className="w-full grid grid-cols-3">
           <TabsTrigger value="morning" className="text-lg relative">
             Buổi sáng (8h-12h)
-            {weekOffset === 0 && hasAppointmentsInTimeRange("morning") && (
+            {hasAppointmentsInTimeRange("morning") && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             )}
           </TabsTrigger>
           <TabsTrigger value="afternoon" className="text-lg relative">
             Buổi chiều (12h-17h)
-            {weekOffset === 0 && hasAppointmentsInTimeRange("afternoon") && (
+            { hasAppointmentsInTimeRange("afternoon") && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             )}
           </TabsTrigger>
           <TabsTrigger value="evening" className="text-lg relative">
             Buổi tối (17h-22h)
-            {weekOffset === 0 && hasAppointmentsInTimeRange("evening") && (
+            {hasAppointmentsInTimeRange("evening") && (
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
             )}
           </TabsTrigger>

@@ -24,7 +24,7 @@ import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
 import { useSession } from "next-auth/react";
 import { PatientRecord } from "@/types/patient";
 import patientApiRequest from "@/apiRequest/patient/apiPatient";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import NotificationDropdown from "@/app/components/Relatives/Notification";
 import notificationApiRequest from "@/apiRequest/notification/apiNotification";
@@ -68,13 +68,11 @@ const NurseScheduleCalendar = () => {
           session.user.id,
           100
         );
-        console.log("Notifications response: ", response);
         if (response.payload.data) {
           const unreadCount = response.payload.data.filter(
             (notification: any) => notification["read-at"] === null
           ).length;
           setUnreadNotificationsCount(unreadCount);
-          console.log("Unread notifications count: ", unreadCount);
         }
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
@@ -290,6 +288,43 @@ const NurseScheduleCalendar = () => {
     return Math.ceil((endMinutes - startMinutes) / 15);
   };
 
+  // New function to check if a shift has appointments in the selected week
+  const hasAppointmentsForShift = (shiftId: string) => {
+    const selectedShift = shifts.find((shift) => shift.id === shiftId);
+    if (!selectedShift) return false;
+
+    const [shiftStartHour, shiftStartMinute] = selectedShift.timeStart
+      .split(":")
+      .map(Number);
+    const [shiftEndHour, shiftEndMinute] = selectedShift.timeEnd
+      .split(":")
+      .map(Number);
+    const shiftStartInMinutes = shiftStartHour * 60 + shiftStartMinute;
+    const shiftEndInMinutes = shiftEndHour * 60 + shiftEndMinute;
+
+    const startOfWeek = getStartOfWeek(selectedDate);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    return scheduleData.some((event) => {
+      if (!event.estTimeFrom || !event.appointment_date) return false;
+
+      const eventDate = new Date(event.appointment_date);
+      if (
+        eventDate < startOfWeek ||
+        eventDate > endOfWeek
+      ) return false;
+
+      const [eventHour, eventMinute] = event.estTimeFrom.split(":").map(Number);
+      const eventTimeInMinutes = eventHour * 60 + eventMinute;
+
+      return (
+        eventTimeInMinutes >= shiftStartInMinutes &&
+        eventTimeInMinutes <= shiftEndInMinutes
+      );
+    });
+  };
+
   const filteredScheduleData = scheduleData.filter((event) => {
     if (!event.estTimeFrom) return false;
 
@@ -358,7 +393,7 @@ const NurseScheduleCalendar = () => {
           })}
           {shiftTimeSlots.map((timeSlot) => (
             <React.Fragment key={timeSlot}>
-              <div className="col-span-1 border-r border-t h-16 p-4 sticky left-0 bg-white z-10">
+              <div className="col-span-1 border-r border-t h-16 sticky left-0 bg-white z-10">
                 <div className="text-sm text-gray-500">{timeSlot}</div>
               </div>
               {Array.from({ length: 7 }).map((_, dayIndex) => (
@@ -497,26 +532,26 @@ const NurseScheduleCalendar = () => {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                 {/* Notification Bell - Desktop */}
-            {status === "authenticated" && (
-              <div className="hidden md:flex relative cursor-pointer">
-                <div onClick={handleNotificationsClick}>
-                  <Bell className="h-7 w-7" />
-                  {/* Notification Badge */}
-                  {unreadNotificationsCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                      {unreadNotificationsCount}
-                    </span>
-                  )}
-                </div>
+                {/* Notification Bell - Desktop */}
+                {status === "authenticated" && (
+                  <div className="hidden md:flex relative cursor-pointer">
+                    <div onClick={handleNotificationsClick}>
+                      <Bell className="h-7 w-7" />
+                      {/* Notification Badge */}
+                      {unreadNotificationsCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                          {unreadNotificationsCount}
+                        </span>
+                      )}
+                    </div>
 
-                {/* Notification Dropdown */}
-                <NotificationDropdown
-                  isOpen={isNotificationsOpen}
-                  onClose={() => setIsNotificationsOpen(false)}
-                />
-              </div>
-            )}
+                    {/* Notification Dropdown */}
+                    <NotificationDropdown
+                      isOpen={isNotificationsOpen}
+                      onClose={() => setIsNotificationsOpen(false)}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -528,8 +563,11 @@ const NurseScheduleCalendar = () => {
             >
               <TabsList className="grid grid-cols-3">
                 {shifts.map((shift) => (
-                  <TabsTrigger key={shift.id} value={shift.id}>
+                  <TabsTrigger key={shift.id} value={shift.id} className="relative">
                     {shift.label} ({shift.timeStart} - {shift.timeEnd})
+                    {hasAppointmentsForShift(shift.id) && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full" />
+                    )}
                   </TabsTrigger>
                 ))}
               </TabsList>
