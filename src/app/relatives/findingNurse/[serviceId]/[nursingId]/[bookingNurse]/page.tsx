@@ -182,7 +182,7 @@ const BookingNurse = () => {
       case 2:
         return (selectedServicesTask?.length || 0) > 0;
       case 4:
-        const hasNoOverlap = !validationStatus.hasOverlap;
+        // const hasNoOverlap = !validationStatus.hasOverlap;
         const hasNoUnavailableNurse = !validationStatus.hasUnavailableNurse;
 
         if (
@@ -194,14 +194,14 @@ const BookingNurse = () => {
           return (
             Array.isArray(selectedTimes) &&
             selectedTimes.length === selectedPackage["combo-days"] &&
-            hasNoOverlap &&
+            // hasNoOverlap &&
             hasNoUnavailableNurse
           );
         }
         return (
           ((selectedTime !== null && selectedTime !== undefined) ||
             (Array.isArray(selectedTimes) && selectedTimes.length > 0)) &&
-          hasNoOverlap &&
+          // hasNoOverlap &&
           hasNoUnavailableNurse
         );
       default:

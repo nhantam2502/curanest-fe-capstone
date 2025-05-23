@@ -346,19 +346,19 @@ const DetailBooking = ({ params }: { params: { id: string } }) => {
           ) {
             return (
               selectedTimes.length === selectedPackage["combo-days"] &&
-              !validationStatus.hasOverlap &&
+              // !validationStatus.hasOverlap &&
               !validationStatus.hasUnavailableNurse
             );
           }
           return (
             selectedTime !== null &&
-            !validationStatus.hasOverlap &&
+            // !validationStatus.hasOverlap &&
             !validationStatus.hasUnavailableNurse
           );
         }
         return (
           (selectedTime !== null || selectedTimes.length > 0) &&
-          !validationStatus.hasOverlap &&
+          // !validationStatus.hasOverlap &&
           !validationStatus.hasUnavailableNurse
         );
       default:

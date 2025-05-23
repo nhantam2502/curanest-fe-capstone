@@ -113,7 +113,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           toast({
             variant: "warning",
             title: "Lịch hẹn bị trùng",
-            description: `Lịch hẹn trùng vào ngày ${formattedSelectedDate} lúc ${selectedTimeSlot.display}. Vui lòng chọn khung giờ hoặc ngày khác.`,
+            description: `Lịch hẹn trùng vào ngày ${formattedSelectedDate} lúc ${selectedTimeSlot.display}.`,
           });
           return true;
         }
@@ -480,8 +480,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
             <div className="bg-yellow-100 p-4 rounded-lg mb-4 flex items-center gap-3 text-yellow-700">
               <AlertCircle className="h-6 w-6" />
               <p>
-                Lịch hẹn này trùng với một lịch hẹn hiện có. Vui lòng chọn ngày
-                hoặc giờ khác.
+                Lịch hẹn này trùng với một lịch hẹn hiện có. 
               </p>
             </div>
           )}

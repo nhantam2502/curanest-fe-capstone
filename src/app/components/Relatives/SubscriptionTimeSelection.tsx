@@ -249,7 +249,7 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
               toast({
                 variant: "warning",
                 title: "Lịch hẹn bị trùng",
-                description: `Buổi ${index + 1} trùng lịch vào ngày ${formattedSelectedDate} lúc ${selectedDate.timeSlot.display}. Vui lòng chọn khung giờ hoặc ngày khác.`,
+                description: `Buổi ${index + 1} trùng lịch vào ngày ${formattedSelectedDate} lúc ${selectedDate.timeSlot.display}.`,
               });
             }
           }
@@ -270,8 +270,8 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
           (status) => status === false
         ),
       };
-      console.log("onValidationChange in fetchAppointments:", validation);
-      console.log("newOverlapStatus:", newOverlapStatus); // Debug trạng thái
+      // console.log("onValidationChange in fetchAppointments:", validation);
+      // console.log("newOverlapStatus:", newOverlapStatus); // Debug trạng thái
       onValidationChange?.(validation);
     } catch (err) {
       console.error("Error fetching appointments:", err);
@@ -832,7 +832,6 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
                                   <AlertCircle className="h-6 w-6" />
                                   <p>
                                     Lịch hẹn này trùng với một lịch hẹn hiện có.
-                                    Vui lòng chỉnh sửa ngày hoặc giờ.
                                   </p>
                                 </div>
                               )}
