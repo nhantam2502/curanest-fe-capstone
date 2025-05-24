@@ -12,13 +12,13 @@ import {
 
 const PaymentSuccessPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-lg p-6 rounded-xl shadow-md">
         {/* Header */}
-        <CardHeader className="text-center">
-          <div className="mb-4 flex justify-center">
+        <CardHeader className="text-center space-y-3">
+          <div className="flex justify-center">
             <svg
-              className="w-12 h-12 text-green-500"
+              className="w-16 h-16 text-green-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -34,35 +34,15 @@ const PaymentSuccessPage = () => {
           <CardTitle className="text-2xl font-bold">
             Thanh toán thành công!
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-base">
             Cảm ơn bạn đã thanh toán. Đơn hàng đang được xử lý.
           </CardDescription>
         </CardHeader>
 
-        {/* Content */}
-        {/* <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Mã giao dịch:</span>
-              <span className="font-medium">TXN{Date.now()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Ngày:</span>
-              <span className="font-medium">
-                {new Date().toLocaleDateString()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">Số tiền:</span>
-              <span className="font-medium text-green-600">500.000 VND</span>
-            </div>
-          </div>
-        </CardContent> */}
-
         {/* Footer */}
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex justify-center mt-4/2">
           <Button
-            className="w-full"
+            className="w-full h-12 text-base"
             onClick={() => window.location.href = "/"}
           >
             Quay về trang chủ

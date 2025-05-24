@@ -13,6 +13,7 @@ import { infoRelatives } from "@/types/patient";
 import { District, Ward } from "./EditPatientRecord";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const ProfileContent = () => {
   const router = useRouter();
@@ -36,7 +37,7 @@ const ProfileContent = () => {
     avatar: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {toast} = useToast();
+  const { toast } = useToast();
 
   const findDistrictByName = (districts: District[], name: string) => {
     return districts.find((d) => d.name === name)?.code.toString();
@@ -194,7 +195,6 @@ const ProfileContent = () => {
     }));
   };
 
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -266,14 +266,13 @@ const ProfileContent = () => {
       }));
 
       setSelectedDistrict(formData.district);
-       toast({
+      toast({
         variant: "default",
         title: "Cập nhật thành công",
         description: "Thông tin người dùng đã được cập nhật.",
         duration: 2000,
       });
       router.push("/relatives/booking");
-
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {
@@ -282,192 +281,207 @@ const ProfileContent = () => {
   };
 
   if (!relativeInfo) {
-    return <div>Loading...</div>;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-gradient-to-b from-[#FEFEFE] to-[#FEF0D7] bg-opacity-50 z-50">
+        <div className="flex flex-col items-center">
+          <div className="relative">
+            <div className="absolute -inset-4 rounded-full bg-[#A8E0E9] opacity-30 animate-pulse"></div>
+            <Loader2
+              className="h-12 w-12 animate-spin text-[#64D1CB]"
+              aria-label="Loading..."
+            />
+          </div>
+          <div className="text-[#64D1CB] text-sm font-medium mt-4 animate-fade-in">
+            Đang tải...
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="p-12">
       <h2 className="text-4xl font-semibold mb-12">Thông tin người dùng</h2>
-      <form onSubmit={handleSubmit}>          
-          {/* Form section */}
-          <div className="flex-1 space-y-8">
-            {/* Personal Information */}
-            <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h3 className="text-3xl font-semibold mb-6">Thông tin cá nhân</h3>
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <label className="block text-xl font-medium text-gray-700 mb-3">
-                    Họ và tên
-                  </label>
-                  <input
-                    type="text"
-                    name="fullName"
-                    className="w-full p-4 border rounded-lg text-xl"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xl font-medium text-gray-700 mb-3">
-                    Ngày tháng năm sinh
-                  </label>
-                  <input
-                    type="date"
-                    name="dob"                    
-                    className="w-full p-4 border rounded-lg text-xl"
-                    value={formData.dob}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xl font-medium text-gray-700 mb-3">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="w-full p-4 border rounded-lg text-xl"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xl font-medium text-gray-700 mb-3">
-                    Số điện thoại
-                  </label>
-                  <input
-                    type="tel"
-                    name="phoneNumber"
-                    className="w-full p-4 border rounded-lg text-xl"
-                    value={formData.phoneNumber}
-                    onChange={handleInputChange}
-                  />
-                </div>
+      <form onSubmit={handleSubmit}>
+        {/* Form section */}
+        <div className="flex-1 space-y-8">
+          {/* Personal Information */}
+          <div className="bg-white p-8 rounded-xl shadow-sm">
+            <h3 className="text-3xl font-semibold mb-6">Thông tin cá nhân</h3>
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <label className="block text-xl font-medium text-gray-700 mb-3">
+                  Họ và tên
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  className="w-full p-4 border rounded-lg text-xl"
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="block text-xl font-medium text-gray-700 mb-3">
+                  Ngày tháng năm sinh
+                </label>
+                <input
+                  type="date"
+                  name="dob"
+                  className="w-full p-4 border rounded-lg text-xl"
+                  value={formData.dob}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="block text-xl font-medium text-gray-700 mb-3">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  className="w-full p-4 border rounded-lg text-xl"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="block text-xl font-medium text-gray-700 mb-3">
+                  Số điện thoại
+                </label>
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  className="w-full p-4 border rounded-lg text-xl"
+                  value={formData.phoneNumber}
+                  onChange={handleInputChange}
+                />
+              </div>
 
-                {/* Gender Field */}
-                <div className="space-y-2">
-                  <Label className="text-xl" htmlFor="gender">
-                    Giới tính
-                  </Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={handleGenderChange}
-                  >
-                    <SelectTrigger className="h-12 w-full text-xl">
-                      <SelectValue placeholder="Chọn giới tính" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem className="text-lg" value="true">
-                        Nam
-                      </SelectItem>
-                      <SelectItem className="text-lg" value="false">
-                        Nữ
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              {/* Gender Field */}
+              <div className="space-y-2">
+                <Label className="text-xl" htmlFor="gender">
+                  Giới tính
+                </Label>
+                <Select
+                  value={formData.gender}
+                  onValueChange={handleGenderChange}
+                >
+                  <SelectTrigger className="h-12 w-full text-xl">
+                    <SelectValue placeholder="Chọn giới tính" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem className="text-lg" value="true">
+                      Nam
+                    </SelectItem>
+                    <SelectItem className="text-lg" value="false">
+                      Nữ
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-
-            {/* Address Information */}
-            <div className="bg-white p-8 rounded-xl shadow-sm">
-              <h3 className="text-3xl font-semibold mb-6">Địa chỉ liên lạc</h3>
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <label className="block text-xl font-medium text-gray-700 mb-3">
-                    Địa chỉ
-                  </label>
-                  <input
-                    type="text"
-                    name="address"
-                    className="w-full p-4 border rounded-lg text-xl"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xl" htmlFor="district">
-                    Quận
-                  </Label>
-                  <Select
-                    value={formData.district}
-                    onValueChange={handleDistrictChange}
-                    disabled={isLoadingDistricts}
-                  >
-                    <SelectTrigger className="h-12 w-full text-xl">
-                      <SelectValue
-                        placeholder={
-                          isLoadingDistricts ? "Đang tải..." : "Chọn quận"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {districts.map((district) => (
-                        <SelectItem
-                          key={district.code}
-                          value={district.code.toString()}
-                          className="text-lg"
-                        >
-                          {district.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xl" htmlFor="ward">
-                    Phường
-                  </Label>
-                  <Select
-                    value={formData.ward}
-                    onValueChange={handleWardChange}
-                    disabled={!formData.district || isLoadingWards}
-                  >
-                    <SelectTrigger className="h-12 w-full text-xl">
-                      <SelectValue
-                        placeholder={
-                          isLoadingWards ? "Đang tải..." : "Chọn phường"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {wards.map((ward) => (
-                        <SelectItem
-                          key={ward.code}
-                          value={ward.code.toString()}
-                          className="text-lg"
-                        >
-                          {ward.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="block text-xl font-medium text-gray-700 mb-3">
-                    Tỉnh/Thành phố
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full p-4 border rounded-lg text-xl"
-                    disabled
-                    defaultValue={formData.city}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-yellowColor text-white px-8 py-4 rounded-lg hover:bg-[#e5ab47] text-xl w-full"
-            >
-              {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
-            </button>
           </div>
+
+          {/* Address Information */}
+          <div className="bg-white p-8 rounded-xl shadow-sm">
+            <h3 className="text-3xl font-semibold mb-6">Địa chỉ liên lạc</h3>
+            <div className="grid grid-cols-2 gap-8">
+              <div>
+                <label className="block text-xl font-medium text-gray-700 mb-3">
+                  Địa chỉ
+                </label>
+                <input
+                  type="text"
+                  name="address"
+                  className="w-full p-4 border rounded-lg text-xl"
+                  value={formData.address}
+                  onChange={handleInputChange}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xl" htmlFor="district">
+                  Quận
+                </Label>
+                <Select
+                  value={formData.district}
+                  onValueChange={handleDistrictChange}
+                  disabled={isLoadingDistricts}
+                >
+                  <SelectTrigger className="h-12 w-full text-xl">
+                    <SelectValue
+                      placeholder={
+                        isLoadingDistricts ? "Đang tải..." : "Chọn quận"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {districts.map((district) => (
+                      <SelectItem
+                        key={district.code}
+                        value={district.code.toString()}
+                        className="text-lg"
+                      >
+                        {district.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xl" htmlFor="ward">
+                  Phường
+                </Label>
+                <Select
+                  value={formData.ward}
+                  onValueChange={handleWardChange}
+                  disabled={!formData.district || isLoadingWards}
+                >
+                  <SelectTrigger className="h-12 w-full text-xl">
+                    <SelectValue
+                      placeholder={
+                        isLoadingWards ? "Đang tải..." : "Chọn phường"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {wards.map((ward) => (
+                      <SelectItem
+                        key={ward.code}
+                        value={ward.code.toString()}
+                        className="text-lg"
+                      >
+                        {ward.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-xl font-medium text-gray-700 mb-3">
+                  Tỉnh/Thành phố
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-4 border rounded-lg text-xl"
+                  disabled
+                  defaultValue={formData.city}
+                />
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-yellowColor text-white px-8 py-4 rounded-lg hover:bg-[#e5ab47] text-xl w-full"
+          >
+            {isSubmitting ? "Đang lưu..." : "Lưu thay đổi"}
+          </button>
+        </div>
       </form>
     </div>
   );
