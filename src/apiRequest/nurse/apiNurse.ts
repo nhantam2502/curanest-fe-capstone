@@ -44,6 +44,11 @@ const nurseApiRequest = {
       `/nurse/api/v1/nurses?page=${page}&size=${size}`
     ),
 
+    getListNurseForCategory: () =>
+    http.get<NurseListResType>(
+      `/nurse/api/v1/nurses`
+    ),
+
   updateNurse: (body: CreateNurse) =>
     http.put<CreateRes>("/nurse/api/v1/nurses", body),
 

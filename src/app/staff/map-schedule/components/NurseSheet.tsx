@@ -162,7 +162,7 @@ export function NurseSheet({
               <Button
                 onClick={handleAssignNurse}
                 disabled={assigning}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-emerald-400 hover:bg-emerald-400/90"
               >
                 {assigning ? "Đang xử lý..." : "Xác nhận"}
               </Button>

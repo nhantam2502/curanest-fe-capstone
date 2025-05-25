@@ -118,7 +118,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
   useEffect(() => {
     const fetchStaff = async () => {
       try {
-        const response = await nurseApiRequest.getListNurse(1, 100);
+        const response = await nurseApiRequest.getListNurseForCategory();
         if (response.status === 200 && response.payload?.data) {
           setUsers(response.payload.data);
         } else {
@@ -148,48 +148,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     fetchCategories(); // Refetch categories list
   };
 
-  // Sets state to prepare for deletion confirmation
-  const prepareDeleteCategory = (categoryId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click event
-    setCategoryToDeleteId(categoryId);
-  };
-
-  // Performs the actual deletion after confirmation
-  const confirmDeleteCategory = async () => {
-    if (!categoryToDeleteId) return;
-
-    setIsDeleting(true);
-    // try {
-    //   // Assuming you have a deleteCategory function in your API request module
-    //   // const response = await categoryApiRequest.deleteCategory(categoryToDeleteId);
-
-    //   if (response.status === 200) { // Check for success status
-    //     toast({
-    //       title: "Thành công",
-    //       description: "Đã xoá danh mục dịch vụ thành công.",
-    //     });
-    //     setCategoryToDeleteId(null); // Clear ID after deletion
-    //     fetchCategories(); // Refetch the list
-    //   } else {
-    //     console.error("Error deleting category:", response);
-    //     toast({
-    //       title: "Lỗi xoá danh mục",
-    //       description: response.payload?.message || "Không thể xoá danh mục.",
-    //       variant: "destructive",
-    //     });
-    //   }
-    // } catch (error: any) {
-    //   console.error("Error deleting category:", error);
-    //   toast({
-    //     title: "Lỗi xoá danh mục",
-    //     description: error.message || "Đã xảy ra lỗi khi xoá danh mục.",
-    //     variant: "destructive",
-    //   });
-    // } finally {
-    //   setIsDeleting(false);
-    // }
-  };
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery({ name: e.target.value });
   };
@@ -199,10 +157,9 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     onCategorySelect(categoryId); // Notify parent component
   };
 
-  // Opens the dialog to view/add/remove nurse
   const handleNurseInfoClick = (
     staffInfo: StaffInfo | null,
-    categoryId: string, // Pass categoryId to know which category we're working with
+    categoryId: string,
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
@@ -232,7 +189,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
     } catch (error: any) {
       toast({
         title: "Lỗi thêm y tá",
-        description: error.message || "Không thể thêm y tá. Vui lòng thử lại.",
+        description: "Không thể thêm y tá. Vui lòng thử lại.",
         variant: "destructive",
       });
       console.error("Error adding staff:", error);
@@ -375,10 +332,6 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                     )}
                   </TableCell>
                   <TableCell className="text-right space-x-1">
-                    {/* Placeholder for Edit Button */}
-                    {/* <Button variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                         <Edit className="h-4 w-4" />
-                    </Button> */}
                     <div className="flex-shrink-0">
                       <div onClick={(e) => e.stopPropagation()}>
                         <EditCategory
@@ -425,7 +378,7 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
 
       <Dialog
         open={nurseInfoDialogOpen}
-        onOpenChange={setNurseInfoDialogOpen} // Direct state setter is fine here
+        onOpenChange={setNurseInfoDialogOpen}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -471,18 +424,17 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                   value={selectedStaffId}
                   onValueChange={setSelectedStaffId} // Directly set the state
                 >
-                  <SelectTrigger id="nurse-select" className="w-full">
+                  <SelectTrigger id="nurse-select" className="w-96">
                     <SelectValue placeholder="-- Chọn y tá --" />
                   </SelectTrigger>
                   <SelectContent>
                     {users.length > 0 ? (
-                      // --- CORRECTED SELECT OPTIONS ---
                       users.map((user) => (
                         <SelectItem
-                          key={user["nurse-id"]} // Use correct ID for key
-                          value={user["nurse-id"]} // Use correct ID for value
+                          key={user["nurse-id"]} 
+                          value={user["nurse-id"]} 
                         >
-                          {user["nurse-name"]} {/* Display correct name */}
+                          {user["nurse-name"]} 
                         </SelectItem>
                       ))
                     ) : (
@@ -495,8 +447,8 @@ const CategoryManagement: React.FC<CategoryManagementProps> = ({
                 </Select>
                 <Button
                   onClick={handleAddStaff}
-                  className="w-full"
-                  disabled={!selectedStaffId} // Disable if no nurse is selected
+                  disabled={!selectedStaffId} 
+                  className="bg-emerald-400 hover:bg-emerald-400/90 w-full"
                 >
                   Thêm y tá vào danh mục
                 </Button>

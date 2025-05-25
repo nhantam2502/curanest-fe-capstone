@@ -1,3 +1,4 @@
+// components/ViewMedicalReportDialog.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import {
@@ -19,28 +20,28 @@ interface MedicalReport {
   "patient-id": string;
   "nursing-report": string;
   "staff-confirmation": string;
-  status: string;
+  status: string; // Assuming status might change, e.g., to "done"
   "created-at": string;
 }
 
-// Define props
 interface ViewMedicalReportDialogProps {
-  appId: string | null; // This is the appointment ID
+  appId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onReportConfirmed?: () => void; // New prop to signal confirmation
 }
 
 export function ViewMedicalReportDialog({
   appId,
   open,
   onOpenChange,
+  onReportConfirmed, // Destructure the new prop
 }: ViewMedicalReportDialogProps) {
   const [report, setReport] = useState<MedicalReport | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
-  // Fetch medical report using appointment ID
   useEffect(() => {
     const fetchMedicalReport = async () => {
       if (!appId) {
@@ -56,8 +57,6 @@ export function ViewMedicalReportDialog({
 
         if (response.status === 200) {
           let data: MedicalReport | null = null;
-
-          // Handle array or object response
           if (Array.isArray(response.payload?.data)) {
             data = response.payload.data[0] || null;
           } else if (response.payload?.data) {
@@ -68,20 +67,20 @@ export function ViewMedicalReportDialog({
             setReport(data);
           } else {
             setReport(null);
-            toast({
-              title: "Thông báo",
-              description: "Không có báo cáo y tế nào được tìm thấy",
-            });
+            // Removed toast here, parent can decide or show "No report" message
           }
         } else {
-          throw new Error("Failed to fetch medical report");
+          // Use message from payload if available
+          const errorMessage = response.payload?.message || "Failed to fetch medical report";
+          throw new Error(errorMessage);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching medical report:", err);
-        setError("Không thể tải báo cáo y tế. Vui lòng thử lại sau.");
+        const displayError = err.message || "Không thể tải báo cáo y tế. Vui lòng thử lại sau.";
+        setError(displayError);
         toast({
           title: "Lỗi",
-          description: "Không thể tải báo cáo y tế. Vui lòng thử lại sau.",
+          description: displayError,
           variant: "destructive",
         });
       } finally {
@@ -92,38 +91,53 @@ export function ViewMedicalReportDialog({
     if (open && appId) {
       fetchMedicalReport();
     }
+    if (!open) { // Reset state when dialog is closed
+        setReport(null);
+        setError(null);
+    }
   }, [appId, open]);
 
   const handleConfirm = async (confirmation: string) => {
     if (!report?.id) return;
     try {
       await medicalReportApiRequest.updateMedicalReport(report.id, {
-        "nursing-report": "",
+        "nursing-report": null, // Set nursing-report to null as per original AppointmentTable comment
         "staff-confirmation": confirmation.trim(),
       });
       toast({
         title: "Thành công",
         description: "Xác nhận hoàn thành báo cáo y tế thành công.",
       });
-      setIsConfirmDialogOpen(false);
+      setIsConfirmDialogOpen(false); // Close the confirmation input dialog
+      
+      // Update local report state to reflect changes immediately
       setReport((prev) =>
         prev
           ? {
               ...prev,
               "staff-confirmation": confirmation.trim(),
+              status: "done", // Assuming confirmation marks it as 'done'
             }
           : null
       );
+      
+      onOpenChange(false); // Close the ViewMedicalReportDialog
+
+      if (onReportConfirmed) {
+        onReportConfirmed(); // Call the callback to trigger refetch in parent
+      }
 
     } catch (error) {
       console.error("Error confirming completion:", error);
       toast({
         title: "Lỗi",
-        description: "Có lỗi xảy ra.",
+        description: "Có lỗi xảy ra khi xác nhận hoàn thành.",
         variant: "destructive",
       });
     }
   };
+
+  const isAlreadyConfirmed = !!report?.["staff-confirmation"]; // Check if already confirmed
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,7 +146,6 @@ export function ViewMedicalReportDialog({
           <DialogTitle>Báo cáo y tế</DialogTitle>
         </DialogHeader>
 
-        {/* Loading */}
         {isLoading ? (
           <div className="flex justify-center py-8">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
@@ -147,7 +160,6 @@ export function ViewMedicalReportDialog({
                 <p className="font-medium text-nowrap">{report.id}</p>
               </div>
             </div>
-
             <div>
               <p className="text-sm text-muted-foreground">
                 Ghi chú điều dưỡng
@@ -156,7 +168,6 @@ export function ViewMedicalReportDialog({
                 {report["nursing-report"] || "Chưa có ghi chú"}
               </p>
             </div>
-
             <div>
               <p className="text-sm text-muted-foreground">
                 Xác nhận của nhân viên
@@ -165,29 +176,27 @@ export function ViewMedicalReportDialog({
                 {report["staff-confirmation"] || "Chưa xác nhận"}
               </p>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Trạng thái</p>
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    report.status === "done"
+                    report.status === "done" || isAlreadyConfirmed // Reflect confirmation in status display
                       ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
-                  {report.status === "done" ? "Hoàn thành" : "Chưa hoàn thành"}
+                  {report.status === "done" || isAlreadyConfirmed ? "Hoàn thành" : "Chưa hoàn thành"}
                 </span>
               </div>
             </div>
           </div>
         ) : (
           <div className="text-center py-4 text-muted-foreground">
-            Không có báo cáo nào tồn tại cho cuộc hẹn này
+            Không có báo cáo nào tồn tại cho cuộc hẹn này.
           </div>
         )}
 
-        {/* Buttons */}
         <DialogFooter className="mt-4">
           <Button
             variant="outline"
@@ -198,14 +207,13 @@ export function ViewMedicalReportDialog({
           </Button>
           <Button
             onClick={() => setIsConfirmDialogOpen(true)}
-            disabled={!report || isLoading}
+            disabled={!report || isLoading || isAlreadyConfirmed} // Disable if no report, loading, or already confirmed
             className="bg-emerald-400 hover:bg-emerald-400/90"
           >
-            Xác nhận hoàn thành
+            {isAlreadyConfirmed ? "Đã xác nhận" : "Xác nhận hoàn thành"}
           </Button>
         </DialogFooter>
 
-        {/* Confirmation Dialog */}
         <ConfirmCompletionDialog
           open={isConfirmDialogOpen}
           onOpenChange={setIsConfirmDialogOpen}

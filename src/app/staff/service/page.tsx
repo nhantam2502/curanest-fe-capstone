@@ -1,7 +1,11 @@
 "use client";
 
-import serviceApiRequest from "@/apiRequest/service/apiServices";
-import React, { useEffect, useState, useCallback } from "react";
+// Removed: serviceApiRequest (now used in the hook)
+// Removed: useState for staffServices, loading, error (now managed by the hook)
+// Removed: useCallback for fetchServices (now part of the hook)
+// Removed: useEffect for initial fetchServices call (now handled by the hook)
+
+import React, { useState, useCallback } from "react"; // useEffect removed if only for initial fetch
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,51 +14,25 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription, // Import CardDescription
+  CardDescription,
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Loader2, AlertTriangle } from "lucide-react"; // Icons for loading and error
-import { useToast } from "@/hooks/use-toast"; // Import useToast for feedback
+import { Loader2, AlertTriangle } from "lucide-react";
+import { useStaffServices } from "@/hooks/useStaffService";
 
-// --- Constants ---
-const MAX_DESC_LENGTH = 80; // Max characters before truncating
+const MAX_DESC_LENGTH = 80;
 
-// --- Type Definitions (moved outside component) ---
-interface StaffServiceCategory {
-  id: string;
-  name: string;
-}
-
-interface StaffService {
+// --- Type Definitions (Can be moved to a shared types file and imported in both places) ---
+interface StaffService { // Simplified, as ProcessedStaffServiceData is handled by the hook
   id: string;
   name: string;
   category_id: string;
   description?: string;
   est_duration?: string;
-  status?: string; // e.g., "available", "unavailable"
+  status?: string;
 }
 
-// Represents the structure expected *after* processing the API response
-interface ProcessedStaffServiceData {
-  categoryInfo: StaffServiceCategory;
-  listServices: StaffService[];
-}
-
-// Optional: Interface for the raw API response structure if known
-interface RawApiResponseData {
-  "category-info": { id: string; name: string };
-  "list-services": Array<{
-    id: string;
-    "category-id": string;
-    name: string;
-    description?: string;
-    "est-duration"?: string;
-    status?: string;
-  }>;
-  // Add other potential fields from the response
-}
-
-// --- Service Card Component ---
+// --- Service Card Component (No changes needed here) ---
 interface ServiceCardProps {
   service: StaffService;
   isExpanded: boolean;
@@ -76,22 +54,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       : description;
 
   const handleToggleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation(); // Prevent card click when toggling description
+      e.stopPropagation();
       onToggleDescription(service.id);
   }
 
-  const getStatusBadgeVariant = (status?: string): "default" | "secondary" | "destructive" | "outline" => {
-     switch (status?.toLowerCase()) {
-       case "available": return "default"; // Default often maps to primary or a standard 'active' look
-       // case "unavailable": return "secondary"; // Use secondary for less emphasis
-       default: return "secondary"; // Use secondary for unavailable or unknown
-     }
-  };
-
   const getStatusBadgeClass = (status?: string): string => {
      switch (status?.toLowerCase()) {
-       case "available": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200"; // Softer green
-       default: return "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200"; // Softer gray
+       case "available": return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+       default: return "bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200";
      }
   };
 
@@ -104,18 +74,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
       whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
       whileTap={{ scale: 0.98 }}
       onClick={() => onClick(service.id, service.name)}
-      className="cursor-pointer h-full" // Ensure motion div takes full height
+      className="cursor-pointer h-full"
     >
-      {/* Card takes full height of parent and uses flex column */}
       <Card className="shadow-md hover:shadow-lg transition-shadow h-full flex flex-col">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start gap-2">
-            <CardTitle className="text-lg font-semibold flex-grow break-words"> {/* Allow title to wrap */}
+            <CardTitle className="text-lg font-semibold flex-grow break-words">
               {service.name}
             </CardTitle>
             {service.status && (
               <Badge
-                // variant={getStatusBadgeVariant(service.status)} // Use variant if defined in theme
                 className={`flex-shrink-0 border ${getStatusBadgeClass(service.status)}`}
               >
                 {service.status.toLowerCase() === "available"
@@ -125,7 +93,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
             )}
           </div>
         </CardHeader>
-        {/* Content grows and pushes footer (duration) down */}
         <CardContent className="flex-grow flex flex-col justify-between pt-0 pb-4">
           <div>
             {description ? (
@@ -137,7 +104,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
                   <Button
                     variant="link"
                     size="sm"
-                    className="p-0 h-auto text-blue-600 hover:text-blue-800 text-xs" // Smaller link
+                    className="p-0 h-auto text-blue-600 hover:text-blue-800 text-xs"
                     onClick={handleToggleClick}
                   >
                     {isExpanded ? "Thu gọn" : "Xem thêm"}
@@ -157,68 +124,16 @@ const ServiceCard: React.FC<ServiceCardProps> = ({
   );
 };
 
+
 function Page() {
-  const [staffServices, setStaffServices] = useState<ProcessedStaffServiceData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // --- Use the custom hook ---
+  const { staffServices, loading, error, refetchServices } = useStaffServices();
+
+  // --- UI Specific State (remains in the component) ---
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<string, boolean>>({});
   const router = useRouter();
-  const { toast } = useToast();
 
-  const fetchServices = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    setExpandedDescriptions({});
-    setStaffServices([]); // Clear previous data
-
-    try {
-      const response = await serviceApiRequest.getListServiceOfStaff(null);
-
-      if (response.status === 200 && response.payload?.success && response.payload.data) {
-        const data = response.payload.data as RawApiResponseData; // Type assertion
-        if (data["category-info"] && Array.isArray(data["list-services"])) {
-          const processedData: ProcessedStaffServiceData[] = [ // Explicitly type
-            {
-              categoryInfo: {
-                id: data["category-info"].id,
-                name: data["category-info"].name,
-              },
-              listServices: data["list-services"].map((serviceItem) => ({ // Map safely
-                id: serviceItem.id,
-                category_id: serviceItem["category-id"],
-                name: serviceItem.name || "Unnamed Service", // Default name
-                description: serviceItem.description,
-                est_duration: serviceItem["est-duration"],
-                status: serviceItem.status,
-              })),
-            },
-          ];
-          setStaffServices(processedData);
-        } else {
-          console.warn("API response structure might be different than expected:", data);
-          throw new Error("Định dạng dữ liệu dịch vụ trả về không đúng.");
-        }
-      } else {
-        throw new Error(response.payload?.message || `Không thể tải dịch vụ (Status: ${response.status})`);
-      }
-    } catch (err: any) {
-      console.error("Failed to fetch services:", err);
-      const errorMessage = err.message || "Lỗi không xác định khi tải dịch vụ.";
-      setError(errorMessage);
-      toast({ // Provide feedback on error
-          title: "Lỗi tải dịch vụ",
-          description: errorMessage,
-          variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchServices();
-  }, [fetchServices]);
-
+  // UI specific callbacks remain
   const toggleDescription = useCallback((serviceId: string) => {
     setExpandedDescriptions((prev) => ({
       ...prev,
@@ -229,9 +144,9 @@ function Page() {
   const handleServiceClick = useCallback((serviceId: string, serviceName: string) => {
     const encodedName = encodeURIComponent(serviceName);
     router.push(`/staff/service/service-package/${serviceId}?name=${encodedName}`);
-  }, [router]); // Depends on router
+  }, [router]);
 
-  // --- Render Logic ---
+  // --- Render Logic (uses data from the hook) ---
   const renderContent = () => {
     if (loading) {
       return (
@@ -248,14 +163,15 @@ function Page() {
             <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-2" />
             <p className="text-destructive font-semibold mb-2">Lỗi tải dữ liệu</p>
             <p className="text-sm text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchServices} variant="outline">
+            {/* Use refetchServices from the hook */}
+            <Button onClick={refetchServices} variant="outline">
               Thử lại
             </Button>
         </div>
       );
     }
 
-    if (staffServices.length === 0) {
+    if (!staffServices || staffServices.length === 0) { // Added a check for !staffServices
       return (
         <p className="text-gray-500 text-center py-10">
           Không có dịch vụ nào được phân công cho bạn.
@@ -290,11 +206,11 @@ function Page() {
   };
 
   return (
-    <div className="mx-auto p-4"> {/* Add container and padding */}
+    <div className="mx-auto p-4">
       <Card className="mb-6 bg-gradient-to-r from-emerald-300/10 to-transparent border-l-4 border-emerald-200">
          <CardHeader>
              <CardTitle className="text-2xl font-bold text-emerald-500">
-                Dịch vụ của tôi
+                Dịch vụ đang quản lý
              </CardTitle>
              <CardDescription>
                 Chọn một dịch vụ bạn được phân công để xem chi tiết hoặc quản lý gói dịch vụ liên quan.

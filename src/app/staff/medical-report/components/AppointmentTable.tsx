@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Table,
   TableHeader,
@@ -9,14 +9,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { GetAppointment } from "@/types/appointment";
 import { PatientRecord } from "@/types/patient";
 import appointmentApiRequest from "@/apiRequest/appointment/apiAppointment";
@@ -25,15 +18,15 @@ import serviceApiRequest from "@/apiRequest/service/apiServices";
 import { ServiceItem } from "@/types/service";
 import { Button } from "@/components/ui/button";
 import { ViewMedicalReportDialog } from "./MedicalReportDialog";
+import { useStaffServices } from "@/hooks/useStaffService";
 
 interface PatientInfo {
-  id: string;
-  "patient-id"?: string;
+  id: string; // The canonical patient record ID
   "full-name": string;
 }
 
 interface AppointmentTableProps {
-  onSelect: (appointment: GetAppointment) => void;
+  onSelect: (appointment: GetAppointment) => void; // Prop for potential future use
 }
 
 export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
@@ -42,50 +35,76 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
   const [patientDetailsMap, setPatientDetailsMap] = useState<
     Record<string, PatientInfo | null>
   >({});
-  const [isFetchingPatients, setIsFetchingPatients] = useState(false);
+  const [isFetchingPatientDetails, setIsFetchingPatientDetails] =
+    useState(false);
   const [serviceMap, setServiceMap] = useState<Record<string, ServiceItem>>({});
   const [isLoadingServices, setIsLoadingServices] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { staffServices, loading: isLoadingStaffServices } = useStaffServices();
 
-  const fetchAppointments = async () => {
+  const derivedFilterCategoryId = useMemo(() => {
+    if (
+      isLoadingStaffServices ||
+      !staffServices ||
+      staffServices.length === 0
+    ) {
+      return null; // Or undefined, depending on how your API handles missing category-id
+    }
+
+    return staffServices[0]?.categoryInfo?.id || null;
+  }, [staffServices, isLoadingStaffServices]);
+
+  const fetchAppointmentsData = useCallback(async () => {
+    if (isLoadingStaffServices) {
+      return [];
+    }
+
+    setIsLoadingAppointments(true);
     try {
-      const today = new Date();
-      const nextDay = new Date(today);
-      nextDay.setDate(nextDay.getDate() + 1);
-
-      const params = {
-        // "had-nurse": "false",
-        // "est-date-from": estDateFrom,
-        // "est-date-to": estDateTo,
+      const params: Record<string, string | undefined> = {
         "appointment-status": "upcoming",
       };
+      if (derivedFilterCategoryId) {
+        params["category-id"] = derivedFilterCategoryId;
+      }
 
-      console.log("Fetching appointments with params:", params);
       const response = await appointmentApiRequest.getAppointments(params);
 
       if (response.status === 200 && Array.isArray(response.payload?.data)) {
         return response.payload.data as GetAppointment[];
       } else {
         console.error(
-          "Failed to fetch appointments:",
+          "AppointmentTable: Failed to fetch appointments:",
           response.payload?.message || `Status: ${response.status}`
         );
         return [];
       }
     } catch (error) {
-      console.error("Error fetching appointments:", error);
+      console.error("AppointmentTable: Error fetching appointments:", error);
       return [];
+    } finally {
+      setIsLoadingAppointments(false);
     }
-  };
-  useEffect(() => {
-    const fetchServiceData = async () => {
-      setIsLoadingServices(true);
+  }, [derivedFilterCategoryId, isLoadingStaffServices]);
 
+  // Effect to load appointments when derivedFilterCategoryId changes or on manual trigger
+  useEffect(() => {
+    // console.log("useEffect [fetchAppointmentsData]: Triggering appointment fetch.");
+    fetchAppointmentsData().then((data) => {
+      setAppointments(data);
+      if (data.length > 0) {
+        setPatientDetailsMap({}); // Clear old patient details when appointments are re-fetched
+      }
+    });
+  }, [fetchAppointmentsData]);
+
+  useEffect(() => {
+    const fetchAllServices = async () => {
+      setIsLoadingServices(true);
       try {
         const response = await serviceApiRequest.getListService(null);
-
         if (
           response.status === 200 &&
           response.payload?.success &&
@@ -93,173 +112,129 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
         ) {
           const categories = response.payload.data;
           const newServiceMap: Record<string, ServiceItem> = {};
-
           categories.forEach((category: any) => {
             if (Array.isArray(category["list-services"])) {
               category["list-services"].forEach((service: ServiceItem) => {
                 if (service.id && service.name) {
                   newServiceMap[service.id] = service;
-                } else {
-                  console.warn(
-                    "Skipping service due to missing id or name:",
-                    service
-                  );
                 }
               });
             }
           });
-
           setServiceMap(newServiceMap);
         } else {
           console.error("Failed to fetch services:", response);
-          setServiceMap({});
         }
       } catch (err) {
         console.error("Error fetching services:", err);
-        setServiceMap({});
       } finally {
         setIsLoadingServices(false);
       }
     };
-
-    fetchServiceData();
+    fetchAllServices();
   }, []);
 
+  // Effect to fetch patient details when appointments data changes
   useEffect(() => {
-    const loadAppointments = async () => {
-      setIsLoadingAppointments(true);
-      setPatientDetailsMap({});
-      const data = await fetchAppointments();
-      setAppointments(data);
-      setIsLoadingAppointments(false);
-    };
+    const fetchPatientDetailsForAppointments = async (
+      patientApiIdsToFetch: string[]
+    ) => {
+      if (patientApiIdsToFetch.length === 0) return;
 
-    loadAppointments();
-  }, []);
-
-  useEffect(() => {
-    const fetchAllPatientDetails = async (patientIds: string[]) => {
-      if (patientIds.length === 0) {
-        setIsFetchingPatients(false);
-        return;
-      }
-
-      setIsFetchingPatients(true);
-      console.log("Fetching details for Patient IDs:", patientIds);
-
+      setIsFetchingPatientDetails(true);
       const results = await Promise.allSettled(
-        patientIds.map(
-          (id) =>
-            patientApiRequest.getPatientById(id as any) as Promise<{
-              status: number;
-              payload?: { data: PatientRecord };
-            }>
+        patientApiIdsToFetch.map((apiId) =>
+          patientApiRequest.getPatientById(apiId)
         )
       );
 
-      const newPatientDetailsMap: Record<string, PatientInfo | null> = {};
-
+      const newPatientDetailsUpdates: Record<string, PatientInfo | null> = {};
       results.forEach((result, index) => {
-        const patientId = patientIds[index];
-
+        const patientApiId = patientApiIdsToFetch[index]; // This is app['patient-id']
         if (result.status === "fulfilled") {
-          const response = result.value;
-
+          const response = result.value as {
+            status: number;
+            payload?: { data: PatientRecord };
+          };
           if (response.status === 200 && response.payload?.data) {
             const patientData = response.payload.data;
-
-            if (
-              patientData &&
-              (patientData.id || (patientData as any)["patient-id"]) &&
-              (patientData as any)["full-name"]
-            ) {
-              newPatientDetailsMap[patientId] = {
-                id: patientData.id || (patientData as any)["patient-id"] || "",
-                "patient-id": (patientData as any)["patient-id"],
-                "full-name": (patientData as any)["full-name"],
+            // Assuming patientData.id is the canonical ID and patientData['full-name'] exists
+            if (patientData.id && patientData["full-name"]) {
+              newPatientDetailsUpdates[patientApiId] = {
+                id: String(patientData.id),
+                "full-name": patientData["full-name"],
               };
             } else {
-              console.warn(
-                `Fetched data for patient ${patientId} missing expected fields:`,
-                patientData
-              );
-              newPatientDetailsMap[patientId] = null;
+              newPatientDetailsUpdates[patientApiId] = null; // Data incomplete
             }
           } else {
-            console.error(
-              `Failed to fetch patient ${patientId}:`,
-              response.payload || `Status ${response.status}`
-            );
-            newPatientDetailsMap[patientId] = null;
+            newPatientDetailsUpdates[patientApiId] = null; // API error
           }
         } else {
-          console.error(`Error fetching patient ${patientId}:`, result.reason);
-          newPatientDetailsMap[patientId] = null;
+          console.error(
+            `Failed to fetch patient details for API ID ${patientApiId}:`,
+            result.reason
+          );
+          newPatientDetailsUpdates[patientApiId] = null; // Network or other error
         }
       });
 
-      setPatientDetailsMap(newPatientDetailsMap);
-      setIsFetchingPatients(false);
+      setPatientDetailsMap((prevMap) => ({
+        ...prevMap,
+        ...newPatientDetailsUpdates,
+      }));
+      setIsFetchingPatientDetails(false);
     };
 
-    if (appointments.length > 0 && !isLoadingAppointments) {
-      const uniquePatientIds = Array.from(
+    if (!isLoadingAppointments && appointments.length > 0) {
+      const uniquePatientApiIdsToFetch = Array.from(
         new Set(
           appointments
             .map((app) => app["patient-id"])
             .filter(
-              (id): id is string => typeof id === "string" && id.trim() !== ""
+              (apiId): apiId is string =>
+                typeof apiId === "string" &&
+                apiId.trim() !== "" &&
+                !(apiId in patientDetailsMap) // Only fetch if not already in map (or previously failed: null)
             )
         )
       );
 
-      if (uniquePatientIds.length > 0) {
-        fetchAllPatientDetails(uniquePatientIds);
-      } else {
-        setIsFetchingPatients(false);
+      if (uniquePatientApiIdsToFetch.length > 0) {
+        fetchPatientDetailsForAppointments(uniquePatientApiIdsToFetch);
       }
-    } else {
-      setIsFetchingPatients(false);
     }
-  }, [appointments, isLoadingAppointments]);
-  //   reportId: string,
-  //   confirmation: string
-  // ) => {
-  //   try {
-  //     await medicalReportApiRequest.updateMedicalReport(reportId, {
-  //       "nursing-report": null,
-  //       "staff-confirmation": confirmation.trim(),
-  //     });
-  //   } catch (error) {
-  //     console.error("Failed to update medical report:", error);
-  //     console.log(reportId, confirmation);
-  //     throw error;
-  //   }
-  // };
+  }, [appointments, isLoadingAppointments]); // Removed patientDetailsMap from deps to avoid potential loops, rely on check inside
 
+  // Memoized list of appointments filtered by search term
   const filteredAppointments = useMemo(() => {
-    if (isLoadingServices) return [];
+    if (isLoadingAppointments || isLoadingServices) return []; // Wait for essential data
+
+    const lowerSearchTerm = searchTerm.toLowerCase().trim();
+    if (!lowerSearchTerm) {
+      return appointments;
+    }
 
     return appointments.filter((app) => {
-      const patientId = app["patient-id"];
+      const patientApiId = app["patient-id"]; // This is the ID used in the appointment record
       const serviceId = app["service-id"];
 
-      const validPatientId =
-        typeof patientId === "string" && patientId.trim() !== "";
-      const validServiceId =
-        typeof serviceId === "string" && serviceId.trim() !== "";
+      const patientInfo =
+        typeof patientApiId === "string"
+          ? patientDetailsMap[patientApiId]
+          : null;
+      const service =
+        typeof serviceId === "string" ? serviceMap[serviceId] : null;
 
-      const patient = validPatientId ? patientDetailsMap[patientId] : null;
-      const service = validServiceId ? serviceMap[serviceId] : null;
-
-      const patientName = patient?.["full-name"]?.toLowerCase() || "";
+      const patientName = patientInfo?.["full-name"]?.toLowerCase() || "";
       const serviceName = service?.name?.toLowerCase() || "";
-      const lowerSearchTerm = searchTerm.toLowerCase();
 
       return (
-        (validPatientId && patientId.toLowerCase().includes(lowerSearchTerm)) ||
+        (typeof patientApiId === "string" &&
+          patientApiId.toLowerCase().includes(lowerSearchTerm)) ||
         patientName.includes(lowerSearchTerm) ||
-        (validServiceId && serviceId.toLowerCase().includes(lowerSearchTerm)) ||
+        (typeof serviceId === "string" &&
+          serviceId.toLowerCase().includes(lowerSearchTerm)) ||
         serviceName.includes(lowerSearchTerm)
       );
     });
@@ -268,96 +243,126 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
     patientDetailsMap,
     serviceMap,
     searchTerm,
+    isLoadingAppointments,
     isLoadingServices,
   ]);
 
-  // Render helper for patient cell
-  const renderPatientCell = (app: GetAppointment) => {
-    const patientId = app["patient-id"];
+  const renderPatientCell = useCallback(
+    (app: GetAppointment) => {
+      const patientApiId = app["patient-id"];
+      if (typeof patientApiId !== "string" || !patientApiId.trim()) {
+        return (
+          <TableCell className="font-medium text-muted-foreground italic">
+            ID BN không hợp lệ
+          </TableCell>
+        );
+      }
 
-    if (typeof patientId !== "string" || patientId.trim() === "") {
+      // If patient details for this specific ID are being fetched OR haven't been fetched yet
+      if (
+        isFetchingPatientDetails &&
+        patientDetailsMap[patientApiId] === undefined
+      ) {
+        return (
+          <TableCell className="font-medium italic text-muted-foreground">
+            Đang tải tên BN...
+          </TableCell>
+        );
+      }
+
+      const patientInfo = patientDetailsMap[patientApiId];
+      if (patientInfo === null) {
+        // Explicitly null means fetch failed or data invalid
+        return (
+          <TableCell className="font-medium text-destructive">
+            {patientApiId} (Lỗi tải)
+          </TableCell>
+        );
+      }
       return (
-        <TableCell className="font-medium text-muted-foreground italic">
-          ID BN không hợp lệ
+        <TableCell className="font-medium">
+          {patientInfo?.["full-name"] || patientApiId}{" "}
+          {/* Fallback to ID if name somehow missing after fetch */}
         </TableCell>
       );
-    }
+    },
+    [patientDetailsMap, isFetchingPatientDetails]
+  );
 
-    const patient = patientDetailsMap[patientId];
+  const renderServiceCell = useCallback(
+    (app: GetAppointment) => {
+      const serviceId = app["service-id"];
+      if (typeof serviceId !== "string" || !serviceId.trim()) {
+        return (
+          <TableCell className="text-muted-foreground italic">
+            ID DV không hợp lệ
+          </TableCell>
+        );
+      }
+      if (isLoadingServices) {
+        return (
+          <TableCell className="italic text-muted-foreground">
+            Đang tải DV...
+          </TableCell>
+        );
+      }
+      const service = serviceMap[serviceId];
+      if (!service) {
+        return (
+          <TableCell className="text-orange-600">
+            {serviceId} (Không tìm thấy)
+          </TableCell>
+        );
+      }
+      return <TableCell>{service.name}</TableCell>;
+    },
+    [serviceMap, isLoadingServices]
+  );
 
-    if (isFetchingPatients && !(patientId in patientDetailsMap)) {
-      return (
-        <TableCell className="font-medium italic text-muted-foreground">
-          Đang tải tên BN...
-        </TableCell>
-      );
-    }
+  const handleReportConfirmed = useCallback(() => {
+    fetchAppointmentsData().then((data) => {
+      setAppointments(data);
+      if (data.length > 0) {
+        setPatientDetailsMap({});
+      }
+    });
+  }, [fetchAppointmentsData]);
 
-    if (patient === null) {
-      return (
-        <TableCell className="font-medium text-destructive">
-          {patientId} (Lỗi tải)
-        </TableCell>
-      );
-    }
+  const showOverallLoadingScreen = useMemo(() => {
+    const isWaitingForCategory =
+      isLoadingStaffServices && derivedFilterCategoryId === null;
+    return isWaitingForCategory || isLoadingAppointments || isLoadingServices;
+  }, [
+    isLoadingStaffServices,
+    derivedFilterCategoryId,
+    isLoadingAppointments,
+    isLoadingServices,
+  ]);
 
-    const displayName = patient?.["full-name"]?.trim() || patientId;
-    return <TableCell className="font-medium">{displayName}</TableCell>;
+  const handleRowClick = (app: GetAppointment) => {
+    // If onSelect is meant to do something on row click, implement it here.
+    // For now, it's unused based on the original code's commented out TableRow onClick.
+    // onSelect(app);
+    // console.log("Row clicked (but onSelect prop is not actively used for navigation):", app);
   };
-
-  const renderServiceCell = (app: GetAppointment) => {
-    const serviceId = app["service-id"];
-
-    if (typeof serviceId !== "string" || serviceId.trim() === "") {
-      return (
-        <TableCell className="text-muted-foreground italic">
-          ID DV không hợp lệ
-        </TableCell>
-      );
-    }
-
-    if (isLoadingServices) {
-      return (
-        <TableCell className="italic text-muted-foreground">
-          Đang tải DV...
-        </TableCell>
-      );
-    }
-
-    const service = serviceMap[serviceId];
-
-    if (!service) {
-      return (
-        <TableCell className="text-orange-600">
-          {serviceId} (Không tìm thấy tên)
-        </TableCell>
-      );
-    }
-
-    return <TableCell>{service.name}</TableCell>;
-  };
-
-  const isLoading = isLoadingAppointments || isLoadingServices;
 
   return (
-    <Card className="w-full h-[600px]">
+    <Card className="w-full h-[600px] flex flex-col">
       <CardHeader>
         <CardTitle>Cuộc hẹn chờ phê duyệt</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow overflow-y-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Bệnh nhân</TableHead>
               <TableHead>Dịch vụ</TableHead>
               <TableHead>Thời gian</TableHead>
-              <TableHead className="text-right">Hành động</TableHead>{" "}
-              {/* Right-aligned header */}
+              <TableHead className="text-right">Hành động</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
-            {isLoading ? (
+            {showOverallLoadingScreen ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center h-24">
                   Đang tải dữ liệu...
@@ -366,8 +371,8 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
             ) : filteredAppointments.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-center h-24">
-                  {appointments.length === 0
-                    ? "Không có cuộc hẹn nào chờ giao hôm nay."
+                  {appointments.length === 0 && !searchTerm
+                    ? "Không có cuộc hẹn nào."
                     : "Không tìm thấy kết quả phù hợp."}
                 </TableCell>
               </TableRow>
@@ -376,6 +381,7 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
                 <TableRow
                   key={app.id}
                   className="cursor-pointer hover:bg-muted"
+                  // onClick={() => handleRowClick(app)} // Use if row click needs to trigger 'onSelect'
                 >
                   {renderPatientCell(app)}
                   {renderServiceCell(app)}
@@ -386,39 +392,43 @@ export default function AppointmentTable({ onSelect }: AppointmentTableProps) {
                           minute: "2-digit",
                           hour12: false,
                         })
-                      : "Chưa có thời gian"}
-                    <div>
+                      : "N/A"}
+                    <div className="text-xs text-muted-foreground">
                       {app["act-date"]
                         ? new Date(app["act-date"]).toLocaleDateString("vi-VN")
                         : ""}
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedAppId(app.id);
-                          setIsDialogOpen(true);
-                        }}
-                      >
-                        Xem chi tiết
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedAppId(app.id);
+                        setIsDialogOpen(true);
+                      }}
+                    >
+                      Xem chi tiết
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
+      </CardContent>
+      {selectedAppId && (
         <ViewMedicalReportDialog
           appId={selectedAppId}
           open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) setSelectedAppId(null);
+          }}
+          onReportConfirmed={handleReportConfirmed}
         />
-      </CardContent>
+      )}
     </Card>
   );
 }

@@ -163,7 +163,7 @@ const CategoryForm = ({ onCreateCategory }: CategoryFormProps) => {
                     Hủy
                  </Button>
               </DialogClose>
-              <Button type="submit" disabled={isSaving || !form.formState.isValid}>
+              <Button type="submit" disabled={isSaving || !form.formState.isValid} className="bg-emerald-400 hover:bg-emerald-400/90">
                 {isSaving ? (
                   <>
                     <svg

@@ -234,7 +234,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isSaving}>Hủy</Button>
               </DialogClose>
-              <Button type="submit" disabled={isSaving || !categoryId || !form.formState.isValid}>
+              <Button type="submit" disabled={isSaving || !categoryId || !form.formState.isValid} className="bg-emerald-400 hover:bg-emerald-400/90">
                 {isSaving ? (
                    <>
                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
