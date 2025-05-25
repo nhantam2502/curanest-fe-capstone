@@ -37,6 +37,7 @@ export type AppointmentFilter = {
   "appointment-status"?: string;
   "est-date-from"?: string;
   "est-date-to"?: string;
+  "category-id"?: string;
 };
 
 // ----------------------//

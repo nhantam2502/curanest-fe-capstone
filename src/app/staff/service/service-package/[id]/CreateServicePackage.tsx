@@ -202,7 +202,7 @@ const ServicePackageCreationForm: React.FC<ServicePackageCreationFormProps> = ({
             />
             <AlertDialogFooter className="col-span-1 sm:col-span-3 flex justify-end gap-4 mt-4"> {/* Ensure footer spans full width and has margin */}
               <AlertDialogCancel>Hủy</AlertDialogCancel>
-              <Button type="submit" disabled={isSubmitting} >
+              <Button type="submit" disabled={isSubmitting} className="bg-emerald-400 hover:bg-emerald-400/90">
                 {isSubmitting ? "Đang tạo..." : "Tạo gói dịch vụ"}
               </Button>
             </AlertDialogFooter>
