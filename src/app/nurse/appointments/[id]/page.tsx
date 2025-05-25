@@ -318,6 +318,17 @@ const DetailAppointment: React.FC = () => {
   const showSaveButton = !reportSubmitted && allTasksCompleted;
 
   const handleTabChange = (value: string) => {
+    // Kiểm tra payment status trước
+    if (appointment.package["payment-status"] === "unpaid") {
+      toast({
+        variant: "warning",
+        title: "Không thể truy cập",
+        description: "Khách hàng chưa thanh toán lịch hẹn",
+      });
+      return;
+    }
+
+    // Kiểm tra điều kiện checklist như cũ
     if (value === "checklist" && appointmentStatus !== "upcoming") {
       toast({
         variant: "warning",
@@ -326,8 +337,11 @@ const DetailAppointment: React.FC = () => {
       });
       return;
     }
+
     setActiveTab(value);
   };
+
+  // console.log("appointment status nè: ", appointment.package["payment-status"]);
   return (
     <div className="mx-auto max-w-full container ">
       <div className="flex items-center justify-between py-5">
