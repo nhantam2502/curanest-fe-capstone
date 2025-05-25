@@ -15,7 +15,6 @@ const MonthFilter = ({
   handleMonthChange,
   handleDayChange,
 }: MonthFilterProps) => {
-  // Các mảng dữ liệu cho dropdown
   const months = [
     "Tháng 1",
     "Tháng 2",
@@ -36,7 +35,6 @@ const MonthFilter = ({
     (_, i) => new Date().getFullYear() - i
   ).reverse();
 
-  // Tính toán số ngày trong tháng
   const daysInMonth = new Date(
     parseInt(currentYear, 10),
     currentMonthIndex + 1,
@@ -47,13 +45,31 @@ const MonthFilter = ({
 
   return (
     <div className="flex justify-end items-center space-x-4 mb-6">
-      <label className="text-xl font-medium">Chọn thời gian:</label>
+      <label className="text-xl font-medium">Chọn thời gian từ:</label>
+
+
+      <select
+        value={selectedDay ?? ""}
+        onChange={(e) => {
+          console.log("Day selected:", e.target.value);
+          handleDayChange(e.target.value);
+        }}
+        className="px-4 py-2 border rounded-lg text-xl"
+      >
+        <option value="">Tất cả các ngày</option>
+        {days.map((day) => (
+          <option key={day} value={day}>
+            Ngày {day}
+          </option>
+        ))}
+      </select>
 
       <select
         value={currentMonthIndex}
-        onChange={(e) =>
-          handleMonthChange(currentYear, parseInt(e.target.value, 10))
-        }
+        onChange={(e) => {
+          console.log("Month selected:", e.target.value);
+          handleMonthChange(currentYear, parseInt(e.target.value, 10));
+        }}
         className="px-4 py-2 border rounded-lg text-xl"
       >
         {months.map((month, index) => (
@@ -65,7 +81,10 @@ const MonthFilter = ({
 
       <select
         value={currentYear}
-        onChange={(e) => handleMonthChange(e.target.value, currentMonthIndex)}
+        onChange={(e) => {
+          console.log("Year selected:", e.target.value);
+          handleMonthChange(e.target.value, currentMonthIndex);
+        }}
         className="px-4 py-2 border rounded-lg text-xl"
       >
         {years.map((year) => (
@@ -75,18 +94,6 @@ const MonthFilter = ({
         ))}
       </select>
 
-      <select
-        value={selectedDay || ""}
-        onChange={(e) => handleDayChange(e.target.value)}
-        className="px-4 py-2 border rounded-lg text-xl"
-      >
-        <option value="">Tất cả các ngày</option>
-        {days.map((day) => (
-          <option key={day} value={day}>
-            Ngày {day}
-          </option>
-        ))}
-      </select>
     </div>
   );
 };

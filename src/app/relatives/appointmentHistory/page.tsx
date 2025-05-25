@@ -123,64 +123,69 @@ const AppointmentHistory = () => {
     fetchListNurse();
   }, []);
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setIsLoading(true);
-        const estDateFrom = selectedDay
-          ? `${monthFilter}-${String(selectedDay).padStart(2, "0")}`
-          : `${monthFilter}-01`;
-        const response = await appointmentApiRequest.getHistoryAppointment(
-          currentPage,
-          pageSize,
-          undefined,
-          selectedPatientId || undefined,
-          estDateFrom
+ useEffect(() => {
+  const fetchAppointments = async () => {
+    try {
+      setIsLoading(true);
+      setAppointmentError(null); // Reset lỗi trước khi gọi API
+      const estDateFrom = selectedDay
+        ? `${monthFilter}-${String(selectedDay).padStart(2, "0")}`
+        : `${monthFilter}-01`;
+      console.log("Fetching appointments with params:", {
+        page: currentPage,
+        pageSize,
+        patientId: selectedPatientId || undefined,
+        estDateFrom,
+      });
+      const response = await appointmentApiRequest.getHistoryAppointment(
+        currentPage,
+        pageSize,
+        undefined,
+        selectedPatientId || undefined,
+        estDateFrom
+      );
+      if (response.payload && response.payload.success) {
+        setTotalPages(response.payload.paging.total);
+        const formattedAppointmentsPromises = response.payload.data.map(
+          async (appointment: Appointment) => {
+            const nursingId = appointment["nursing-id"];
+            const patientId = appointment["patient-id"];
+            const matchedNurse = nurses.find(
+              (nurse) => String(nurse["nurse-id"]) === String(nursingId)
+            );
+            const patientInfo = patients.find(
+              (patient) => String(patient.id) === String(patientId)
+            );
+            return await transformAppointment(
+              appointment,
+              matchedNurse || null,
+              patientInfo || null
+            );
+          }
         );
-        if (response.payload && response.payload.success) {
-          setTotalPages(response.payload.paging.total);
-          const formattedAppointmentsPromises = response.payload.data.map(
-            async (appointment: Appointment) => {
-              const nursingId = appointment["nursing-id"];
-              const patientId = appointment["patient-id"];
-              const matchedNurse = nurses.find((nurse) => {
-                const nurseMatches =
-                  String(nurse["nurse-id"]) === String(nursingId);
-                return nurseMatches;
-              });
-              const patientInfo = patients.find(
-                (patient) => String(patient.id) === String(patientId)
-              );
-              return await transformAppointment(
-                appointment,
-                matchedNurse || null,
-                patientInfo || null
-              );
-            }
+        const formattedAppointments = await Promise.all(
+          formattedAppointmentsPromises
+        );
+        setAppointments(formattedAppointments);
+        if (formattedAppointments.length === 0) {
+          toast.info(
+            `Không tìm thấy cuộc hẹn cho tháng ${monthFilter} và ngày ${
+              selectedDay || "tất cả"
+            }`
           );
-          const formattedAppointments = await Promise.all(
-            formattedAppointmentsPromises
-          );
-          setAppointments(formattedAppointments);
-        } else {
-          setAppointmentError("Không thể tải lịch hẹn. Vui lòng thử lại sau.");
         }
-        setIsLoading(false);
-      } catch (err) {
-        console.error("Error fetching appointment history:", err);
-        setError("Failed to load appointment history. Please try again later.");
-        setIsLoading(false);
+      } else {
+        setAppointmentError("Không thể tải lịch hẹn. Vui lòng thử lại sau.");
       }
-    };
-    fetchAppointments();
-  }, [
-    selectedPatientId,
-    monthFilter,
-    selectedDay,
-    currentPage,
-    patients.length,
-    nurses.length,
-  ]);
+      setIsLoading(false);
+    } catch (err) {
+      console.error("Error fetching appointment history:", err);
+      setAppointmentError("Lỗi khi tải lịch sử cuộc hẹn. Vui lòng thử lại sau.");
+      setIsLoading(false);
+    }
+  };
+  fetchAppointments();
+}, [selectedPatientId, monthFilter, selectedDay, currentPage, patients, nurses]);
 
   const transformAppointment = async (
     appointment: Appointment,
