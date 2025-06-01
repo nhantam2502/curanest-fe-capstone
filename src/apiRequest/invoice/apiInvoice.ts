@@ -15,6 +15,10 @@ const invoiceApiRequest = {
     http.patch<PatchRes>(
       `/appointment/api/v1/invoices/cancel-payment-url/${orderCode}`
     ),
+
+    getRevenue: (body: {dates: string[]}) =>
+    http.post<Res>(`/appointment/api/v1/invoices/revenue`, body),
+
 };
 
 export default invoiceApiRequest;

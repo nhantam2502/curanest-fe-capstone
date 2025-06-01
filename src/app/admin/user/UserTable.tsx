@@ -170,9 +170,9 @@ export default function UserTable({
                     {getSortIcon("phone-number")}
                   </div>
                 </TableHead>
-                <TableHead className="text-right w-[120px] font-semibold text-lg pr-4">
+                {/* <TableHead className="text-right w-[120px] font-semibold text-lg pr-4">
                   Trạng thái
-                </TableHead>
+                </TableHead> */}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,11 +218,9 @@ export default function UserTable({
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right py-2 pr-4">
-                      {" "}
-                      {/* Applied py-2, added pr-4 */}
+                    {/* <TableCell className="text-right py-2 pr-4">
                       <Switch />
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))
               ) : (

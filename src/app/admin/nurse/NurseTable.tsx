@@ -149,11 +149,9 @@ export default function RenovatedNurseTable({
                   >
                     <div className="flex items-center">Đánh giá</div>
                   </TableHead>
-                  <TableHead className="text-right w-[100px] pr-4 font-semibold text-lg">
-                    {" "}
-                    {/* Applied styles, adjusted width */}
+                  {/* <TableHead className="text-right w-[100px] pr-4 font-semibold text-lg">
                     Thao tác
-                  </TableHead>
+                  </TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -198,17 +196,14 @@ export default function RenovatedNurseTable({
                             )}
                           </TableCell>
                           <TableCell className="hidden md:table-cell text-muted-foreground text-lg">
-                            {" "}
-                            {/* Applied text-lg, kept muted */}
                             {nurse["current-work-place"] || (
                               <span className="italic">N/A</span>
                             )}
                           </TableCell>
                           <TableCell className="">
                             <StarRating rating={nurse.rate} size={20} />{" "}
-                            {/* Slightly larger stars */}
                           </TableCell>
-                          <TableCell className="text-right space-x-1 pr-4">
+                          {/* <TableCell className="text-right space-x-1 pr-4">
                             <Button
                               variant="outline"
                               size="icon"
@@ -221,7 +216,7 @@ export default function RenovatedNurseTable({
                               {" "}
                               <Pencil className="h-4 w-4 text-blue-600" />{" "}
                             </Button>
-                          </TableCell>
+                          </TableCell> */}
                         </TableRow>
                       </TooltipTrigger>
                       <TooltipContent side="bottom" align="center"className="bg-white text-black">

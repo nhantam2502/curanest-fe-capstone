@@ -49,7 +49,6 @@ const formatDateToISO = (date: Date): string => {
 };
 
 const getLocalDayIndex = (date: Date): number => {
-  // Converts Date.getDay() (Sun=0, Mon=1...) to (Mon=0, Tue=1..., Sun=6)
   let day = date.getDay();
   return day === 0 ? 6 : day - 1;
 };
@@ -57,7 +56,7 @@ const getLocalDayIndex = (date: Date): number => {
 const NurseScheduleCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [scheduleData, setScheduleData] = useState<GetAppointment[]>([]);
-  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true); // Specific loading state
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true); 
   const [appointmentError, setAppointmentError] = useState<string | null>(null);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -69,21 +68,19 @@ const NurseScheduleCalendar = () => {
   // Filters
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filterServiceId, setFilterServiceId] = useState<string>("");
-  // const [filterPackageId, setFilterPackageId] = useState<string>(""); // Keep if used
-  const [filterHasNurse, setFilterHasNurse] = useState<string>(""); // "1" for true, "0" for false, "" for any
+  const [filterHasNurse, setFilterHasNurse] = useState<string>(""); 
 
   const [rawServiceCategories, setRawServiceCategories] = useState<FetchedCategory[]>([]); // Renamed for clarity
   const [isLoadingServiceCategories, setIsLoadingServiceCategories] = useState(true);
 
   const { toast } = useToast();
-  const { staffServices, loading: isLoadingStaffServices } = useStaffServices(); // Removed refetchServices if not used
+  const { staffServices, loading: isLoadingStaffServices } = useStaffServices();
 
-  // --- DERIVED STATES ---
   const derivedFilterCategoryId = useMemo(() => {
     if (isLoadingStaffServices || !staffServices || staffServices.length === 0) {
       return null;
     }
-    // Logic to determine category ID from staffServices (e.g., first one)
+
     const categoryId = staffServices[0]?.categoryInfo?.id || null;
     // console.log("NurseScheduleCalendar: Derived filterCategoryId:", categoryId);
     return categoryId;
@@ -97,16 +94,12 @@ const NurseScheduleCalendar = () => {
     const start = getStartOfWeek(selectedDate);
     const end = getEndOfWeek(selectedDate);
     return { startOfWeek: start, endOfWeek: end };
-  }, [selectedDate]); // getStartOfWeek and getEndOfWeek are stable
+  }, [selectedDate]); 
 
-  // --- DATA FETCHING ---
   const fetchAppointmentsForWeek = useCallback(async () => {
-    const { startOfWeek } = weekBoundaries; // endOfWeek not directly used in API params for 'from'
+    const { startOfWeek } = weekBoundaries; 
 
-    // Crucial: Only fetch if category ID is determined (or if null is acceptable for "all categories")
-    // AND if the week boundaries are valid.
     if (isLoadingStaffServices || !startOfWeek) {
-      // console.log("fetchAppointmentsForWeek: Waiting for staff services or valid week boundaries.");
       setIsLoadingAppointments(true); // Keep loading true
       setScheduleData([]); // Clear data while waiting
       setAppointmentError(null);

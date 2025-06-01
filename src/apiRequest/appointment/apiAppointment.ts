@@ -149,6 +149,16 @@ const appointmentApiRequest = {
     http.patch<Res>(
       `/appointment/api/v1/appointments/${appointmentId}/update-status-upcoming`
     ),
+
+  getDashboard: (
+    isAdmin: string,
+    cateId: string | null,
+    dateFrom: string,
+    dateTo: string
+  ) =>
+    http.get<Res>(
+      `/appointment/api/v1/appointments/dashboard?is-admin=${isAdmin}&category-id=${cateId}&date-from=${dateFrom}&date-to=${dateTo}`
+    ),
 };
 
 export default appointmentApiRequest;
