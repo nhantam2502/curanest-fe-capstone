@@ -220,7 +220,6 @@ const AppointmentHistory: React.FC = () => {
   const handleResetFilters = () => {
     const defaultFilters = {
       patientName: "",
-      serviceName: "",
       fromDate: null,
       toDate: null,
       status: "all" as "all" | "success" | "cancel" | "confirmed" | "upcoming",
@@ -254,6 +253,7 @@ const AppointmentHistory: React.FC = () => {
     };
   });
 
+  console.log("updatedFilteredAppointments: ", filteredAppointments);
   return (
     <div className="mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Lịch sử cuộc hẹn</h1>

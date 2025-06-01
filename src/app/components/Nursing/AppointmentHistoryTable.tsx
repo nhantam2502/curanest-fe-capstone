@@ -112,9 +112,9 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
               <TableHead className="font-semibold">Ngày</TableHead>
               <TableHead className="font-semibold">Thời gian</TableHead>
               <TableHead className="font-semibold">Trạng thái</TableHead>
-              <TableHead className="font-semibold">
+              {/* <TableHead className="font-semibold">
                 Trạng thái thanh toán
-              </TableHead>
+              </TableHead> */}
               {/* <TableHead className="text-center font-semibold">Thành tiền</TableHead> */}
               <TableHead></TableHead>
             </TableRow>
@@ -140,9 +140,9 @@ const AppointmentHistoryTable: React.FC<AppointmentHistoryTableProps> = ({
                   </div>
                 </TableCell> */}
                 <TableCell>{getStatusBadge(appointment.status)}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {getPaymentStatusBadge(appointment.paymentStatus)}
-                </TableCell>
+                </TableCell> */}
                 {/* <TableCell className="text-right font-semibold text-red-500">
                   {appointment.totalAmount}
                 </TableCell> */}
