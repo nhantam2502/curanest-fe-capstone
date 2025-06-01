@@ -32,6 +32,9 @@ const servicePackageApiRequest = {
       body
     ),
 
+    packageCount: (cateId: string) =>
+    http.get<Res>(`/appointment/api/v1/svcpackage/category/${cateId}/usage-count`),
+
   // Service Task
   getServiceTask: (packageId: string) =>
     http.get<Res>(`/appointment/api/v1/svcpackage/${packageId}/svctask`),
