@@ -329,7 +329,7 @@ const DetailAppointment: React.FC = () => {
     }
 
     // Kiểm tra điều kiện checklist như cũ
-    if (value === "checklist" && appointmentStatus !== "upcoming") {
+    if (value === "checklist" && appointmentStatus !== "upcoming"  && appointmentStatus !== "success") {
       toast({
         variant: "warning",
         title: "Không thể truy cập",

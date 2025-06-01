@@ -44,7 +44,7 @@ const NewsCard = ({ post }: { post: any }) => {
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10">
             <AvatarImage src={post.author.avatar} />
-            <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{post.author.name.charAt(7)}</AvatarFallback>
           </Avatar>
           <span className="text-lg font-medium">{post.author.name}</span>
         </div>

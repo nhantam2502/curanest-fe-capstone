@@ -268,7 +268,7 @@ const DetailHistoryAppointment: React.FC = () => {
   // Kiểm tra có hiển thị nút "Lưu báo cáo" hay không
 
   const handleTabChange = (value: string) => {
-    if (value === "checklist" && appointmentStatus !== "upcoming") {
+    if (value === "checklist" && appointmentStatus !== "upcoming" && appointmentStatus !== "success") {
       toast({
         variant: "warning",
         title: "Không thể truy cập",

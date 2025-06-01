@@ -122,7 +122,7 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
         </Select>
 
         {/* Lọc theo trạng thái thanh toán */}
-        <Select
+        {/* <Select
           value={tempFilters.paymentStatus}
           onValueChange={(value) => handleSelectChange("paymentStatus", value)}
         >
@@ -135,10 +135,8 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
             <SelectItem value="unpaid">Chưa thanh toán</SelectItem>
             <SelectItem value="partial">Thanh toán một phần</SelectItem>
           </SelectContent>
-        </Select>
-      </div>
+        </Select> */}
 
-      <div className="flex flex-col sm:flex-row gap-4">
         {/* Chọn từ ngày */}
         <div className="w-full sm:w-auto">
           <Popover>
@@ -172,7 +170,7 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
           </Popover>
         </div>
 
-        {/* Chọn đến ngày - Thêm vào */}
+         {/* Chọn đến ngày - Thêm vào */}
         <div className="w-full sm:w-auto">
           <Popover>
             <PopoverTrigger asChild>
@@ -204,7 +202,9 @@ const AppointmentHistoryFilters: React.FC<AppointmentHistoryFiltersProps> = ({
             </PopoverContent>
           </Popover>
         </div>
+      </div>
 
+      <div className="flex flex-col sm:flex-row gap-4">
         {/* Nút tìm kiếm */}
         <Button
           variant="default"
