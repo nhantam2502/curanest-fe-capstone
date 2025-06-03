@@ -479,8 +479,8 @@ const AppointmentHistory = () => {
                         {details?.patientName || "Không có thông tin"}
                       </TableCell>
                       <TableCell className="font-semibold text-red-500 text-lg">
-                        {appointment.cusPackage?.data.package["total-fee"]
-                          ? `${appointment.cusPackage?.data.package["total-fee"].toLocaleString()} VND`
+                        {appointment.cusPackage?.data?.package?.["total-fee"]
+                          ? `${appointment.cusPackage?.data?.package?.["total-fee"].toLocaleString()} VND`
                           : "Không có thông tin"}
                       </TableCell>
                       <TableCell className="text-lg">
