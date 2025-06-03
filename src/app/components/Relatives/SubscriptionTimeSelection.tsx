@@ -299,7 +299,7 @@ const SubscriptionTimeSelection: React.FC<SubscriptionTimeSelectionProps> = ({
     const endTime = 22 * 60;
     const interval = 30;
 
-    for (let i = startTime; i <= endTime - totalTime; i += interval) {
+    for (let i = startTime; i + totalTime <= endTime; i += interval) {
       const startHour = Math.floor(i / 60);
       const startMinute = i % 60;
       const endHour = Math.floor((i + totalTime) / 60);

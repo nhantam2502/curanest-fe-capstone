@@ -274,7 +274,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
       const slots: TimeSlot[] = [];
       const [startHourNum, startMinute] = startTimeStr.split(":").map(Number);
       const startTime = startHourNum * 60 + startMinute;
-      const endTime = 20 * 60; // 20:00 PM
+      const endTime = 22 * 60; // 22:00 PM
       const interval = 30; // 30 minutes intervals
 
       for (let i = startTime; i <= endTime - totalTime; i += interval) {
@@ -479,9 +479,7 @@ const TimeSelection: React.FC<TimeSelectionProps> = ({
           {hasOverlap && (
             <div className="bg-yellow-100 p-4 rounded-lg mb-4 flex items-center gap-3 text-yellow-700">
               <AlertCircle className="h-6 w-6" />
-              <p>
-                Lịch hẹn này trùng với một lịch hẹn hiện có. 
-              </p>
+              <p>Lịch hẹn này trùng với một lịch hẹn hiện có.</p>
             </div>
           )}
           <div className="grid grid-cols-5 gap-4">

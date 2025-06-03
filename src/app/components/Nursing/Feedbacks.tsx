@@ -111,12 +111,12 @@ const Feedback = ({ nurse }: { nurse: DetailNurseItemType }) => {
             {feedbacks.map((feedback) => (
               <div key={feedback.id} className="border-b pb-6 last:border-b-0">
                 <div className="flex items-center gap-6 mb-3">
-                  <Avatar className="w-20 h-20">
+                  {/* <Avatar className="w-20 h-20">
                     <AvatarImage src="https://github.com/shadcn.png" />
                     <AvatarFallback>
                       {feedback["patient-name"].substring(0, 2) || "UN"}
                     </AvatarFallback>
-                  </Avatar>
+                  </Avatar> */}
 
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
